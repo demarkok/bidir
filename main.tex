@@ -2,7 +2,6 @@
 \usepackage{fullpage}
 \usepackage{amssymb}
 \usepackage{xcolor}
-
 \usepackage{mathpartir}
 
 %%
@@ -246,11 +245,11 @@
 
 \begin{mathpar}
 
-  \Infer{$\Pi$I$\infers$}
-        { \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\
-          \judgecInfer{\Gamma, x:A}{t}{X} }
-        { \judgecInfer{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
-  \and
+  %% \Infer{$\Pi$I$\infers$}
+  %%       { \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\
+  %%         \judgecInfer{\Gamma, x:A}{t}{X} }
+  %%       { \judgecInfer{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
+  %% \and
 
   \Infer{$\Pi$I$\checks$}
         { \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\
@@ -264,13 +263,13 @@
         { \judgecInfer{\Gamma}{t\,v}{\subst{X}{x}{v}} }
   \and
 
-  \Infer{$\Sigma$I$\infers$}
-        { \judgevInfer{\Gamma}{v}{A} \\
-          \judgevInfer{\Gamma}{w}{B} \\
-          \judgevCheck{\Gamma}{A}{\unival} \\
-          \judgevCheck{\Gamma}{B}{\unival} }
-        { \judgevInfer{\Gamma}{\pair{v}{w}}{A \times B}}
-  \and
+  %% \Infer{$\Sigma$I$\infers$}
+  %%       { \judgevInfer{\Gamma}{v}{A} \\
+  %%         \judgevInfer{\Gamma}{w}{B} \\
+  %%         \judgevCheck{\Gamma}{A}{\unival} \\
+  %%         \judgevCheck{\Gamma}{B}{\unival} }
+  %%       { \judgevInfer{\Gamma}{\pair{v}{w}}{A \times B}}
+  %% \and
 
   \Infer{$\Sigma$I$\checks$}
         { \judgevCheck{\Gamma}{v}{A} \\
@@ -308,12 +307,12 @@
         { \judgecInfer{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
   \and
 
-  \Infer{$\mathsf{eq}$E$\checks$}
-        { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
-          \judgecInfer{\Gamma}{X}{\pitype{y:A}{\eqtype{A}{w_1}{y} \to \unicomp}} \\
-          \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
-        { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
-        \and
+  %% \Infer{$\mathsf{eq}$E$\checks$}
+  %%       { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
+  %%         \judgecInfer{\Gamma}{X}{\pitype{y:A}{\eqtype{A}{w_1}{y} \to \unicomp}} \\
+  %%         \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
+  %%       { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
+  %%       \and
 
 \end{mathpar}
 
