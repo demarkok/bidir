@@ -3,8 +3,11 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 \usepackage{mathpartir}
+\usepackage{cleveref}
 
 \usepackage[colorinlistoftodos]{todonotes} 
+
+\newtheorem{lemma}{Lemma}
 
 %% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
 \newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
@@ -97,6 +100,7 @@
 \end{mathpar}
 
 \section{Rules}
+\label{sec:rules}
 
 \subsection{Context and Equivalence}
 
@@ -323,5 +327,23 @@
   %%       \and
 
 \end{mathpar}
+
+\section{Properties}
+%% \subsection{Mode-correctness}
+%% \subsection{Regularity}
+
+\begin{lemma}[Mode-correctness]
+  The rules from \cref{sec:rules} are algorithmic.
+\end{lemma}
+
+\begin{lemma}[Regularity]
+  The types inferred by $\infers$ are well-formed. Specifically, the following properties hold:
+  \begin{enumerate}
+  \item if $\judgectx{}{\Gamma}$ and $\judgevInfer{\Gamma}{v}{A}$ then $\judgevCheck{\Gamma}{A}{\unival}$
+  \item if $\judgectx{}{\Gamma}$ and $\judgecInfer{\Gamma}{t}{X}$ then $\judgevCheck{\Gamma}{X}{\unicomp}$
+  \end{enumerate}
+\end{lemma}
+
+
 
 \end{document}
