@@ -4,8 +4,15 @@
 \usepackage{xcolor}
 \usepackage{mathpartir}
 
+\usepackage[colorinlistoftodos]{todonotes} 
+
+%% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
+\newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
+\newcommand{\ilyam}[1]{{\color{red} \texttt{#1}}}
+
 %%
 \newcommand{\bnfalt}{\;\;|\;\;}
+
 
 
 % Now we give some commands to define the syntax of the language. 
@@ -61,6 +68,8 @@
 \newcommand{\judgevCheck}[3]{{#1} \vdash_{v} {#2} \, \checks \, {#3}}
 \newcommand{\judgevInfer}[3]{{#1} \vdash_{v} {#2} \, \infers \, {#3}}
 
+\newcommand{\judgeInctx}[2]{{#1} \in {#2}}
+
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
 % 
@@ -91,6 +100,10 @@
 
 \subsection{Context and Equivalence}
 
+\ilyam{Do we need to check $\judgevCheck{\Gamma}{B}{\unival}$ in CtxExt?}
+\\
+\ilyam{Do we need to check $\judgectx{}{\Gamma}$ in CtxInit?}
+
 \begin{mathpar}
   \Infer{Ctx0}
         { }
@@ -100,25 +113,21 @@
         { \judgevCheck{\Gamma}{A}{\unival} }
         { \judgectx{ }{\Gamma,x:A}}
   
+  \Infer{CtxExt}
+        { \judgeInctx{x:A}{\Gamma} \\
+          \judgevCheck{\Gamma}{B}{\unival}}
+        { \judgeInctx{x:A}{(\Gamma, y:B)} }
+  \and
+
+  \Infer{CtxInit}
+        { \judgectx{}{\Gamma} }
+        { \judgeInctx{x:A}{(\Gamma, x:A)} }
+        \and
 
   \Infer{Var}
-        { \judgevCheck{\Gamma}{A}{\unival} }
+        { \judgeInctx{x:A}{\Gamma} }
         { \judgevInfer{\Gamma, x:A}{x}{A} }
-  \and
-        
-
-  \Infer{CtxExt$\checks$}
-        { \judgevCheck{\Gamma}{B}{\unival} \\
-          \judgevCheck{\Gamma}     {x}{A}}
-        { \judgevCheck{\Gamma, x:B}{x}{A} }
-
-  \and
-
-  \Infer{CtxExt$\infers$}
-        { \judgevCheck{\Gamma}{B}{\unival} \\
-          \judgevInfer{\Gamma}     {x}{A}}
-        { \judgevInfer{\Gamma, y:B}{x}{A} }
-  \and
+        \and
 
   \Infer{EqivC}
         { \judgecInfer{\Gamma}{t}{Y} \\
@@ -285,7 +294,6 @@
           \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{X \pair{x}{y}}}}
         { \judgecInfer{\Gamma}{\recsigma{v}{X}{t}}{X\,v} }
   \and
-  \texttt{What if X fails to check against the type inferred for v?}
 
 \end{mathpar}
 
