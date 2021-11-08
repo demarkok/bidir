@@ -1,0 +1,320 @@
+\documentclass[a4]{article}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\usepackage{mathpartir}
+
+%%
+\newcommand{\bnfalt}{\;\;|\;\;}
+
+
+% Now we give some commands to define the syntax of the language. 
+
+\newcommand{\fun}[2]{\lambda {#1}.\,{#2}}
+
+\newcommand{\letval}[3]{\mathsf{let}\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
+\newcommand{\dletval}[3]{\mathsf{dlet}\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
+
+\newcommand{\pair}[2]{\left\langle{#1}, {#2}\right\rangle}
+\newcommand{\fst}[1]{\mathsf{fst}\,{#1}}
+\newcommand{\snd}[1]{\mathsf{snd}\,{#1}}
+
+\newcommand{\unit}{\langle\rangle}
+
+\newcommand{\ctov}{\mathcal{U}}
+\newcommand{\vtoc}{\mathcal{F}}
+
+\newcommand{\unival}{\square^{v}}
+\newcommand{\unicomp}{\square^{c}}
+\newcommand{\comptoval}[1]{\ctov #1}
+\newcommand{\valtocomp}[1]{\vtoc #1}
+\newcommand{\sigmatype}[2]{\Sigma {#1}.\,#2}
+\newcommand{\pitype}[2]{\Pi {#1}.\,#2}
+\newcommand{\eqtype}[3]{\mathsf{eq}{#1}\,{#2}\,{#3}}
+\newcommand{\refl}{\mathsf{refl}}
+\newcommand{\force}[1]{\mathsf{force}\,{#1}}
+\newcommand{\return}[1]{\mathsf{return}\,{#1}}
+\newcommand{\thunk}[1]{\mathsf{thunk}\,{#1}}
+
+\newcommand{\recsigma}[3]{\mathsf{rec}_{\Sigma}({#1},{#2},{#3})}
+\newcommand{\receq}[3]{\mathsf{rec}_{\mathsf{eq}}({#1},{#2},{#3})}
+
+\newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
+
+
+% This is a command to define a judgement -- we'll one command per judgement
+% for delta-CBPV
+
+\newcommand{\judge}[3]{{#1} \vdash {#2} : {#3}}
+\newcommand{\judgectx}[2]{{#1} \vdash {#2}}
+
+
+\newcommand{\checks}{{\color{blue} \Leftarrow}}
+\newcommand{\infers}{{\color{brown} \Rightarrow}}
+
+\newcommand{\judgec}[3]{{#1} \vdash_{c} {#2} : {#3}}
+\newcommand{\judgecCheck}[3]{{#1} \vdash_{c} {#2} \, \checks \,  {#3}}
+\newcommand{\judgecInfer}[3]{{#1} \vdash_{c} {#2} \, \infers \, {#3}}
+
+
+\newcommand{\judgev}[3]{{#1} \vdash_{v} {#2} : {#3}}
+\newcommand{\judgevCheck}[3]{{#1} \vdash_{v} {#2} \, \checks \, {#3}}
+\newcommand{\judgevInfer}[3]{{#1} \vdash_{v} {#2} \, \infers \, {#3}}
+
+% This is a command to define an inference rule. The optional argument to
+% \inferrule* is the label for the rule. 
+% 
+\newcommand{\Infer}[3]{\inferrule*[right={#1}]{#2}{#3}}
+
+
+\begin{document}
+
+\section{Syntax}
+
+\begin{mathpar}
+  \begin{array}{llcl}
+    \mbox{Values} & A, B, v, w & ::= & x \bnfalt \unival \bnfalt \comptoval{X}
+    \bnfalt \sigmatype{x:A}{B} \bnfalt \refl \bnfalt \eqtype{A}{v}{w} \bnfalt
+    \thunk{t} \bnfalt \pair{v}{w} \\[1em]
+
+    \mbox{Computations} & X, Y, t, u & ::= & t v \bnfalt \unicomp \bnfalt
+    \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \force {t} \bnfalt \return{v}
+    \bnfalt \fun{x:X}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
+    \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{X}{t} \bnfalt \receq{v}{X}{t}
+    \\[1em]
+
+    \mbox{Contexts} & \Gamma & ::= & \cdot \bnfalt \Gamma, x:A \\[1em]
+  \end{array}
+\end{mathpar}
+
+\section{Rules}
+
+\subsection{Context and Equivalence}
+
+\begin{mathpar}
+  \Infer{Ctx0}
+        { }
+        { \judgectx{}{\cdot}}
+
+  \Infer{CtxI}
+        { \judgevCheck{\Gamma}{A}{\unival} }
+        { \judgectx{ }{\Gamma,x:A}}
+  
+
+  \Infer{Var}
+        { \judgevCheck{\Gamma}{A}{\unival} }
+        { \judgevInfer{\Gamma, x:A}{x}{A} }
+  \and
+        
+
+  \Infer{CtxExt$\checks$}
+        { \judgevCheck{\Gamma}{B}{\unival} \\
+          \judgevCheck{\Gamma}     {x}{A}}
+        { \judgevCheck{\Gamma, x:B}{x}{A} }
+
+  \and
+
+  \Infer{CtxExt$\infers$}
+        { \judgevCheck{\Gamma}{B}{\unival} \\
+          \judgevInfer{\Gamma}     {x}{A}}
+        { \judgevInfer{\Gamma, y:B}{x}{A} }
+  \and
+
+  \Infer{EqivC}
+        { \judgecInfer{\Gamma}{t}{Y} \\
+          X \equiv Y \\
+          \judgecCheck{\Gamma}{Y}{\unicomp} \\
+          }
+        { \judgecCheck{\Gamma}{t}{X} }
+  \and
+
+  \Infer{EqivV}
+        { \judgevInfer{\Gamma}{v}{B} \\
+          A \equiv B \\
+          \judgevCheck{\Gamma}{B}{\unicomp} \\
+        }
+        { \judgevCheck{\Gamma}{v}{A} }
+  \and
+
+\end{mathpar}
+
+\subsection{Universes}
+
+\begin{mathpar}
+  \Infer{$\vtoc$}
+        { \judgevCheck{\Gamma}{A}{\unival} }
+        { \judgecInfer{\Gamma}{\valtocomp{A}}{\unicomp} }
+        \and
+
+  \Infer{$\ctov$}
+        { \judgecCheck{\Gamma}{X}{\unicomp} }
+        { \judgevInfer{\Gamma}{\comptoval{X}}{\unival} }
+  \and
+
+  \Infer{$\Pi$}
+        { \judgevCheck{\Gamma}     {A}{\unival} \\
+          \judgecCheck{\Gamma, x:A}{X}{\unicomp} }
+        { \judgecInfer{\Gamma}{\pitype{x:A}{X}}{\unicomp} }
+  \and
+
+  \Infer{$\Sigma$}
+        { \judgevCheck{\Gamma}     {A}{\unival} \\
+          \judgevCheck{\Gamma, x:A}{B}{\unival} }
+        { \judgecInfer{\Gamma}{\sigmatype{x:A}{B}}{\unival} }
+  \and
+  
+
+  \Infer{$\mathsf{eq}$}
+        { \judgevCheck{\Gamma}{A}{\unival} \\
+          \judgevCheck{\Gamma}{v}{A} \\
+          \judgevCheck{\Gamma}{w}{A} }
+        { \judgevInfer{\Gamma}{\eqtype{A}{v}{w}}{\unival} }
+  \and
+
+\end{mathpar}
+
+\subsection{$\vtoc$ and $\ctov$}
+\begin{mathpar}
+
+  \Infer{$\ctov$I$\checks$}
+        { \judgecCheck{\Gamma}{t}{X} }
+        { \judgevCheck{\Gamma}{\thunk{t}}{\comptoval{X}}}
+
+  \and
+  \Infer{$\ctov$I$\infers$}
+        { \judgecInfer{\Gamma}{t}{X} }
+        { \judgevInfer{\Gamma}{\thunk{t}}{\comptoval{X}}}
+
+  \and
+
+  \Infer{$\ctov$E$\checks$}
+        { \judgevCheck{\Gamma}{v}{\comptoval{X}} }
+        { \judgecCheck{\Gamma}{\force{v}}{X}}
+
+  \and
+  \Infer{$\vtoc$E$\infers$}
+        { \judgevInfer{\Gamma}{v}{\comptoval{X}} }
+        { \judgecInfer{\Gamma}{\force{v}}{X}}
+  \and
+
+
+  \Infer{$\vtoc$I$\checks$}
+        { \judgevCheck{\Gamma}{v}{A} }
+        { \judgecCheck{\Gamma}{\return{v}}{\comptoval{A}}}
+  \and
+
+  \Infer{$\vtoc$I$\infers$}
+        { \judgevInfer{\Gamma}{v}{A} }
+        { \judgecInfer{\Gamma}{\return{v}}{\comptoval{A}}}
+  \and
+
+\end{mathpar}
+
+\subsection{Let and Dependent Let}
+
+\begin{mathpar}
+  \Infer{Let$\infers$}
+        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+          \judgecCheck{\Gamma}{X}{\unicomp} \\ 
+          \judgecInfer{\Gamma, x : A}{u}{X}}
+        { \judgecInfer{\Gamma}{\letval{x : A}{t}{u}}{X} }
+  \and
+  \Infer{Let$\checks$}
+        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+          \judgecCheck{\Gamma}{X}{\unicomp} \\ 
+          \judgecCheck{\Gamma, x : A}{u}{X}}
+        { \judgecCheck{\Gamma}{\letval{x : A}{t}{u}}{X} }
+  \and
+
+  \Infer{DLet$\infers$}
+        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+          \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\ 
+          \judgecInfer{\Gamma, x:A}{u}{X}}
+        { \judgecInfer{\Gamma}{\dletval{x:A}{t}{u}}{(\letval{x:A}{t}{X})} }
+  \and
+  \Infer{DLet$\checks$}
+        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+          \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\ 
+          \judgecCheck{\Gamma, x:A}{u}{X}}
+        { \judgecCheck{\Gamma}{\dletval{x:A}{t}{u}}{(\letval{x:A}{t}{X})} }
+  \and
+
+\end{mathpar}
+
+\subsection{$\Pi$ and $\Sigma$}
+
+\begin{mathpar}
+
+  \Infer{$\Pi$I$\infers$}
+        { \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\
+          \judgecInfer{\Gamma, x:A}{t}{X} }
+        { \judgecInfer{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
+  \and
+
+  \Infer{$\Pi$I$\checks$}
+        { \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\
+          \judgecCheck{\Gamma, x:A}{t}{X} }
+        { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
+  \and
+
+  \Infer{$\Pi$E}
+        { \judgecInfer{\Gamma}{t}{\pitype{x:A}{X}} \\
+          \judgevCheck{\Gamma}{v}{A} }
+        { \judgecInfer{\Gamma}{t\,v}{\subst{X}{x}{v}} }
+  \and
+
+  \Infer{$\Sigma$I$\infers$}
+        { \judgevInfer{\Gamma}{v}{A} \\
+          \judgevInfer{\Gamma}{w}{B} \\
+          \judgevCheck{\Gamma}{A}{\unival} \\
+          \judgevCheck{\Gamma}{B}{\unival} }
+        { \judgevInfer{\Gamma}{\pair{v}{w}}{A \times B}}
+  \and
+
+  \Infer{$\Sigma$I$\checks$}
+        { \judgevCheck{\Gamma}{v}{A} \\
+          \judgevCheck{\Gamma}{w}{\subst{B}{x}{v}} \\
+          \judgevCheck{\Gamma}{\sigmatype{x:A}{B}}{\unival} }
+        { \judgevCheck{\Gamma}{\pair{v}{w}}{\sigmatype{x:A}{B}} }
+   \and
+
+
+  \Infer{$\Sigma$E}
+        { \judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}} \\
+          \judgecCheck{\Gamma}{X}{\sigmatype{x:A}{B} \to \unicomp} \\
+          \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{X \pair{x}{y}}}}
+        { \judgecInfer{\Gamma}{\recsigma{v}{X}{t}}{X\,v} }
+  \and
+  \texttt{What if X fails to check against the type inferred for v?}
+
+\end{mathpar}
+
+\subsection{Equality}
+
+\begin{mathpar}
+
+  \Infer{$\mathsf{eq}$I}
+        { \judgevCheck{\Gamma}{A}{\unival} \\
+          \judgevCheck{\Gamma}{v}{A}}
+        { \judgevCheck{\Gamma}{\refl}{\eqtype{A}{v}{v}} }
+
+  \and
+
+  \Infer{$\mathsf{eq}$E$\infers$}
+        { \judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
+          \judgecCheck{\Gamma}{X}{\pitype{y:A}{\eqtype{A}{w_1}{y} \to \unicomp}} \\
+          \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
+        { \judgecInfer{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
+  \and
+
+  \Infer{$\mathsf{eq}$E$\checks$}
+        { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
+          \judgecInfer{\Gamma}{X}{\pitype{y:A}{\eqtype{A}{w_1}{y} \to \unicomp}} \\
+          \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
+        { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
+        \and
+
+\end{mathpar}
+
+\end{document}
