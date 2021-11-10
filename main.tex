@@ -20,7 +20,7 @@
 
 %% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
 \newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
-\newcommand{\ilyam}[1]{{\color{red}Ilya: \texttt{#1}}}
+\newcommand{\ilyam}[1]{{\color{red} \texttt{Ilya:  #1}}}
 
 %%
 \newcommand{\bnfalt}{\;\;|\;\;}
@@ -120,6 +120,21 @@
   (2) I removed $\judgectx{}{\Gamma}$ from CtxInit;
   (3) I added $\judgectx{ }{\Gamma}$ to CtxI;
   (4) I added $\judgevCheck{\Gamma}{A}{\unival}$ to Let synt.}
+\\ \\
+\ilyam{I added $\judgevInfer{\Gamma}{\unival}{\unival}$ and
+  $\judgecInfer{\Gamma}{\unicomp}{\unicomp}$ as axioms to prove Regularity.
+  Is it OK? Wouldn't it lead to inconsistency? }
+\\ \\
+\ilyam{I removed $\judgevCheck{\Gamma}{B}{\unicomp}$ from EuivV
+  and the corresponding check from EqivC because
+  Otherwise $\judgevCheck{\Gamma}{\unicomp}{\unicomp}$ doesn't hold.
+  Now these judgements follow from Regularity.}
+\\ \\
+\ilyam{In ($\Sigma$E), I made
+  $\judgecCheck{\Gamma}{X}{\sigmatype{x:A}{B} \to \unicomp}$
+  synthesizing and $\judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}}$ checking
+  to match with ($\Pi$E). Otherwise I don't know how to prove regularity}
+
 \begin{mathpar}
   %% \labelAxiom{Ctx0}{rule:Ctx0}
   \Infer{Ctx0}
@@ -150,7 +165,6 @@
   \Infer{EqivC}
         { \judgecInfer{\Gamma}{t}{Y} \\
           X \equiv Y \\
-          \judgecCheck{\Gamma}{Y}{\unicomp} \\
           }
         { \judgecCheck{\Gamma}{t}{X} }
   \and
@@ -158,7 +172,6 @@
   \Infer{EqivV}
         { \judgevInfer{\Gamma}{v}{B} \\
           A \equiv B \\
-          \judgevCheck{\Gamma}{B}{\unicomp} \\
         }
         { \judgevCheck{\Gamma}{v}{A} }
   \and
@@ -198,6 +211,17 @@
           \judgevCheck{\Gamma}{w}{A} }
         { \judgevInfer{\Gamma}{\eqtype{A}{v}{w}}{\unival} }
   \and
+
+  \Infer{$\unival$}
+        { }
+        { \judgevInfer{\Gamma}{\unival}{\unival} }
+  \and
+
+  \Infer{$\unicomp$}
+        { }
+        { \judgecInfer{\Gamma}{\unicomp}{\unicomp} }
+  \and
+
 
 \end{mathpar}
 
@@ -312,8 +336,9 @@
 
 
   \Infer{$\Sigma$E}
-        { \judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}} \\
-          \judgecCheck{\Gamma}{X}{\sigmatype{x:A}{B} \to \unicomp} \\
+        {
+          \judgecInfer{\Gamma}{X}{\sigmatype{x:A}{B} \to \unicomp} \\
+          \judgevCheck{\Gamma}{v}{\sigmatype{x:A}{B}} \\
           \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{X \pair{x}{y}}}}
         { \judgecInfer{\Gamma}{\recsigma{v}{X}{t}}{X\,v} }
   \and
@@ -362,6 +387,7 @@
   First, we prove the mode-correctness of \emph{conclusion} for each rule.
   Note that it is only relevant for the \emph{inferring} rules, because for the \emph{checking} rules, the resulting type is given as an input.
 
+  \begin{multicols}{2}
   \begin{itemize}
   \item[(Var)]
     $A$ is known from the input of the conclusion.
@@ -397,6 +423,7 @@
     $X$ and $v$ are given in the input of the conclusion;
     $w_2$ is known from the output of $\judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}}$.
   \end{itemize}
+  \end{multicols}
 
   Second, we let us show the mode-correctness of \emph{premises}.
   
@@ -442,6 +469,9 @@
       \item[($\mathsf{eq}$)]
         $\Gamma$, $A$, $v$, and $w$ are \fromconcl.
 
+      \item[($\unival$ and $\unicomp$)]
+        There are no premises.
+
       \item[($\ctov$I$\checks$)]
         $\Gamma$, $t$, and $X$ are \fromconcl.
 
@@ -485,8 +515,9 @@
         $\Gamma$, $v$, $A$, $w$, $B$, $x$ are \fromconcl.
 
       \item[($\Sigma$E)]
-        $\Gamma$, $v$, $X$, are \fromconcl;
-        $x$, $A$, and $B$ are known from the output of $\judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}}$;
+        $\Gamma$, $X$, and $v$, are \fromconcl;
+        $x$, $A$, and $B$ are known from the output of
+        $\judgecInfer{\Gamma}{X}{\sigmatype{x:A}{B} \to \unicomp}$;
         $y$ is an arbitrary fresh variable.
         
       \item[($\mathsf{eq}$I)]
