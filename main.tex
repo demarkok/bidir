@@ -1,11 +1,20 @@
-\documentclass[a4]{article}
+\documentclass[a4,natbib=false]{article}
 \usepackage{fullpage}
 \usepackage{amssymb}
+\usepackage{amsmath,amsfonts,amsthm}
 \usepackage{xcolor}
 \usepackage{mathpartir}
 \usepackage{cleveref}
+\usepackage{multicol}
 
 \usepackage[colorinlistoftodos]{todonotes} 
+
+\setlength{\columnsep}{1cm}
+\let\citename\relax
+\usepackage[natbib=true, abbreviate=false, dateabbrev=true, isbn=true, doi=false, urldate=comp, url=true, maxbibnames=9, maxcitenames=2, backref=false, backend=biber, style=alphabetic, language=american]{biblatex}
+\addbibresource{biblio.bib}
+
+
 
 \newtheorem{lemma}{Lemma}
 
@@ -102,6 +111,8 @@
 \section{Rules}
 \label{sec:rules}
 
+\ilya{How to make clickable references to the inference rule names?}
+
 \subsection{Context and Equivalence}
 
 \ilyam{Do we need to check $\judgevCheck{\Gamma}{B}{\unival}$ in CtxExt?}
@@ -109,6 +120,7 @@
 \ilyam{Do we need to check $\judgectx{}{\Gamma}$ in CtxInit?}
 
 \begin{mathpar}
+  %% \labelAxiom{Ctx0}{rule:Ctx0}
   \Infer{Ctx0}
         { }
         { \judgectx{}{\cdot}}
@@ -152,6 +164,7 @@
 \end{mathpar}
 
 \subsection{Universes}
+\label{sec:rules:universes}
 
 \begin{mathpar}
   \Infer{$\vtoc$}
@@ -220,16 +233,17 @@
         { \judgevInfer{\Gamma}{v}{A} }
         { \judgecInfer{\Gamma}{\return{v}}{\comptoval{A}}}
   \and
-
 \end{mathpar}
 
 \subsection{Let and Dependent Let}
 
 \begin{mathpar}
   \Infer{Let$\infers$}
-        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+        {
+          \judgecInfer{\Gamma, x : A}{u}{X} \\
+          \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\
           \judgecCheck{\Gamma}{X}{\unicomp} \\ 
-          \judgecInfer{\Gamma, x : A}{u}{X}}
+        }
         { \judgecInfer{\Gamma}{\letval{x : A}{t}{u}}{X} }
   \and
   \Infer{Let$\checks$}
@@ -240,9 +254,11 @@
   \and
 
   \Infer{DLet$\infers$}
-        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+        {
+          \judgecInfer{\Gamma, x:A}{u}{X} \\
+          \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\
           \judgecCheck{\Gamma, x:A}{X}{\unicomp} \\ 
-          \judgecInfer{\Gamma, x:A}{u}{X}}
+        }
         { \judgecInfer{\Gamma}{\dletval{x:A}{t}{u}}{(\letval{x:A}{t}{X})} }
   \and
   \Infer{DLet$\checks$}
@@ -333,17 +349,163 @@
 %% \subsection{Regularity}
 
 \begin{lemma}[Mode-correctness]
-  The rules from \cref{sec:rules} are algorithmic.
+  Each rule in \cref{sec:rules} is mode-correct. Specifically, as defined in \cite{dunfield2021:bidirectional},
+  \begin{enumerate}
+    \item The premises are mode-correct: for each premise, every input meta-variable is known from the input of the rule's conclusion and the outputs of the earlier premises.
+    \item The conclusion is mode-correct: if all premises have been derived, the outputs of the conclusion are known.
+  \end{enumerate}
 \end{lemma}
+\begin{proof}
+  First, we prove the mode-correctness of \emph{conclusion} for each rule.
+  Note that it is only relevant for the \emph{inferring} rules, because for the \emph{checking} rules, the resulting type is given as an input.
+
+  \begin{itemize}
+  \item[(Var)]
+    $A$ is known from the input of the conclusion.
+  \item[(Universes)]
+    For rules in \cref{sec:rules:universes} ($\ctov$, $\vtoc$, $\Pi$,
+    $\Sigma$, $\mathsf{eq}$), the resulting type (a universe) is the only
+    possible option.
+
+  \item[($\ctov$I$\infers$)]
+    $X$ is known from the output of $\judgecInfer{\Gamma}{t}{X}$.
+
+  \item[($\vtoc$E$\infers$)]
+    $X$ is known from the output of $\judgevInfer{\Gamma}{v}{\comptoval{X}}$.
+
+  \item[($\vtoc$I$\infers$)]
+    $A$ is known from the output of $\judgevInfer{\Gamma}{v}{\comptoval{X}}$.
+
+  \item[(Let$\infers$)]
+    $X$ is known from the output of $\judgecInfer{\Gamma, x : A}{u}{X}$.
+
+  \item[(DLet$\infers$)]
+    $x$, $A$, and $t$ are given in the input of the conclusion; $X$ is known
+    from the output of $\judgecInfer{\Gamma, x:A}{u}{X}$.
+
+  \item[($\Pi$E)]
+    $v$ is given in the input of the conclusion; $x$ and $X$ are known from the
+    output of $\judgecInfer{\Gamma}{t}{\pitype{x:A}{X}}$.
+
+  \item[($\Sigma$E)]
+    $X$ and $v$ are given in the input of the conclusion.
+
+  \item[($\mathsf{eq}$E$\infers$)]
+    $X$ and $v$ are given in the input of the conclusion;
+    $w_2$ is known from the output of $\judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}}$.
+  \end{itemize}
+
+  Second, we let us show the mode-correctness of \emph{premises}.
+  
+  \newcommand{\fromconcl}{given in the input of the conclusion}
+
+  \begin{multicols}{2}
+  \begin{itemize}
+      \item[(Ctx0)]
+        There are no premises.
+
+      \item[(CtxI)]
+        $\Gamma$ and $A$ are \fromconcl.
+
+      \item[(CtxExt)]
+        $X$, $A$, $\Gamma$, and $B$ are \fromconcl.
+
+      \item[(CtxInit)]
+        $\Gamma$ is \fromconcl.
+
+      \item[(Var)]
+        $x$, $A$, and $\Gamma$ are \fromconcl.
+
+      \item[(EqivC)]
+        $\Gamma$, $t$, and $X$ are \fromconcl;
+        $Y$ is known from the output of $\judgecInfer{\Gamma}{t}{Y}$.
+
+      \item[(EqivV)]
+        $\Gamma$, $v$, and $A$ are \fromconcl;
+        $B$ is known from the output of $\judgevInfer{\Gamma}{v}{B}$.
+
+      \item[($\vtoc$)]
+        $\Gamma$ and $A$ are \fromconcl.
+
+      \item[($\ctov$)]
+        $\Gamma$ and $X$ are \fromconcl.
+
+      \item[($\Pi$)]
+        $\Gamma$, $A$, $x$, and $X$ are \fromconcl.
+
+      \item[($\Sigma$)]
+        $\Gamma$, $A$, $x$, and $B$ are \fromconcl.
+
+      \item[($\mathsf{eq}$)]
+        $\Gamma$, $A$, $v$, and $w$ are \fromconcl.
+
+      \item[($\ctov$I$\checks$)]
+        $\Gamma$, $t$, and $X$ are \fromconcl.
+
+      \item[($\ctov$I$\infers$)]
+        $\Gamma$ and $t$ are \fromconcl.
+
+      \item[($\ctov$E$\checks$)]
+        $\Gamma$, $v$, and $X$ are \fromconcl.
+
+      \item[($\vtoc$E$\infers$)]
+        $\Gamma$ and $v$ are \fromconcl.
+
+      \item[($\vtoc$I$\checks$)]
+        $\Gamma$, $v$, and $A$ are \fromconcl.
+
+      \item[($\vtoc$I$\infers$)]
+        $\Gamma$ and $v$ are \fromconcl.
+
+      \item[(Let$\infers$)]
+        $\Gamma$, $x$, $A$, $u$, and $t$ are \fromconcl;
+        $X$ is known from the output of $\judgecInfer{\Gamma, x : A}{u}{X}$.
+        
+      \item[(Let$\checks$)]
+        $\Gamma$, $t$, $A$, $X$, $x$, and $u$ are \fromconcl.
+
+      \item[(DLet$\infers$)]
+        $\Gamma$, $x$, $A$, $u$, and $t$ are \fromconcl.
+        $X$ is known from the output of $\judgecInfer{\Gamma, x:A}{u}{X}$.
+
+      \item[(DLet$\checks$)]
+        $\Gamma$, $t$, $A$, $x$, $X$, and $u$ are \fromconcl.
+
+      \item[($\Pi$I$\checks$)]
+        $\Gamma$, $x$, $A$, $X$, and $t$ are \fromconcl.
+
+      \item[($\Pi$E)]
+        $\Gamma$, $t$, and $v$ are \fromconcl;
+        $A$ is known from the output of $\judgecInfer{\Gamma}{t}{\pitype{x:A}{X}}$
+
+      \item[($\Sigma$I$\checks$)]
+        $\Gamma$, $v$, $A$, $w$, $B$, $x$ are \fromconcl.
+
+      \item[($\Sigma$E)]
+        $\Gamma$, $v$, $X$, are \fromconcl;
+        $x$, $A$, and $B$ are known from the output of $\judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}}$;
+        $y$ is an arbitrary fresh variable.
+        
+      \item[($\mathsf{eq}$I)]
+        $\Gamma$, $A$, and $v$ are \fromconcl.
+
+      \item[($\mathsf{eq}$E$\infers$)]
+        $\Gamma$, $v$, $X$, and $t$ are \fromconcl;
+        $A$ and $w_1$ are known from the output of $\judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}}$.
+  \end{itemize}
+  \end{multicols}
+
+
+\end{proof}
 
 \begin{lemma}[Regularity]
-  The types inferred by $\infers$ are well-formed. Specifically, the following properties hold:
+  The types inferred by $\infers$ are well-formed. Specifically, the following properties hold
   \begin{enumerate}
   \item if $\judgectx{}{\Gamma}$ and $\judgevInfer{\Gamma}{v}{A}$ then $\judgevCheck{\Gamma}{A}{\unival}$
   \item if $\judgectx{}{\Gamma}$ and $\judgecInfer{\Gamma}{t}{X}$ then $\judgevCheck{\Gamma}{X}{\unicomp}$
   \end{enumerate}
 \end{lemma}
 
-
+\printbibliography
 
 \end{document}
