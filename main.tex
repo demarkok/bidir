@@ -20,7 +20,7 @@
 
 %% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
 \newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
-\newcommand{\ilyam}[1]{{\color{red} \texttt{#1}}}
+\newcommand{\ilyam}[1]{{\color{red}Ilya: \texttt{#1}}}
 
 %%
 \newcommand{\bnfalt}{\;\;|\;\;}
@@ -111,14 +111,15 @@
 \section{Rules}
 \label{sec:rules}
 
-\ilya{How to make clickable references to the inference rule names?}
+\ilyam{How to make clickable references to the inference rule names?}
 
 \subsection{Context and Equivalence}
 
-\ilyam{Do we need to check $\judgevCheck{\Gamma}{B}{\unival}$ in CtxExt?}
-\\
-\ilyam{Do we need to check $\judgectx{}{\Gamma}$ in CtxInit?}
-
+\ilyam{Since we require the well-formedness of the context
+  on the top-level, (1) I removed $\judgevCheck{\Gamma}{B}{\unival}$ from CtxExt;
+  (2) I removed $\judgectx{}{\Gamma}$ from CtxInit;
+  (3) I added $\judgectx{ }{\Gamma}$ to CtxI;
+  (4) I added $\judgevCheck{\Gamma}{A}{\unival}$ to Let synt.}
 \begin{mathpar}
   %% \labelAxiom{Ctx0}{rule:Ctx0}
   \Infer{Ctx0}
@@ -126,17 +127,18 @@
         { \judgectx{}{\cdot}}
 
   \Infer{CtxI}
-        { \judgevCheck{\Gamma}{A}{\unival} }
+        { \judgevCheck{\Gamma}{A}{\unival} \\
+          \judgectx{ }{\Gamma}
+        }
         { \judgectx{ }{\Gamma,x:A}}
   
   \Infer{CtxExt}
-        { \judgeInctx{x:A}{\Gamma} \\
-          \judgevCheck{\Gamma}{B}{\unival}}
+        { \judgeInctx{x:A}{\Gamma} }
         { \judgeInctx{x:A}{(\Gamma, y:B)} }
   \and
 
   \Infer{CtxInit}
-        { \judgectx{}{\Gamma} }
+        {  }
         { \judgeInctx{x:A}{(\Gamma, x:A)} }
         \and
 
@@ -226,12 +228,12 @@
 
   \Infer{$\vtoc$I$\checks$}
         { \judgevCheck{\Gamma}{v}{A} }
-        { \judgecCheck{\Gamma}{\return{v}}{\comptoval{A}}}
+        { \judgecCheck{\Gamma}{\return{v}}{\valtocomp{A}}}
   \and
 
   \Infer{$\vtoc$I$\infers$}
         { \judgevInfer{\Gamma}{v}{A} }
-        { \judgecInfer{\Gamma}{\return{v}}{\comptoval{A}}}
+        { \judgecInfer{\Gamma}{\return{v}}{\valtocomp{A}}}
   \and
 \end{mathpar}
 
@@ -243,6 +245,7 @@
           \judgecInfer{\Gamma, x : A}{u}{X} \\
           \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\
           \judgecCheck{\Gamma}{X}{\unicomp} \\ 
+          \judgevCheck{\Gamma}{A}{\unival} \\ 
         }
         { \judgecInfer{\Gamma}{\letval{x : A}{t}{u}}{X} }
   \and
@@ -408,10 +411,10 @@
         $\Gamma$ and $A$ are \fromconcl.
 
       \item[(CtxExt)]
-        $X$, $A$, $\Gamma$, and $B$ are \fromconcl.
+        $X$, $A$, and $\Gamma$ are \fromconcl.
 
       \item[(CtxInit)]
-        $\Gamma$ is \fromconcl.
+        There are no premises. 
 
       \item[(Var)]
         $x$, $A$, and $\Gamma$ are \fromconcl.
