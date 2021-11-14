@@ -385,7 +385,7 @@
 \end{lemma}
 \begin{proof}
   First, we prove the mode-correctness of \emph{conclusion} for each rule.
-  Note that it is only relevant for the \emph{inferring} rules, because for the \emph{checking} rules, the resulting type is given as an input.
+  Note that it is only relevant for the \emph{synthesizing} rules, because for the \emph{checking} rules, the resulting type is given as an input.
 
   \begin{multicols}{2}
   \begin{itemize}
@@ -532,13 +532,107 @@
 
 \end{proof}
 
+\begin{lemma}[Context Soundness]
+  \label{lemma:ctx-soundness}
+  If $\judgeInctx{x:A}{\Gamma}$ and $\judgectx{}{\Gamma}$ then $\judgevCheck{\Gamma}{A}{\unival}$
+\end{lemma}
+\begin{proof}
+  \ilyam{By trivial induction on $\judgeInctx{x:A}{\Gamma}$}
+\end{proof}
+
 \begin{lemma}[Regularity]
-  The types inferred by $\infers$ are well-formed. Specifically, the following properties hold
+  The types synthesized by $\infers$ are well-formed. Specifically, the following properties hold
   \begin{enumerate}
   \item if $\judgectx{}{\Gamma}$ and $\judgevInfer{\Gamma}{v}{A}$ then $\judgevCheck{\Gamma}{A}{\unival}$
   \item if $\judgectx{}{\Gamma}$ and $\judgecInfer{\Gamma}{t}{X}$ then $\judgevCheck{\Gamma}{X}{\unicomp}$
   \end{enumerate}
 \end{lemma}
+
+\begin{proof}
+  We prove this property by mutual structural induction on
+  $\judgevInfer{\Gamma}{v}{A}$ and 
+  $\judgecInfer{\Gamma}{t}{X}$.
+  Let us consider the synthesizing rules.
+  \begin{itemize}
+  \item[(Var)]
+    Since $(x : A)$ belongs to a \emph{well-formed} context $\Gamma$, 
+    the property we need
+    ($\judgevCheck{\Gamma}{A}{\unival}$) holds by \cref{lemma:ctx-soundness}.
+  \item[(Universes)]
+    Each rule in \cref{sec:rules:universes} synthesizes either $\unival$ or $\unicomp$.
+    The desired properties hold by the following derivation trees:
+    \begin{mathpar}
+      \Infer{EqivV}
+            {\Infer{$\unival$}
+                    { }
+                    { \judgevInfer{\Gamma}{\unival}{\unival} }\\
+              \unival \equiv \unival \\
+            }
+            { \judgevCheck{\Gamma}{\unival}{\unival} }
+      \and
+      \Infer{EqivC}
+            {\Infer{$\unicomp$}
+              { }
+              { \judgecInfer{\Gamma}{\unicomp}{\unicomp} }\\
+              \unicomp \equiv \unicomp \\
+            }
+            { \judgecCheck{\Gamma}{\unicomp}{\unicomp} }
+
+     \end{mathpar}
+  \item[($\ctov$I$\infers$ and $\vtoc$I$\infers$)]
+    The following derivation trees prove the required properties,
+    where $\dag$ and $\ddag$ are derived from the inductive hypotheses.
+    \begin{mathpar}
+      \Infer{EqivC}
+            {\Infer{$\ctov$}
+              { \Infer{}{\dag}{\judgecCheck{\Gamma}{X}{\unicomp}} }
+              { \judgevInfer{\Gamma}{\comptoval{X}}{\unival} } \\
+              \comptoval{X} \equiv \comptoval{X} \\
+            }
+            { \judgevCheck{\Gamma}{\comptoval{X}}{\unival} }
+      \and
+
+      \Infer{EqivV}
+            {\Infer{$\vtoc$}
+              { \Infer{}{\ddag}{\judgevCheck{\Gamma}{A}{\unival}} }
+              { \judgecInfer{\Gamma}{\valtocomp{A}}{\unicomp} } \\
+              \valtocomp{A} \equiv \valtocomp{A} \\
+            }
+            { \judgecCheck{\Gamma}{\valtocomp{A}}{\unicomp} }
+
+    \end{mathpar}
+     
+  \item[($\vtoc$E$\infers$)]
+    \ilyam{Depends on $\unival \equiv \cdot$ }
+  \item[(Let$\infers$)]
+    The desired property is in the premises.
+  \item[(DLet$\infers$)]
+    The following derivation tree proves the required property.
+    $\judgecCheck{\Gamma}{t}{\valtocomp{A}}$ and 
+    $\judgecInfer{\Gamma, x : A}{u}{\unicomp}$ are given as premises.
+  \begin{mathpar}
+    \Infer{Let$\checks$}
+          { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+            \Infer{ }{\Infer{$\unicomp$}{ }{\judgecInfer{\Gamma}{\unicomp}{\unicomp}}}
+                     {\judgecCheck{\Gamma}{\unicomp}{\unicomp}} \\ 
+            \Infer{ }{\judgecInfer{\Gamma, x : A}{u}{\unicomp}}
+                     {\judgecCheck{\Gamma, x : A}{u}{\unicomp}}}
+          { \judgecCheck{\Gamma}{\letval{x : A}{t}{u}}{\unicomp} }
+          \and
+  \end{mathpar}
+
+\item[($\Pi$E)]
+  \ilyam{Depends on $\equiv$ and requires the substitution lemma}
+\item[($\Sigma$E)]
+  By applying ($\Pi$E) to the first two premises. 
+
+\item[($\mathsf{eq}$E$\infers$)]
+  \ilyam{The same trick as in ($\Sigma$E) doesn't work...}
+
+\end{itemize}
+
+
+\end{proof}
 
 \printbibliography
 
