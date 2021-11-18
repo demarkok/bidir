@@ -64,6 +64,8 @@
 
 \newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
 \newcommand{\subt}{\leqslant}
+\newcommand{\vsubt}{\leqslant^v}
+\newcommand{\csubt}{\leqslant^c}
 
 \newcommand{\isvtype}[1]{{#1} \, \mathsf{vtype}}
 \newcommand{\isctype}[1]{{#1} \, \mathsf{ctype}}
@@ -90,6 +92,12 @@
 
 \newcommand{\judgevtype}[2]{{#1} \vdash \isvtype{#2}}
 \newcommand{\judgectype}[2]{{#1} \vdash \isctype{#2}}
+
+
+\newcommand{\judgevsubt}[3]{{#1} \vdash {#2} \vsubt {#3}}
+\newcommand{\judgecsubt}[3]{{#1} \vdash {#2} \csubt {#3}}
+
+\newcommand{\judgeequiv}[4]{{#1} \vdash {#2} \equiv {#3} : {#4}}
 
 
 % This is a command to define an inference rule. The optional argument to
@@ -148,30 +156,32 @@
 Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \begin{mathpar}
-  \Infer{CtxExt}
-        { \judgeInctx{J}{\Gamma} }
-        { \judgeInctx{J}{(\Gamma, y:B)} }
-        \and
 
-        \Infer{CtxExtT}
-              { \judgeInctx{J}{\Gamma} }
-              { \judgeInctx{J}{(\Gamma, \isvtype{B})} }
-              \and
+\Infer{CtxExt}
+      { \judgeInctx{J}{\Gamma} }
+      { \judgeInctx{J}{(\Gamma, y:B)} }
+\and
 
-              \Infer{CtxInit}
-                    {  }
-                    { \judgeInctx{J}{(\Gamma, J)} }
-                    \and
+\Infer{CtxExtT}
+      { \judgeInctx{J}{\Gamma} }
+      { \judgeInctx{J}{(\Gamma, \isvtype{B})} }
+\and
 
-                    \Infer{Var}
-                          { \judgeInctx{x:A}{\Gamma} }
-                          { \judgevInfer{\Gamma, x:A}{x}{A} }
-                          \and
+\Infer{CtxInit}
+      {  }
+      { \judgeInctx{J}{(\Gamma, J)} }
+\and
 
-                          \Infer{VarT}
-                                { \judgeInctx{\isvtype{x}}{\Gamma} }
-                                { \judgevtype{\Gamma}{x} }
-                                \and
+\Infer{Var}
+      { \judgeInctx{x:A}{\Gamma} }
+      { \judgevInfer{\Gamma, x:A}{x}{A} }
+\and
+
+\Infer{VarT}
+      { \judgeInctx{\isvtype{x}}{\Gamma} }
+      { \judgevtype{\Gamma}{x} }
+\and
+
 \end{mathpar}
 \subsection{Equivalence}
 
@@ -377,8 +387,89 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
+\section{Subtyping}
+
+\begin{mathpar}
+
+  \Infer{$\subt \Sigma$}
+        {
+          \judgevsubt{\Gamma}{A_1}{B_1}\\
+          \judgevsubt{\Gamma, x:A_1}{A_2}{B_2}\\
+        }
+        {\judgevsubt{\Gamma}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}}
+
+        \Infer{$\subt \Pi$}
+              {
+                \judgevsubt{\Gamma}{A_2}{A_1}\\
+                \judgecsubt{\Gamma, x:A_2}{X_1}{X_2}\\
+              }
+              {\judgecsubt{\Gamma}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}}
+
+  \Infer{$\subt \ctov$}
+        {
+          \judgecsubt{\Gamma}{X_1}{X_2} \\
+          \judgecsubt{\Gamma}{X_2}{X_1} \\
+        }
+        {\judgevsubt{\Gamma}{\comptoval{X_1}}{\comptoval{X_2}}}
+
+  \Infer{$\subt \vtoc$}
+        {
+          \judgevsubt{\Gamma}{A_1}{A_2} \\
+          \judgevsubt{\Gamma}{A_2}{A_1} \\
+        }
+        {\judgecsubt{\Gamma}{\valtocomp{A_1}}{\valtocomp{A_2}}}
+
+  \Infer{$\subt$Eq}
+        {
+          \judgevsubt{\Gamma}{A}{B} \\
+          \judgeequiv{\Gamma}{v_1}{v_2}{A} \\
+          \judgeequiv{\Gamma}{w_1}{w_2}{B} \\
+        }
+        {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{A}{v_2}{w_2}}}
+      
+  \Infer{$\forall \subt$}
+        {
+          \judge{\Gamma}{v}{A}\\
+          \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
+        }
+        {\judgecsubt{\Gamma}{(\foralltype{x:A}{X})}{Y}}
+        
+  \Infer{$\subt \forall$}
+        {
+          \judgecsubt{\Gamma, y : A}{X}{Y}\\
+        }
+        {\judgecsubt{\Gamma}{X}{(\foralltype{y:A}{Y})}}
+
+  \Infer{let$\subt$}
+        {
+          \judgeequiv{\Gamma}{e}{\return{v}}{A}\\
+          \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
+        }
+        { \judgecsubt{\Gamma}{(\letval{x:A}{e}{X})}{Y}}
+
+  \Infer{$\subt$let}
+        {
+          \judgeequiv{\Gamma}{e}{\return{v}}{A}\\
+          \judgecsubt{\Gamma}{X}{\subst{Y}{y}{v}}\\
+        }
+        { \judgecsubt{\Gamma}{X}{(\letval{y:A}{e}{Y})}}
+
+  \Infer{let$\subt$let}
+        {
+          \judgevsubt{\Gamma}{A}{B}\\
+          \judgevsubt{\Gamma}{B}{A}\\
+          \judgeequiv{\Gamma}{e_1}{e_2}{A}\\
+          \judgecsubt{\Gamma, x:A}{X}{Y}\\
+         }
+        {
+          \judgecsubt{\Gamma}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}
+        }
+
+
+\end{mathpar}
+
 \section{Properties}
-\ilyam{This is outdated now}
+\ilyam{Outdated}
 
 %% \subsection{Mode-correctness}
 %% \subsection{Regularity}
