@@ -387,6 +387,9 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
+\section{Equality}
+
+
 \section{Subtyping}
 
 \begin{mathpar}
@@ -467,6 +470,20 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 
 \end{mathpar}
+
+\section{Questions}
+
+\begin{itemize}
+\item \ilyam{We don't have kinds, so we cannot form expressions of type * -> *
+  Doesn't it mean that System F is not embedded?}
+\item \ilyam{Why is it fine not to have
+  $X \to \foralltype{x:A}{Y} \subt \foralltype{x:A}{X \to Y}$
+  (given $x$ is not free in $X$)? What about the reverse direction? }
+
+\end{itemize}
+
+
+
 
 \section{Properties}
 \ilyam{Outdated}
