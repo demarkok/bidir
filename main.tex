@@ -63,12 +63,17 @@
 \newcommand{\receq}[3]{\mathsf{rec}_{\mathsf{eq}}({#1},{#2},{#3})}
 
 \newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
+
 \newcommand{\subt}{\leqslant}
 \newcommand{\vsubt}{\leqslant^v}
 \newcommand{\csubt}{\leqslant^c}
 
 \newcommand{\isvtype}[1]{{#1} \, \mathsf{vtype}}
 \newcommand{\isctype}[1]{{#1} \, \mathsf{ctype}}
+
+\newcommand{\ctxtapp}[2]{[{#1}] {#2}}
+\newcommand{\evarassign}[2]{{#1} \mathsf{:=} {#2}}
+
 
 % This is a command to define a judgement -- we'll one command per judgement
 % for delta-CBPV
@@ -99,6 +104,10 @@
 
 \newcommand{\judgeequiv}[4]{{#1} \vdash {#2} \equiv {#3} : {#4}}
 
+\newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \vsubt {#3} {\color{purple}\dashv}\,{#4}}
+\newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \csubt {#3} {\color{purple}\dashv}\,{#4}}
+
+\newcommand{\judgeaequiv}[5]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} : {#4}{\color{purple}\dashv}\,{#5}}
 
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
@@ -371,12 +380,6 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
   \and
 
-  \Infer{$\mathsf{eq}$E$\infers$}
-        { \judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
-          \judgectype{\Gamma, y : A, q : \eqtype{A}{w_1}{y}}{X} \\
-          \judgecCheck{\Gamma}{t}{\subst{\subst{X}{y}{w_1}}{q}{\refl}} }
-        { \judgecInfer{\Gamma}{\receq{v}{X}{t}}{\subst{\subst{X}{y}{w_2}}{q}{v}} }
-  \and
 
   %% \Infer{$\mathsf{eq}$E$\checks$}
   %%       { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
@@ -389,8 +392,40 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \section{Equality}
 
+The judgemental equality is defined on values.
+It represents evaluation under congruent, transitive, reflexive, and symmetric closure. 
 
-\section{Subtyping}
+\begin{mathpar}
+  \Infer{$\equiv \beta$}
+        { }
+        {(\fun{x:A}{t})v \equiv \subst{t}{x}{v}}
+
+  \Infer{$\equiv \mathsf{let}\beta$}
+        { }
+        {\letval{x:A}{\return{v}}{t} \equiv \subst{t}{x}{v}}
+
+  \Infer{$\equiv \mathsf{dlet}\beta$}
+        { }
+        {\dletval{x:A}{\return{v}}{t} \equiv \subst{t}{x}{v}}
+
+  \Infer{$\equiv \mathsf{force}$}
+        { }
+        {\force{\thunk{t}} \equiv t}
+
+  \Infer{$\equiv \Sigma$}
+        { }
+        {\recsigma{\pair{u}{w}}{X}{u} \equiv u v w}
+
+  \Infer{$\equiv \refl$}
+        { }
+        {\receq{\refl}{X}{u} \equiv u}
+
+\end{mathpar}
+
+\ilyam{Should we add the closure as inference rules? Wouldn't it make it undecidable?}
+
+
+\section{Declarative Subtyping}
 
 \begin{mathpar}
 
@@ -401,12 +436,12 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
         }
         {\judgevsubt{\Gamma}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}}
 
-        \Infer{$\subt \Pi$}
-              {
-                \judgevsubt{\Gamma}{A_2}{A_1}\\
-                \judgecsubt{\Gamma, x:A_2}{X_1}{X_2}\\
-              }
-              {\judgecsubt{\Gamma}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}}
+ \Infer{$\subt \Pi$}
+       {
+         \judgevsubt{\Gamma}{A_2}{A_1}\\
+         \judgecsubt{\Gamma, x:A_2}{X_1}{X_2}\\
+       }
+       {\judgecsubt{\Gamma}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}}
 
   \Infer{$\subt \ctov$}
         {
@@ -426,9 +461,9 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
         {
           \judgevsubt{\Gamma}{A}{B} \\
           \judgeequiv{\Gamma}{v_1}{v_2}{A} \\
-          \judgeequiv{\Gamma}{w_1}{w_2}{B} \\
+          \judgeequiv{\Gamma}{w_1}{w_2}{A} \\
         }
-        {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{A}{v_2}{w_2}}}
+        {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
       
   \Infer{$\forall \subt$}
         {
@@ -450,6 +485,7 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
         }
         { \judgecsubt{\Gamma}{(\letval{x:A}{e}{X})}{Y}}
 
+        
   \Infer{$\subt$let}
         {
           \judgeequiv{\Gamma}{e}{\return{v}}{A}\\
@@ -471,17 +507,85 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
-\section{Questions}
 
-\begin{itemize}
-\item \ilyam{We don't have kinds, so we cannot form expressions of type * -> *
-  Doesn't it mean that System F is not embedded?}
-\item \ilyam{Why is it fine not to have
-  $X \to \foralltype{x:A}{Y} \subt \foralltype{x:A}{X \to Y}$
-  (given $x$ is not free in $X$)? What about the reverse direction? }
+\section{Algorithmic Subtyping}
 
-\end{itemize}
+\begin{mathpar}
 
+  \Infer{$\subt \Sigma$}
+        {
+          \judgeavsubt{\varphi}{A_1}{B_1}{\varphi'}\\
+          \judgeavsubt{\varphi', x:A_1}{A_2}{B_2}{\varphi''}\\
+        }
+        {\judgeavsubt{\varphi}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}{\varphi''}}
+
+  \Infer{$\subt \Pi$}
+        {
+          \judgeavsubt{\varphi}{A_2}{A_1}{\varphi'}\\
+          \judgeacsubt{\varphi', x:A_2}{\ctxtapp{\varphi'}{X_1}}{X_2}{\varphi''}\\
+        }
+        {\judgeacsubt{\varphi}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}{\varphi''}}
+
+  \Infer{$\subt \ctov$}
+        {
+          \judgeacsubt{\varphi}{X_2}{X_1}{\varphi'} \\
+          \judgeacsubt{\varphi'}{X_1}{\ctxtapp{\varphi'}{X_2}}{\varphi''} \\
+        }
+        {\judgeavsubt{\varphi}{\comptoval{X_1}}{\comptoval{X_2}}{\varphi''}}
+
+  \Infer{$\subt \vtoc$}
+        {
+          \judgeavsubt{\varphi}{A_2}{A_1}{\varphi'} \\
+          \judgeavsubt{\varphi'}{\ctxtapp{\varphi'}{A_1}}{A_2}{\varphi''} \\
+        }
+        {\judgeacsubt{\varphi}{\valtocomp{A_1}}{\valtocomp{A_2}}{\varphi''}}
+  
+  \Infer{$\subt$Eq}
+        {
+          \judgeavsubt{\varphi}{A}{B}{\varphi'} \\
+          \judgeaequiv{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{A}{\varphi''} \\
+          \judgeaequiv{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{A}{\varphi'''} \\
+        }
+        {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
+
+   \Infer{$\forall \subt$}
+         {
+           \judgeacsubt{\varphi,\hat{v}}
+                       {\subst{X}{x}{\hat{v}}}
+                       {Y}
+                       {\varphi'}
+         }
+         {\judgeacsubt{\varphi}{(\foralltype{x:A}{X})}{Y}{\varphi'}}
+
+   \Infer{$\subt \forall$}
+         {
+           \judgeacsubt{\varphi, y : A}{X}{Y}{\varphi'}\\
+         }
+         {\judgeacsubt{\varphi}{X}{(\foralltype{y:A}{Y})}{\varphi'}}
+
+   \Infer{let$\subt$}
+         {
+           \judgeaequiv{\varphi, \hat{v}}{e}{\return{\hat{v}}}{A}{\varphi', \evarassign{\hat{v}}{v}}\\
+           \judgeacsubt{\varphi'}{\subst{\ctxtapp{\varphi'}{X}}{x}{v}}{Y}{\varphi''}\\
+         }
+         { \judgeacsubt{\varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi''}}
+
+   \Infer{$\subt$let}
+         {
+           \judgeaequiv{\varphi, \hat{v}}
+                       {e}
+                       {\return{\hat{v}}}
+                       {A}
+                       {\varphi', \evarassign{\hat{v}}{v}}\\
+           \judgeacsubt{\varphi'}
+                       {\ctxtapp{\varphi'}{X}}
+                       {\subst{Y}{y}{v}}
+                       {\varphi''}\\
+         }
+         { \judgeacsubt{\varphi}{X}{(\letval{y:A}{e}{Y})}{\varphi''} }
+
+
+\end{mathpar}
 
 
 
