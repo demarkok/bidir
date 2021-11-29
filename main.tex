@@ -565,8 +565,11 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
 
    \Infer{let$\subt$}
          {
-           \judgeaequiv{\varphi, \hat{v}}{e}{\return{\hat{v}}}{A}{\varphi', \evarassign{\hat{v}}{v}}\\
-           \judgeacsubt{\varphi'}{\subst{\ctxtapp{\varphi'}{X}}{x}{v}}{Y}{\varphi''}\\
+           \judgeacsubt{\varphi, \hat{v}}{\subst{X}{x}{\hat{v}}}{Y}{\varphi', \evarassign{\hat{v}}{v}}\\
+           \judgeaequiv{\varphi'}
+                       {\return{v}}
+                       {\ctxtapp{\varphi'}{e}}
+                       {\ctxtapp{\varphi'}{A}}{\varphi''}\\
          }
          { \judgeacsubt{\varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi''}}
 
@@ -584,6 +587,16 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
          }
          { \judgeacsubt{\varphi}{X}{(\letval{y:A}{e}{Y})}{\varphi''} }
 
+   \Infer{let$\subt$let}
+         {
+           \judgeavsubt{\varphi}{B}{A}{\varphi_1}\\
+           \judgeavsubt{\varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
+           \judgeaequiv{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\ctxtapp{\varphi_1}{A}}{\varphi_3}\\
+           \judgeacsubt{\varphi_3, x:{\ctxtapp{\varphi_1}{A}}}{\ctxtapp{\varphi_3}{X}}{Y}{\varphi_4}\\
+         }
+         {
+           \judgeacsubt{\varphi}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}{\varphi_4}
+         }
 
 \end{mathpar}
 
