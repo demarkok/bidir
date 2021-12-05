@@ -16,6 +16,7 @@
 
 
 \newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
 
 %% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
 \newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
@@ -114,7 +115,6 @@
 % 
 \newcommand{\Infer}[3]{\inferrule*[right={#1}]{#2}{#3}}
 
-
 \begin{document}
 
 \section{Syntax}
@@ -122,8 +122,8 @@
 \begin{mathpar}
   \begin{array}{llcl}
     \mbox{Computations} & X, Y, t, u & ::= & t v \bnfalt
-    \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \force {t} \bnfalt \return{v}
-    \bnfalt \fun{x:X}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
+    \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \force {v} \bnfalt \return{v}
+    \bnfalt \fun{x:A}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
     \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{X}{t} \bnfalt \receq{v}{X}{t}
     \\[1em]
 
@@ -246,6 +246,11 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
         { \judgevtype{\Gamma}{\eqtype{A}{v}{w}} }
   \and
 
+  \Infer{Let-type}
+        { \judgectype{\Gamma, x:A}{X} \\
+          \judgecCheck{\Gamma}{e}{A} }
+        { \judgectype{\Gamma}{(\letval{x:A}{e}{X})} }
+  \and
 
 \end{mathpar}
 
@@ -288,6 +293,7 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 \subsection{Let and Dependent Let}
 
 \begin{mathpar}
+
   \Infer{Let$\infers$}
         {
           \judgecInfer{\Gamma, x : A}{u}{X} \\
@@ -381,12 +387,11 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
   \and
 
 
-  %% \Infer{$\mathsf{eq}$E$\checks$}
-  %%       { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
-  %%         \judgecInfer{\Gamma}{X}{\pitype{y:A}{\eqtype{A}{w_1}{y} \to \unicomp}} \\
-  %%         \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
-  %%       { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{X\,w_2\,v} }
-  %%       \and
+  \Infer{$\mathsf{eq}$E$\checks$}
+        { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
+          \judgectype{\Gamma, x:A, p:\eqtype{A}{w_1}{x}}{X} \\
+          \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
+        { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{\subst{\subst{X}{x}{w_2}}{p}{v}}}
 
 \end{mathpar}
 
@@ -600,6 +605,17 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
 
 \end{mathpar}
 
+
+\subsection{Invariants}
+
+We should be able to infer
+$\judgeacsubt{\varphi}{(\letval{x:\valtocomp{\eqtype{A}{\hat{u}}{\hat{v}}}}{\hat{w}}{\valtocomp{Int}})}{\valtocomp{Int}}{\varphi}$.
+As you can see, the unused existential variables $\hat{u}$ and $\hat{v}$ stay uninitialized.
+It breaks the invariant that the subtyping algorithm `makes' both sides of $\leqslant$ ground (i.e. all existential variables are initialized in the output context).
+As such, we weaken the notion of `ground` terms in such a way that they might have existential variables as long as they are not used in the outcome.
+
+\ilyam{I've just realized that what I would like to mean by the usage of the variables depends on the evaluation. So maybe it's worth trying another approach,
+  e.g. instantiate existential variables with `?' and promise that it won't cause any problem in the unification. }
 
 
 \section{Properties}
