@@ -76,6 +76,10 @@
 \newcommand{\evarassign}[2]{{#1} \mathsf{:=} {#2}}
 
 
+
+\newcommand{\reduces}[2]{{#1} \rightarrow {#2}}
+
+
 % This is a command to define a judgement -- we'll one command per judgement
 % for delta-CBPV
 
@@ -122,7 +126,7 @@
 \begin{mathpar}
   \begin{array}{llcl}
     \mbox{Computations} & X, Y, t, u & ::= & t v \bnfalt
-    \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \force {v} \bnfalt \return{v}
+    \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \foralltype{x:A}{X} \bnfalt \force {v} \bnfalt \return{v}
     \bnfalt \fun{x:A}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
     \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{X}{t} \bnfalt \receq{v}{X}{t}
     \\[1em]
@@ -232,6 +236,12 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
         { \judgectype{\Gamma}{\pitype{x:A}{X}} }
   \and
 
+  \Infer{$\forall$}
+        { \judgevtype{\Gamma}     {A} \\
+          \judgectype{\Gamma, x:A}{X} }
+        { \judgectype{\Gamma}{\foralltype{x:A}{X}} }
+        \and
+
   \Infer{$\Sigma$}
         { \judgevtype{\Gamma}     {A} \\
           \judgevtype{\Gamma, x:A}{B} }
@@ -327,7 +337,7 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
-\subsection{$\Pi$ and $\Sigma$}
+\subsection{$\forall$, $\Pi$, and $\Sigma$}
 
 \begin{mathpar}
 
@@ -336,6 +346,12 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
   %%         \judgecInfer{\Gamma, x:A}{t}{X} }
   %%       { \judgecInfer{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
   %% \and
+
+  \Infer{$\forall$I$\checks$}
+        { \judgectype{\Gamma, x:A}{X} \\
+          \judgecCheck{\Gamma, x:A}{t}{X} }
+        { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\foralltype{x:A}{X}} }
+  \and
 
   \Infer{$\Pi$I$\checks$}
         { \judgectype{\Gamma, x:A}{X} \\
@@ -397,38 +413,77 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \section{Equality}
 
-The judgemental equality is defined on values.
-It represents evaluation under congruent, transitive, reflexive, and symmetric closure. 
+\begin{definition}[Reduction]
+Reduction is a minimal congruent
+relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such that
+
+\begin{multicols}{2}
+\begin{itemize}
+  \item $\reduces{(\fun{x:A}{t})v}{\subst{t}{x}{v}}$
+
+  \item $\reduces{\letval{x:A}{\return{v}}{t}}{\subst{t}{x}{v}}$
+
+  \item $\reduces{\dletval{x:A}{\return{v}}{t}}{\subst{t}{x}{v}}$
+
+  \item $\reduces{\force{\thunk{t}}}{t}$
+
+  \item $\reduces{\recsigma{\pair{u}{w}}{X}{u}}{u v w}$
+
+  \item $\reduces{\receq{\refl}{X}{u}}{u}$
+
+\end{itemize}
+
+\end{multicols}
+\end{definition}
+
+
+\begin{definition}[Equivalence]
 
 \begin{mathpar}
-  \Infer{$\equiv \beta$}
-        { }
-        {(\fun{x:A}{t})v \equiv \subst{t}{x}{v}}
+  \Infer{}
+        {
+          \reduces{e_1}{e_1'}\\
+          \judgeaequiv{\varphi}{e_1'}{e_2}{A}{\varphi'}
+        }
+        {
+          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
+        }
+  \and
+  \Infer{}
+        {
+          \reduces{e_2}{e_2'}\\
+          \judgeaequiv{\varphi}{e_1}{e_2'}{A}{\varphi'}
+        }
+        {
+          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
+        }
+   \and
+   \Infer{}
+        {
+          \reduces{A}{A'}\\
+          \judgeaequiv{\varphi}{e_1}{e_2}{A'}{\varphi'}
+        }
+        {
+          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
+        }
 
-  \Infer{$\equiv \mathsf{let}\beta$}
-        { }
-        {\letval{x:A}{\return{v}}{t} \equiv \subst{t}{x}{v}}
-
-  \Infer{$\equiv \mathsf{dlet}\beta$}
-        { }
-        {\dletval{x:A}{\return{v}}{t} \equiv \subst{t}{x}{v}}
-
-  \Infer{$\equiv \mathsf{force}$}
-        { }
-        {\force{\thunk{t}} \equiv t}
-
-  \Infer{$\equiv \Sigma$}
-        { }
-        {\recsigma{\pair{u}{w}}{X}{u} \equiv u v w}
-
-  \Infer{$\equiv \refl$}
-        { }
-        {\receq{\refl}{X}{u} \equiv u}
+   \and
+   \Infer{}
+         { }
+         {
+           \judgeaequiv{\varphi}{e}{e}{A}{\varphi}
+         }
+   \and
+   \Infer{}
+         { }
+         {
+           \judgeaequiv{\varphi}{v}{\hat{v}}{A}{\varphi, \evarassign{\hat{v}}{v}}
+         }
+   \and
 
 \end{mathpar}
 
-\ilyam{Should we add the closure as inference rules? Wouldn't it make it undecidable?}
-
+\end{definition}
 
 \section{Declarative Subtyping}
 
@@ -474,6 +529,8 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
         {
           \judge{\Gamma}{v}{A}\\
           \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
+          \text{for any } v' \text{with the same properties, }
+          \judgeequiv{\Gamma}{v}{v'}{A}
         }
         {\judgecsubt{\Gamma}{(\foralltype{x:A}{X})}{Y}}
         
@@ -570,11 +627,14 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
 
    \Infer{let$\subt$}
          {
-           \judgeacsubt{\varphi, \hat{v}}{\subst{X}{x}{\hat{v}}}{Y}{\varphi', \evarassign{\hat{v}}{v}}\\
-           \judgeaequiv{\varphi'}
-                       {\return{v}}
-                       {\ctxtapp{\varphi'}{e}}
-                       {\ctxtapp{\varphi'}{A}}{\varphi''}\\
+           e \text{ is ground}\\
+           \judgeaequiv{\varphi, \hat{v}}
+                       {e}
+                       {\return{\hat{v}}}
+                       {A}
+                       {\varphi', \evarassign{\hat{v}}{v}}\\
+           \judgeacsubt{\varphi'}
+                       {\subst{\ctxtapp{\varphi'}{X}}{x}{v}}{Y}{\varphi', \evarassign{\hat{v}}{v}}\\
          }
          { \judgeacsubt{\varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi''}}
 
@@ -605,6 +665,10 @@ It represents evaluation under congruent, transitive, reflexive, and symmetric c
 
 \end{mathpar}
 
+
+\subsection{Thoughts}
+
+In (let$\subt$), type $A$ can have unresolved variables, hence, the first unification in the premises can instantiate them, and thus, must be algorithmic.
 
 \subsection{Invariants}
 
