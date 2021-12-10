@@ -60,8 +60,8 @@
 \newcommand{\return}[1]{\mathsf{return}\,{#1}}
 \newcommand{\thunk}[1]{\{{#1}\}}
 
-\newcommand{\recsigma}[3]{\mathsf{rec}_{\Sigma}({#1},{#2},{#3})}
-\newcommand{\receq}[3]{\mathsf{rec}_{\mathsf{eq}}({#1},{#2},{#3})}
+\newcommand{\recsigma}[3]{\mathsf{rec}_{\Sigma}^{#2}({#1},{#3})}
+\newcommand{\receq}[3]{\mathsf{rec}_{\mathsf{eq}}^{#2}({#1},{#3})}
 
 \newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
 
@@ -79,6 +79,11 @@
 
 \newcommand{\reduces}[2]{{#1} \rightarrow {#2}}
 
+
+\newcommand{\nattype}{\mathbb{N}}
+\newcommand{\natzero}{\mathsf{0}}
+\newcommand{\natsucc}[1]{\mathsf{succ}({#1})}
+\newcommand{\recnat}[4]{\mathsf{rec}_{\nattype}^{#2}({#1},{#3},{#4})}
 
 % This is a command to define a judgement -- we'll one command per judgement
 % for delta-CBPV
@@ -413,6 +418,8 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \section{Equality}
 
+\label{sec:equality}
+
 \begin{definition}[Reduction]
 Reduction is a minimal congruent
 relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such that
@@ -436,6 +443,7 @@ relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such 
 \end{multicols}
 \end{definition}
 
+We treat existential variables $\hat{v}$ as non-reducible values.
 
 \begin{definition}[Equivalence]
 
@@ -666,9 +674,29 @@ relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such 
 \end{mathpar}
 
 
-\subsection{Thoughts}
+\ilyam{In (let$\subt$), type $A$ can have unresolved variables, hence, the first
+  unification in the premises can instantiate them, and thus, must be
+  algorithmic.}
 
-In (let$\subt$), type $A$ can have unresolved variables, hence, the first unification in the premises can instantiate them, and thus, must be algorithmic.
+\subsection{Natural Numbers and Undecidability}
+
+The type system can be easily extended with natural numbers. To this purpose, we
+must add $\nattype$, $\natzero$, and $\natsucc{v}$ to the values, and
+$\recnat{v}{X}{base}{step}$ to the computations with obvious typing inference
+rules.
+We also add $\reduces{\recnat{\natzero}{X}{b}{s}}{b}$ and
+$\reduces{\recnat{\natsucc{v}}{X}{b}{s}}{s \, v \, \recnat{v}{X}{b}{s}}$ to the reduction rules.
+
+Notice that we do not unify under the induction operators. For example,
+$\judgeaequiv{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\nattype}{\varphi, \evarassign{\hat{v}}{\natzero}}$
+is not admissible.
+Moreover, the general unification is undecidable in this case.
+
+Roughly, this is because we can easily define integers,
+arithmetic operations, and hence, any arbitrary polynomial
+$P(\hat{x_1}, \dots, \hat{x_n})$.
+The unification of this polynomial with $\natzero$
+corresponds to solving a diophantine equation, which is undecidable.
 
 \subsection{Invariants}
 
