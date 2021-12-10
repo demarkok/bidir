@@ -678,6 +678,11 @@ We treat existential variables $\hat{v}$ as non-reducible values.
   unification in the premises can instantiate them, and thus, must be
   algorithmic.}
 
+\ilyam{In (let$\subt$), we require $e$ to be ground, which makes the algorithmic
+  system incomplete w.r.t. the declarative system.\\
+  E.g. $(\foralltype{x:1}{\letval{y:1}{\return{x}}{\valtocomp{\eqtype{\comptoval{\valtocomp{1}}}{\thunk{y}}{\thunk{y}}}}}) \leqslant \eqtype{\comptoval{\valtocomp{1}}}{\thunk{\return{()}}}{\thunk{\return{()}}}$
+  holds for the declarative system but not for the algorithmic.}
+
 \subsection{Natural Numbers and Undecidability}
 
 The type system can be easily extended with natural numbers. To this purpose, we
