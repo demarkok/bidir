@@ -807,7 +807,7 @@ We treat existential variables $\hat{v}$ as non-reducible values.
 
    \Infer{let$\subt$}
          {
-           e \text{ is ground}\\
+           e \text{ and } A \text{ are ground}\\
            \judgeaequiv{\varphi, \hat{v}}
                        {e}
                        {\return{\hat{v}}}
