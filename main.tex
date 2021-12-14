@@ -6,6 +6,7 @@
 \usepackage{mathpartir}
 \usepackage{cleveref}
 \usepackage{multicol}
+\usepackage[inline, shortlabels]{enumitem}
 
 \usepackage[colorinlistoftodos]{todonotes} 
 
@@ -117,7 +118,7 @@
 \newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \vsubt {#3} {\color{purple}\dashv}\,{#4}}
 \newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \csubt {#3} {\color{purple}\dashv}\,{#4}}
 
-\newcommand{\judgeaequiv}[5]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} : {#4}{\color{purple}\dashv}\,{#5}}
+\newcommand{\judgeaequiv}[4]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} {\color{purple}\dashv}\,{#4}}
 
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
@@ -416,7 +417,7 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
-\section{Equality}
+\section{Reduction, equality, and normal forms}
 
 \label{sec:equality}
 
@@ -445,53 +446,142 @@ relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such 
 
 We treat existential variables $\hat{v}$ as non-reducible values.
 
-\begin{definition}[Equivalence]
+\begin{definition}[Equivalence] We apply the following rules top to bottom:
 
-\begin{mathpar}
-  \Infer{}
-        {
-          \reduces{e_1}{e_1'}\\
-          \judgeaequiv{\varphi}{e_1'}{e_2}{A}{\varphi'}
-        }
-        {
-          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
-        }
-  \and
-  \Infer{}
-        {
-          \reduces{e_2}{e_2'}\\
-          \judgeaequiv{\varphi}{e_1}{e_2'}{A}{\varphi'}
-        }
-        {
-          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
-        }
-   \and
-   \Infer{}
-        {
-          \reduces{A}{A'}\\
-          \judgeaequiv{\varphi}{e_1}{e_2}{A'}{\varphi'}
-        }
-        {
-          \judgeaequiv{\varphi}{e_1}{e_2}{A}{\varphi'}
-        }
+\begin{itemize}
+  \item[Base rules]
+    \begin{mathpar}
+      \Infer{}
+            { }
+            {
+              \judgeaequiv{\varphi}{e}{e}{\varphi}
+            }
+            \and
+      \Infer{}
+            { }
+            {
+              \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi, \evarassign{\hat{v}}{v}}
+            }
+      \and
+    \end{mathpar}
 
-   \and
+    \item[Reduction closure]
+      \begin{mathpar}
+        \Infer{}
+              {
+                \reduces{e_1}{e_1'}\\
+                \judgeaequiv{\varphi}{e_1'}{e_2}{\varphi'}
+              }
+              {
+                \judgeaequiv{\varphi}{e_1}{e_2}{\varphi'}
+              }
+        \and
+        \Infer{}
+              {
+                \reduces{e_2}{e_2'}\\
+                \judgeaequiv{\varphi}{e_1}{e_2'}{\varphi'}
+              }
+              {
+                \judgeaequiv{\varphi}{e_1}{e_2}{\varphi'}
+              }
+      \end{mathpar}
+
+    \item[Congruence]
+      \begin{mathpar}
+
    \Infer{}
-         { }
          {
-           \judgeaequiv{\varphi}{e}{e}{A}{\varphi}
+           \judgeaequiv{\varphi}{t}{t'}{\varphi'} \\
+           \judgeaequiv{\varphi'}{v}{v'}{\varphi''}
+         }
+         {
+           \judgeaequiv{\varphi}{t v}{t' v'}{\varphi''}
          }
    \and
    \Infer{}
-         { }
          {
-           \judgeaequiv{\varphi}{v}{\hat{v}}{A}{\varphi, \evarassign{\hat{v}}{v}}
+           \judgeaequiv{\varphi}{v}{v'}{\varphi'}
+         }
+         {
+           \judgeaequiv{\varphi}{\force{v}}{\force{v'}}{\varphi'}
          }
    \and
-
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{v}{v'}{\varphi'}
+         }
+         {
+           \judgeaequiv{\varphi}{\return{v}}{\return{v'}}{\varphi'}
+         }
+   \and
+   \Infer{}
+         {
+           \judgeaequiv{\varphi, x:A}{t}{t'}{\varphi', x:A}
+         }
+         {
+           \judgeaequiv{\varphi}{\fun{x:A}{t}}{\fun{x:A}{t'}}{\varphi'}
+         }
+   \and
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{t}{t'}{\varphi'}\\
+           \judgeaequiv{\varphi', x:A}{v}{v'}{\varphi'', x:A}
+         }
+         {
+           \judgeaequiv{\varphi}{(\letval{x:A}{t}{v})}{(\letval{x:A}{t'}{v'})}{\varphi''}
+         }
+   \and
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{t}{t'}{\varphi'}\\
+           \judgeaequiv{\varphi', x:A}{v}{v'}{\varphi'', x:A}
+         }
+         {
+           \judgeaequiv{\varphi}{(\dletval{x:A}{t}{v})}{(\dletval{x:A}{t'}{v'})}{\varphi''}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{v}{v'}{\varphi'} \\
+           \judgeaequiv{\varphi'}{t}{t'}{\varphi''}
+         }
+         {
+           \judgeaequiv{\varphi}{\recsigma{v}{X}{t}}{\recsigma{v'}{X}{t'}}{\varphi''}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{v}{v'}{\varphi'} \\
+           \judgeaequiv{\varphi'}{t}{t'}{\varphi''}
+         }
+         {
+           \judgeaequiv{\varphi}{\receq{v}{X}{t}}{\receq{v'}{X}{t'}}{\varphi''}
+         }
 \end{mathpar}
 
+\end{itemize}
+
 \end{definition}
+
+\begin{definition}[Normal form]
+
+  We say that the term $t$ is in normal form if and only if it is not reducible (i.e. 
+  $\nexists t', \reduces{t}{t'}$).
+
+\end{definition}
+
+\begin{definition} [x-neutral form]
+  Assume that $x$ is a variable.
+  We say that the term $t$ is in $x$-neutral form if and only if
+  \begin{enumerate*}
+  \item[(i)]  $t$ is in normal form
+    and
+  \item[(ii)] for any term $v$ in normal form, $\subst{t}{x}{v}$ is in normal form.
+  \end{enumerate*}
+\end{definition}
+
+
+
 
 \section{Declarative Subtyping}
 
@@ -535,10 +625,9 @@ We treat existential variables $\hat{v}$ as non-reducible values.
       
   \Infer{$\forall \subt$}
         {
+          X \text{ is }  x\text{-neutral}\\
           \judge{\Gamma}{v}{A}\\
-          \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
-          \text{for any } v' \text{with the same properties, }
-          \judgeequiv{\Gamma}{v}{v'}{A}
+          \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}
         }
         {\judgecsubt{\Gamma}{(\foralltype{x:A}{X})}{Y}}
         
@@ -613,8 +702,8 @@ We treat existential variables $\hat{v}$ as non-reducible values.
   \Infer{$\subt$Eq}
         {
           \judgeavsubt{\varphi}{A}{B}{\varphi'} \\
-          \judgeaequiv{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{A}{\varphi''} \\
-          \judgeaequiv{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{A}{\varphi'''} \\
+          \judgeaequiv{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{\varphi''} \\
+          \judgeaequiv{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{\varphi'''} \\
         }
         {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
 
@@ -639,7 +728,6 @@ We treat existential variables $\hat{v}$ as non-reducible values.
            \judgeaequiv{\varphi, \hat{v}}
                        {e}
                        {\return{\hat{v}}}
-                       {A}
                        {\varphi', \evarassign{\hat{v}}{v}}\\
            \judgeacsubt{\varphi'}
                        {\subst{\ctxtapp{\varphi'}{X}}{x}{v}}{Y}{\varphi', \evarassign{\hat{v}}{v}}\\
@@ -651,7 +739,6 @@ We treat existential variables $\hat{v}$ as non-reducible values.
            \judgeaequiv{\varphi, \hat{v}}
                        {e}
                        {\return{\hat{v}}}
-                       {A}
                        {\varphi', \evarassign{\hat{v}}{v}}\\
            \judgeacsubt{\varphi'}
                        {\ctxtapp{\varphi'}{X}}
@@ -664,7 +751,7 @@ We treat existential variables $\hat{v}$ as non-reducible values.
          {
            \judgeavsubt{\varphi}{B}{A}{\varphi_1}\\
            \judgeavsubt{\varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
-           \judgeaequiv{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\ctxtapp{\varphi_1}{A}}{\varphi_3}\\
+           \judgeaequiv{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\varphi_3}\\
            \judgeacsubt{\varphi_3, x:{\ctxtapp{\varphi_1}{A}}}{\ctxtapp{\varphi_3}{X}}{Y}{\varphi_4}\\
          }
          {
@@ -693,7 +780,7 @@ We also add $\reduces{\recnat{\natzero}{X}{b}{s}}{b}$ and
 $\reduces{\recnat{\natsucc{v}}{X}{b}{s}}{s \, v \, \recnat{v}{X}{b}{s}}$ to the reduction rules.
 
 Notice that we do not unify under the induction operators. For example,
-$\judgeaequiv{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\nattype}{\varphi, \evarassign{\hat{v}}{\natzero}}$
+$\judgeaequiv{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\varphi, \evarassign{\hat{v}}{\natzero}}$
 is not admissible.
 Moreover, the general unification is undecidable in this case.
 
