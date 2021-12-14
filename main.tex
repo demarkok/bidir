@@ -446,25 +446,13 @@ relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such 
 
 We treat existential variables $\hat{v}$ as non-reducible values.
 
-\begin{definition}[Equivalence] We apply the following rules top to bottom:
+\begin{definition}[Equivalence] We define equivalence syntactically,
+  as such, we do not maintain the typing information throughout the algorithm.
+
+  The unification algorithm (and the equivalence relation) is defined
+  as application of the following rules top to bottom:
 
 \begin{itemize}
-  \item[Base rules]
-    \begin{mathpar}
-      \Infer{}
-            { }
-            {
-              \judgeaequiv{\varphi}{e}{e}{\varphi}
-            }
-            \and
-      \Infer{}
-            { }
-            {
-              \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi, \evarassign{\hat{v}}{v}}
-            }
-      \and
-    \end{mathpar}
-
     \item[Reduction closure]
       \begin{mathpar}
         \Infer{}
@@ -486,16 +474,36 @@ We treat existential variables $\hat{v}$ as non-reducible values.
               }
       \end{mathpar}
 
-    \item[Congruence]
+    \item[Base rules]
       \begin{mathpar}
+        \Infer{}
+              { }
+              {
+                \judgeaequiv{\varphi}{e}{e}{\varphi}
+              }
+        \and
+        \Infer{}
+              { (\evarassign{\hat{v}}{v}) \in \varphi \text{ or }
+                (\evarassign{\hat{v}}{\cdot}) \notin \varphi  }
+              {
+                \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi, \evarassign{\hat{v}}{v}}
+              }
+        \and
+      \end{mathpar}
+
+
+    \item[Congruence]
+
+   \begin{mathpar}
+
 
    \Infer{}
          {
-           \judgeaequiv{\varphi}{t}{t'}{\varphi'} \\
-           \judgeaequiv{\varphi'}{v}{v'}{\varphi''}
+           \judgeaequiv{\varphi}{t}{t'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{v}{v'}{\varphi_2}
          }
          {
-           \judgeaequiv{\varphi}{t v}{t' v'}{\varphi''}
+           \judgeaequiv{\varphi}{t v}{t' v'}{\varphi_2}
          }
    \and
    \Infer{}
@@ -516,47 +524,122 @@ We treat existential variables $\hat{v}$ as non-reducible values.
    \and
    \Infer{}
          {
-           \judgeaequiv{\varphi, x:A}{t}{t'}{\varphi', x:A}
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
          }
          {
-           \judgeaequiv{\varphi}{\fun{x:A}{t}}{\fun{x:A}{t'}}{\varphi'}
+           \judgeaequiv{\varphi}{\fun{x:A}{t}}{\fun{x:A'}{t'}}{\varphi_2}
          }
    \and
    \Infer{}
          {
-           \judgeaequiv{\varphi}{t}{t'}{\varphi'}\\
-           \judgeaequiv{\varphi', x:A}{v}{v'}{\varphi'', x:A}
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1}\\
+           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}\\
+           \judgeaequiv{\varphi_2}{v}{v'}{\varphi_3}
          }
          {
-           \judgeaequiv{\varphi}{(\letval{x:A}{t}{v})}{(\letval{x:A}{t'}{v'})}{\varphi''}
+           \judgeaequiv{\varphi}{(\letval{x:A}{t}{v})}{(\letval{x:A'}{t'}{v'})}{\varphi_3}
          }
    \and
    \Infer{}
          {
-           \judgeaequiv{\varphi}{t}{t'}{\varphi'}\\
-           \judgeaequiv{\varphi', x:A}{v}{v'}{\varphi'', x:A}
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1}\\
+           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}\\
+           \judgeaequiv{\varphi_2}{v}{v'}{\varphi_3}
          }
          {
-           \judgeaequiv{\varphi}{(\dletval{x:A}{t}{v})}{(\dletval{x:A}{t'}{v'})}{\varphi''}
+           \judgeaequiv{\varphi}{(\dletval{x:A}{t}{v})}{(\dletval{x:A'}{t'}{v'})}{\varphi_3}
          }
    \and     
    \Infer{}
          {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi'} \\
-           \judgeaequiv{\varphi'}{t}{t'}{\varphi''}
+           \judgeaequiv{\varphi}{v}{v'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
          }
          {
-           \judgeaequiv{\varphi}{\recsigma{v}{X}{t}}{\recsigma{v'}{X}{t'}}{\varphi''}
+           \judgeaequiv{\varphi}{\recsigma{v}{X}{t}}{\recsigma{v'}{X}{t'}}{\varphi_2}
+         }
+   \and     
+
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{X}{X'}{\varphi_2} \\
+         }
+         {
+           \judgeaequiv{\varphi}{\pitype{x:A}{X}}{\pitype{x:A}{X'}}{\varphi_2}
          }
    \and     
    \Infer{}
          {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi'} \\
-           \judgeaequiv{\varphi'}{t}{t'}{\varphi''}
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{X}{X'}{\varphi_2} \\
          }
          {
-           \judgeaequiv{\varphi}{\receq{v}{X}{t}}{\receq{v'}{X}{t'}}{\varphi''}
+           \judgeaequiv{\varphi}{\foralltype{x:A}{X}}{\foralltype{x:A}{X'}}{\varphi_2}
          }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{v}{v'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
+         }
+         {
+           \judgeaequiv{\varphi}{\receq{v}{X}{t}}{\receq{v'}{X}{t'}}{\varphi_2}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{A}{A'}{\varphi'}
+         }
+         {
+           \judgeaequiv{\varphi}{\valtocomp{A}}{\valtocomp{A'}}{\varphi'}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{X}{X'}{\varphi'}
+         }
+         {
+           \judgeaequiv{\varphi}{\comptoval{X}}{\comptoval{X'}}{\varphi'}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{B}{B'}{\varphi_2} \\
+         }
+         {
+           \judgeaequiv{\varphi}{\sigmatype{x:A}{B}}{\sigmatype{x:A}{B}}{\varphi_2}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
+           \judgeaequiv{\varphi_1}{v}{v'}{\varphi_2} \\
+           \judgeaequiv{\varphi_2}{w}{w'}{\varphi_3} \\
+         }
+         {
+           \judgeaequiv{\varphi}{\eqtype{A}{v}{w}}{\eqtype{A'}{v'}{w'}}{\varphi_3}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{t}{t'}{\varphi'}
+         }
+         {
+           \judgeaequiv{\varphi}{\thunk{t}}{\thunk{t'}}{\varphi'}
+         }
+   \and     
+   \Infer{}
+         {
+           \judgeaequiv{\varphi}{v}{v'}{\varphi_1}\\
+           \judgeaequiv{\varphi_1}{w}{w'}{\varphi_2}
+         }
+         {
+           \judgeaequiv{\varphi}{\pair{v}{w}}{\pair{v'}{w'}}{\varphi_2}
+         }
+
 \end{mathpar}
 
 \end{itemize}
@@ -565,18 +648,18 @@ We treat existential variables $\hat{v}$ as non-reducible values.
 
 \begin{definition}[Normal form]
 
-  We say that the term $t$ is in normal form if and only if it is not reducible (i.e. 
+  We say that the term $t$ is in the normal form if and only if it is not reducible (i.e. 
   $\nexists t', \reduces{t}{t'}$).
 
 \end{definition}
 
 \begin{definition} [x-neutral form]
   Assume that $x$ is a variable.
-  We say that the term $t$ is in $x$-neutral form if and only if
+  We say that the term $t$ is $x$-neutral if and only if
   \begin{enumerate*}
-  \item[(i)]  $t$ is in normal form
+  \item[(i)]  $t$ is in the normal form
     and
-  \item[(ii)] for any term $v$ in normal form, $\subst{t}{x}{v}$ is in normal form.
+  \item[(ii)] for any term $v$ in normal form, $\subst{t}{x}{v}$ is in the normal form.
   \end{enumerate*}
 \end{definition}
 
