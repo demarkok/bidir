@@ -141,16 +141,17 @@
     \bnfalt \sigmatype{x:A}{B} \bnfalt \refl \bnfalt \eqtype{A}{v}{w} \bnfalt
     \thunk{t} \bnfalt \pair{v}{w} \\[1em]
 
-    \mbox{Contexts} & \Gamma & ::= & \cdot \bnfalt \Gamma, x:A \\[1em]
+    \mbox{Contexts} & \Gamma & ::= & \cdot \bnfalt \Gamma, x:A \bnfalt \Gamma, \isvtype{B} \\[1em]
   \end{array}
 \end{mathpar}
 
-\section{Rules}
+We write \emph{term} meaning a computation or a value.
+
+
+\section{Typing Rules}
 \label{sec:rules}
 
 \ilyam{How to make clickable references to the inference rule names?}
-
-
 
 \subsection{Context Well-formedness}
 
@@ -172,23 +173,23 @@
 \end{mathpar}
 
 \subsection{Context Formation and Var}
-Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
+Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
 \begin{mathpar}
 
 \Infer{CtxExt}
-      { \judgeInctx{J}{\Gamma} }
-      { \judgeInctx{J}{(\Gamma, y:B)} }
+      { \judgeInctx{j}{\Gamma} }
+      { \judgeInctx{j}{(\Gamma, y:B)} }
 \and
 
 \Infer{CtxExtT}
-      { \judgeInctx{J}{\Gamma} }
-      { \judgeInctx{J}{(\Gamma, \isvtype{B})} }
+      { \judgeInctx{j}{\Gamma} }
+      { \judgeInctx{j}{(\Gamma, \isvtype{B})} }
 \and
 
 \Infer{CtxInit}
       {  }
-      { \judgeInctx{J}{(\Gamma, J)} }
+      { \judgeInctx{j}{(\Gamma, j)} }
 \and
 
 \Infer{Var}
@@ -417,8 +418,11 @@ Here $J$ means context judgement: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
-\section{Reduction, equality, and normal forms}
 
+
+
+
+\section{Evaluation}
 \label{sec:equality}
 
 \begin{definition}[Reduction]
@@ -435,22 +439,107 @@ relation $R$ on terms (we write $\reduces{v}{v'}$ meaning $(v,v') \in R$), such 
 
   \item $\reduces{\force{\thunk{t}}}{t}$
 
-  \item $\reduces{\recsigma{\pair{u}{w}}{X}{u}}{u v w}$
+  \item $\reduces{\recsigma{\pair{v}{w}}{X}{u}}{u v w}$
 
   \item $\reduces{\receq{\refl}{X}{u}}{u}$
 
 \end{itemize}
-
 \end{multicols}
 \end{definition}
 
-We treat existential variables $\hat{v}$ as non-reducible values.
+\ilyam{Do we reduce the types? If so, we need to add types to the definition of Syntactic normal form.}
 
-\begin{definition}[Equivalence] We define equivalence syntactically,
-  as such, we do not maintain the typing information throughout the algorithm.
 
-  The unification algorithm (and the equivalence relation) is defined
-  as application of the following rules top to bottom:
+
+
+
+
+
+
+
+\section{Normal form}
+
+We define two equivalent definitions of the normal form. From the operational
+perspective, if a term is in the normal form, it is \emph{irreducible}. Alternatively,
+the normal form terms can be defined \emph{syntactically}, regardless of the reduction rules.
+
+\begin{definition}[Operational normal form]
+  We say that the term $t$ is in the operational
+  normal form if and only if it cannot be reduced any further, i.e.
+  $\nexists t', \reduces{t}{t'}$.
+\end{definition}
+
+\begin{definition}[Syntactic normal form]
+  We say that the term $t$ is in the syntactic
+  normal form if and only if it is form by the following grammar:
+
+  \begin{mathpar}
+    \begin{array}{llcl}
+      \mbox{Normal Computations} & t_n & ::= &
+      \fun{x:A}{t_n} \bnfalt
+      \return{v_n} \bnfalt
+      t_a
+      \\[1em]
+
+      \mbox{Atomic Computations} & t_a & ::= &
+      \force{v_a} \bnfalt
+      t_a v_n \bnfalt
+      \recsigma{v_a}{X}{t_n} \bnfalt
+      \receq{v_a}{X}{t_n} \bnfalt \\ &&& 
+      \letval{x : A}{t_a}{t_n} \bnfalt
+      \dletval{x : A}{t_a}{t_n}
+      \\[1em]
+
+      \mbox{Normal Values} & v_n & ::= &
+      \pair{v_n}{v_n} \bnfalt
+      \thunk{t_n} \bnfalt
+      \refl \bnfalt
+      v_a
+      \\[1em]
+
+      \mbox{Atomic Values} & v_a & ::= & x
+      \\[1em]
+
+    \end{array}
+  \end{mathpar}
+
+  Normal terms are not reducible. Atomic terms, in addition, do not cause
+  reduction when destructors are applied to them.
+
+\end{definition}
+
+\begin{lemma}[Normal form equivalence]
+  A term $t$ is in the operational normal form if and only if $t$ is in the syntactic normal form.
+  \ilyam{(assuming types are not reduced)}
+\end{lemma}
+
+\begin{proof}
+  Let us prove that the operational normal form implies syntactic one and vice versa. 
+  \begin{itemize}
+  \item [($\Rightarrow$)] By induction on the term structure.
+    \ilyam{This is only true for the well-typed terms!}
+  \item [($\Leftarrow$)] By induction on the normal form structure.
+      
+  \end{itemize}
+\end{proof}
+
+\begin{definition} [x-neutral form]
+  Assume that $x$ is a variable and $t$ is a term. 
+  We say that $t$ is $x$-neutral if and only if
+  \begin{enumerate*}
+  \item[(i)]  $t$ is in the normal form
+    and
+  \item[(ii)] for any term $v$ in normal form, $\subst{t}{x}{v}$ is in the normal form.
+  \end{enumerate*}
+\end{definition}
+
+
+
+We define equivalence syntactically,
+as such, we do not maintain the typing information throughout the algorithm.
+
+\begin{definition}[Equivalence]  The unification algorithm (and the equivalence relation) is defined
+  as application of the following rules {\bf top to bottom}:
 
 \begin{itemize}
     \item[Reduction closure]
@@ -483,8 +572,15 @@ We treat existential variables $\hat{v}$ as non-reducible values.
               }
         \and
         \Infer{}
-              { (\evarassign{\hat{v}}{v}) \in \varphi \text{ or }
-                (\evarassign{\hat{v}}{\cdot}) \notin \varphi  }
+              {
+                (\evarassign{\hat{v}}{v}) \in \varphi
+              }
+              {
+                \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi}
+              }
+        \and
+        \Infer{}
+              { (\evarassign{\hat{v}}{\cdot}) \notin \varphi  }
               {
                 \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi, \evarassign{\hat{v}}{v}}
               }
@@ -646,22 +742,12 @@ We treat existential variables $\hat{v}$ as non-reducible values.
 
 \end{definition}
 
-\begin{definition}[Normal form]
 
-  We say that the term $t$ is in the normal form if and only if it is not reducible (i.e. 
-  $\nexists t', \reduces{t}{t'}$).
 
-\end{definition}
 
-\begin{definition} [x-neutral form]
-  Assume that $x$ is a variable.
-  We say that the term $t$ is $x$-neutral if and only if
-  \begin{enumerate*}
-  \item[(i)]  $t$ is in the normal form
-    and
-  \item[(ii)] for any term $v$ in normal form, $\subst{t}{x}{v}$ is in the normal form.
-  \end{enumerate*}
-\end{definition}
+
+
+
 
 
 
