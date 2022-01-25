@@ -32,8 +32,12 @@
 
 \newcommand{\fun}[2]{\lambda {#1}.\,{#2}}
 
-\newcommand{\letval}[3]{\mathsf{let}\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
-\newcommand{\dletval}[3]{\mathsf{dlet}\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
+
+\newcommand{\letname}{\mathsf{let}}
+\newcommand{\dletname}{\mathsf{dlet}}
+
+\newcommand{\letval}[3]{\letname\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
+\newcommand{\dletval}[3]{\dletname\; {#1} \,:=\, {#2} \;\mathsf{in}\; {#3}}
 
 \newcommand{\pair}[2]{\left\langle{#1}, {#2}\right\rangle}
 \newcommand{\fst}[1]{\mathsf{fst}\,{#1}}
@@ -86,6 +90,9 @@
 \newcommand{\natsucc}[1]{\mathsf{succ}({#1})}
 \newcommand{\recnat}[4]{\mathsf{rec}_{\nattype}^{#2}({#1},{#3},{#4})}
 
+\newcommand{\narg}[1]{\#{#1}}
+
+
 % This is a command to define a judgement -- we'll one command per judgement
 % for delta-CBPV
 
@@ -120,16 +127,36 @@
 
 \newcommand{\judgeaequiv}[4]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} {\color{purple}\dashv}\,{#4}}
 
+\newcommand{\judgeSnf}[1]{{#1}\,\mathsf{NF}}
+\newcommand{\judgeSatom}[1]{{#1}\,\mathsf{ATOM}}
+\newcommand{\judgeSinert}[1]{{#1}\,\mathsf{INERT}}
+\newcommand{\judgeSok}[2]{{#1} \in {#2}\,\mathsf{OK}}
+
+\newcommand{\fv}[1]{\mathsf{FV}(#1)}
+
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
 % 
 \newcommand{\Infer}[3]{\inferrule*[right={#1}]{#2}{#3}}
+
+
+\newcommand\declareop[3]{%
+  \newcommand#1{%
+    \mskip\muexpr\medmuskip*#2\relax
+    {#3}%
+    \mskip\muexpr\medmuskip*#2\relax
+  }}
+
+\declareop\inc{3}{\mathrel{+}=}
+
+
 
 \begin{document}
 
 \section{Syntax}
 
 \begin{definition}[Syntax of terms]
+  \label{def:syntax}
 
   We write \emph{term} meaning a computation or a value, denoting it $\tau$.
 
@@ -156,18 +183,18 @@ and term-level terms, which manifests properly in \cref{sec:rules}.
 The upper-case literals represent type-terms, and the lower-case
 represent term-terms (which can be typed with some type-terms)
 with one exception: in $\letval{x : A}{t}{u}$,
-$t$ can represent a type-term.
+$u$ can represent a type-term.
 
 \begin{definition}[Syntax of algorithmic terms]
   Throughout the algorithm, we will use the auxiliary pre-cooked terms,
   containing some unassigned parts. For this purpose, we extend the syntax of
   terms by adding $\hat{x}$ as a possible value:
 
-  $$\mbox{Values} += \hat{x}$$
+  $$\mbox{Values} \inc \hat{x}$$
 
 \end{definition}
 
-We denote algorithmic terms $\rho$.
+We denote algorithmic terms as $\rho$.
 
 
 \section{Evaluation}
@@ -491,31 +518,136 @@ information throughout the algorithm.
 \end{lemma}
 \ilyam{There might be some problems with the meaningless existential variables}
 
+\section{Computational form of the terms}
+\newcommand{\fullterm}[2]{{#1}\,{#2}_1\dots{#2}_{\narg{#1}}}
+
+Let us consider the term syntax from a different perspective:
+
+\begin{definition}[Computational syntax of terms]
+  \label{def:comp-syntax}
+
+
+\begin{mathpar}
+  \begin{array}{llcl}
+    \mbox{Constructors} & C & ::= & \lambda x \bnfalt (,) \bnfalt \refl \bnfalt \return{} \bnfalt \thunk{} 
+    \\[1em]
+    \mbox{Eliminators} & E & ::= & @ \bnfalt \recsigma{}{}{} \bnfalt \receq{}{}{}
+                                   \bnfalt \letname \bnfalt \dletname
+                                   \bnfalt \force{}
+    \\[1em]
+
+    \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi \bnfalt \forall \bnfalt
+                                       \valtocomp{} \bnfalt \Sigma \bnfalt x
+    \\[1em]
+
+    \mbox{Formers} & F & ::= & C \bnfalt E \bnfalt N
+    \\[1em]
+
+    \mbox{Terms} & \sigma, \tau & ::= & \fullterm{F}{\tau}
+    \\[1em]
+
+  \end{array}
+\end{mathpar}
+
+
+Here $\narg{F}$ designates the number of the arguments of the term former $F$.
+
+\ilyam{todo: table for \#}.
+\end{definition}
+
+It is easy to see that the syntax from \cref{def:comp-syntax} is equivalent to
+the one from \cref{def:syntax}.
+
+Notice that the constructors and eliminators are paired in that sense that any
+\emph{redex} in our system is the elimination of the corresponding constructor,
+i.e. a term of the form $E\,(\fullterm{C}{\sigma})\, \tau_2 \dots
+\tau_{\narg{E}}$ where $E$ and $C$ are ``matched''.
+Vice versa, if a term of the form
+$E\,(\fullterm{C}{\sigma})\, \tau_2 \dots \tau_{\narg{E}}$ is
+\emph{well-typed}, it is a redex. 
+
+Using this syntax, it is convenient to express computational properties of
+the term, e.g. being in the normal form ($\mathsf{NF}$):
+
+\begin{mathpar}
+  \Infer{}{\judgeSatom{\tau}}{\judgeSnf{\tau}}
+  \and
+  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{C}}}}{\judgeSnf{\fullterm{C}{\tau}}}
+  \and
+  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{N}}}}{\judgeSatom{\fullterm{N}{\tau}}}
+  \and
+  \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\tau}}}
+\end{mathpar}
+
+\subsection{Safe occurrence}
+
+Another important property that we express in this syntax is \emph{safe
+  occurrence of the variable}. The judgement $\judgeSok{x}{\tau}$ means $x$
+occurs safely in $\tau$.
+
+Ideally, we would like to forbid the situations when \emph{in any normal form}
+of $\tau$, some instantiation of $x$ generates a new redex. In other words, we
+would like to ensure that
+\emph{all normal forms} of $\tau$ do not contain $E \, x \, \tau_2 \dots
+\tau_{\narg{E}}$ as a subterm.
+
+However, this property is undecidable by Rice's theorem: notice that
+\begin{enumerate*}
+
+\item[(i)] we do not require terms to have types at this stage, thus, the
+  system is Turing complete;
+
+\item[(ii)] the property is non-trivial;
+
+\item[(iii)] the property judges about the normal forms and thus, is invariant
+  under ``algorithmic equivalence''.
+\end{enumerate*}
+As it is undecidable, it is impossible to express this judgement using
+well-founded inference rules (i.e. generating finite trees).
+
+Since precise syntactic representation of this property is impossible, we
+under-approximate this property in the following way:
+
+\begin{mathpar}
+  \Infer{}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\tau}}}
+  \and
+  \Infer{}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{N}}}}{\judgeSok{x}{\fullterm{N}{\tau}}}
+  \and
+  \Infer{}{x \notin \fv{\fullterm{E}{\tau}}}{\judgeSok{x}{\fullterm{E}{\tau}}}
+  \and
+  \Infer{}
+  {\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{E}}}
+    \\ 
+    \tau_1 \neq x
+    \\ 
+    \judgeSinert{\fullterm{E}{\tau}}
+  }
+  {\judgeSok{x}{\fullterm{E}{\tau}}}
+\end{mathpar}
+In the last rule, ``$\tau_1 \neq x$'' means literal syntactic inequality.
+Intuitively, ``$\judgeSinert{\tau}$'' means that $\tau$ preserves its
+top-level structure under the reduction, i.e. the reduction always happens in
+the subterms of $\tau$ but never on the top-level. Formally, it is defined as follows:
+
+\begin{mathpar}
+  \Infer{}{ }{\judgeSinert{\fullterm{N}{\tau}}}
+  \and
+  \Infer{}{ }{\judgeSinert{\fullterm{C}{\tau}}}
+  \and
+  \Infer{}{ }{\judgeSinert{E\,(\fullterm{N}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
+  \and
+  \Infer{}
+  {\judgeSinert{\fullterm{E'}{\sigma}}}
+  {\judgeSinert{E\,(\fullterm{E'}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
+\end{mathpar}
+
+
 \section{Typing}
 \label{sec:rules}
 
-To make typing decidable, we have to restrict the system in several ways. In
-particular, when we form $\foralltype{x:A}{X}$ we restrict where $x$ can occur
-in $X$.
-
-\section{Neutral occurrence}
-
-\begin{mathpar}
-  \Infer{Ctx0}
-  { }
-  { \judgectx{}{\cdot}}
-
-  \and
-  \Infer{CtxIT}
-  { \judgectx{ }{\Gamma} }
-  { \judgectx{ }{\Gamma,\isvtype{x}}}
-
-  \and
-  \Infer{CtxI}
-  { \judgevtype{\Gamma}{A} \\
-    \judgectx{ }{\Gamma} }
-  { \judgectx{ }{\Gamma,x:A}}
-\end{mathpar}
+To make typing decidable, we restrict the system in several ways. In particular,
+when we form $\foralltype{x:A}{X}$, we require $x$ to belong to $\fv{X}$ and occur
+safely in $X$.
 
 \subsection{Context Well-formedness}
 
@@ -585,20 +717,20 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
         { \judgevCheck{\Gamma}{v}{A} }
 \end{mathpar}
 
-\subsection{Subsumption}
+% \subsection{Subsumption}
 
-\begin{mathpar}
-  \Infer{$\csubt$}
-  { \judgecCheck{\Gamma}{t}{X} \\
-    \judgecsubt{\Gamma}{X}{Y}}
-  { \judgecCheck{\Gamma}{t}{Y} }
-  \and
+% \begin{mathpar}
+%   \Infer{$\csubt$}
+%   { \judgecCheck{\Gamma}{t}{X} \\
+%     \judgecsubt{\Gamma}{X}{Y}}
+%   { \judgecCheck{\Gamma}{t}{Y} }
+%   \and
 
-  \Infer{$\vsubt$}
-  { \judgevCheck{\Gamma}{v}{A} \\
-    \judgevsubt{\Gamma}{A}{B}}
-  { \judgevCheck{\Gamma}{v}{B} }
-\end{mathpar}  
+%   \Infer{$\vsubt$}
+%   { \judgevCheck{\Gamma}{v}{A} \\
+%     \judgevsubt{\Gamma}{A}{B}}
+%   { \judgevCheck{\Gamma}{v}{B} }
+% \end{mathpar}  
 
 
 \subsection{Universes}
@@ -623,7 +755,10 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{$\forall$}
         { \judgevtype{\Gamma}     {A} \\
-          \judgectype{\Gamma, x:A}{X} }
+          \judgectype{\Gamma, x:A}{X} \\
+          x \in \fv{X} \\
+          \judgeSok{x}{X}
+        }
         { \judgectype{\Gamma}{\foralltype{x:A}{X}} }
         \and
 
