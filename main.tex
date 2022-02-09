@@ -6,6 +6,7 @@
 \usepackage{mathpartir}
 \usepackage{cleveref}
 \usepackage{multicol}
+\usepackage{quiver}
 \usepackage[inline, shortlabels]{enumitem}
 
 \usepackage[colorinlistoftodos]{todonotes} 
@@ -18,6 +19,9 @@
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{definition}{Definition}
+\newtheorem{notation}{Notation}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
 
 %% \newcommand{\ilyam}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{I: #2}}
 \newcommand{\ilya}[2][]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,inline,#1]{Ilya: #2}}
@@ -78,19 +82,20 @@
 \newcommand{\isctype}[1]{{#1} \, \mathsf{ctype}}
 
 \newcommand{\ctxtapp}[2]{[{#1}] {#2}}
-\newcommand{\evarassign}[2]{{#1} \mathsf{:=} {#2}}
-
+\newcommand{\evarassign}[2]{({#1} \mathsf{:=} {#2})}
+\newcommand{\spcdot}{\mkern 2mu\cdot\mkern 2mu}
+\newcommand{\emptyctx}{\spcdot}
 
 
 \newcommand{\reduces}[2]{{#1} \rightarrow {#2}}
-
+\newcommand{\contracts}[2]{{#1} \rightharpoonup {#2}}
 
 \newcommand{\nattype}{\mathbb{N}}
 \newcommand{\natzero}{\mathsf{0}}
 \newcommand{\natsucc}[1]{\mathsf{succ}({#1})}
 \newcommand{\recnat}[4]{\mathsf{rec}_{\nattype}^{#2}({#1},{#3},{#4})}
 
-\newcommand{\narg}[1]{\#{#1}}
+\newcommand{\narg}[1]{|{#1}|}
 
 
 % This is a command to define a judgement -- we'll one command per judgement
@@ -121,24 +126,32 @@
 \newcommand{\judgecsubt}[3]{{#1} \vdash {#2} \csubt {#3}}
 
 \newcommand{\judgeequiv}[4]{{#1} \vdash {#2} \equiv {#3} : {#4}}
+\newcommand{\judgeequivunt}[2]{{#1} \equiv {#2}}
 
 \newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \vsubt {#3} {\color{purple}\dashv}\,{#4}}
 \newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \csubt {#3} {\color{purple}\dashv}\,{#4}}
 
-\newcommand{\judgeaequiv}[4]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} {\color{purple}\dashv}\,{#4}}
+\newcommand{\judgeunify}[4]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} {\color{purple}\dashv}\,{#4}}
 
 \newcommand{\judgeSnf}[1]{{#1}\,\mathsf{NF}}
 \newcommand{\judgeSatom}[1]{{#1}\,\mathsf{ATOM}}
 \newcommand{\judgeSinert}[1]{{#1}\,\mathsf{INERT}}
 \newcommand{\judgeSok}[2]{{#1} \in {#2}\,\mathsf{OK}}
+\newcommand{\judgeSokterm}[1]{{#1} \,\mathsf{OK}}
+
+\newcommand{\judgeinst}[2]{{#1} \vdash {#2}}
+
+\newcommand{\ctxtexdends}[2]{{#1} \subseteq {#2}}
+
 
 \newcommand{\fv}[1]{\mathsf{FV}(#1)}
+
+\newcommand{\fullterm}[2]{{#1}\,#2_1 \dots #2_{\narg{#1}}}
 
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
 % 
 \newcommand{\Infer}[3]{\inferrule*[right={#1}]{#2}{#3}}
-
 
 \newcommand\declareop[3]{%
   \newcommand#1{%
@@ -158,7 +171,7 @@
 \begin{definition}[Syntax of terms]
   \label{def:syntax}
 
-  We write \emph{term} meaning a computation or a value, denoting it $\tau$.
+  We write \emph{term} meaning a computation or a value, denoting it $\sigma$ or $\tau$.
 
 \begin{mathpar}
   \begin{array}{llcl}
@@ -172,7 +185,7 @@
     \bnfalt \sigmatype{x:A}{B} \bnfalt \refl \bnfalt \eqtype{A}{v}{w} \bnfalt
     \thunk{t} \bnfalt \pair{v}{w} \\[1em]
 
-    \mbox{Contexts} & \Gamma & ::= & \cdot \bnfalt \Gamma, x:A \bnfalt \Gamma, \isvtype{B} \\[1em]
+    % \mbox{Contexts} & \Gamma & ::= & \emptyctx \bnfalt \Gamma, x:A \bnfalt \Gamma, \isvtype{B} \\[1em]
   \end{array}
 \end{mathpar}
 
@@ -185,341 +198,7 @@ represent term-terms (which can be typed with some type-terms)
 with one exception: in $\letval{x : A}{t}{u}$,
 $u$ can represent a type-term.
 
-\begin{definition}[Syntax of algorithmic terms]
-  Throughout the algorithm, we will use the auxiliary pre-cooked terms,
-  containing some unassigned parts. For this purpose, we extend the syntax of
-  terms by adding $\hat{x}$ as a possible value:
-
-  $$\mbox{Values} \inc \hat{x}$$
-
-\end{definition}
-
-We denote algorithmic terms as $\rho$.
-
-
-\section{Evaluation}
-\label{sec:equality}
-
-\begin{definition}[Reduction]
-Reduction is a minimal congruent
-relation $R$ on terms (we write $\reduces{\tau}{\tau'}$ meaning $(\tau,\tau') \in R$), such that
-
-\begin{multicols}{2}
-\begin{itemize}
-  \item $\reduces{(\fun{x:A}{t})v}{\subst{t}{x}{v}}$
-
-  \item $\reduces{\letval{x:A}{\return{v}}{u}}{\subst{u}{x}{v}}$
-
-  \item $\reduces{\dletval{x:A}{\return{v}}{u}}{\subst{u}{x}{v}}$
-
-  \item $\reduces{\force{\thunk{t}}}{t}$
-
-  \item $\reduces{\recsigma{\pair{v}{w}}{X}{u}}{u v w}$
-
-  \item $\reduces{\receq{\refl}{X}{u}}{u}$
-
-\end{itemize}
-\end{multicols}
-\end{definition}
-
-
-\subsection{Normal form}
-
-We define two equivalent definitions of the normal form. From the operational
-perspective, if a term is in the normal form, it is \emph{irreducible}. Alternatively,
-the normal form terms can be defined \emph{syntactically}, regardless of the reduction rules.
-
-\begin{definition}[Operational normal form]
-  We say that the term $\tau$ is in the operational
-  normal form if and only if it cannot be reduced any further, i.e.
-  $\nexists \tau', \reduces{\tau}{\tau'}$.
-\end{definition}
-
-\begin{definition}[Syntactic normal form]
-  We say that the term $\tau$ is in the syntactic
-  normal form if and only if it is formed by the following grammar:
-
-  \begin{mathpar}
-    \begin{array}{llcl}
-      \mbox{Normal Computations} & t_n, X_n & ::= &
-      \fun{x:A_n}{t_n} \bnfalt
-      \return{v_n} \bnfalt
-      t_a
-      \\[1em]
-
-      \mbox{Atomic Computations} & t_a & ::= &
-      \force{v_a} \bnfalt
-      t_a v_n \bnfalt
-      \recsigma{v_a}{X_n}{t_n} \bnfalt
-      \receq{v_a}{X_n}{t_n} \bnfalt \\ &&& 
-      \letval{x : A_n}{t_a}{t_n} \bnfalt
-      \dletval{x : A_n}{t_a}{t_n} \\ &&&
-      \valtocomp{A_n} \bnfalt
-      \pitype{x:A_n}{X_n} \bnfalt
-      \foralltype{x:A_n}{X_n}
-      \\[1em]
-
-      \mbox{Normal Values} & v_n, A_n & ::= &
-      \pair{v_n}{v_n} \bnfalt
-      \thunk{t_n} \bnfalt
-      \refl \bnfalt
-      v_a
-      \\[1em]
-
-      \mbox{Atomic Values} & v_a & ::= & x \bnfalt \\ &&& \comptoval{X_n} \bnfalt
-                                         \sigmatype{x:A_n}{A_n} \bnfalt \eqtype{A_n}{v_n}{v_n}
-      \\[1em]
-
-    \end{array}
-  \end{mathpar}
-
-  The intuition is the following.
-  Normal terms are not reducible. Atomic terms are not reducible and, in addition, do not cause
-  reduction when the eliminators are applied to them.
-
-\end{definition}
-
-\begin{lemma}[Normal form equivalence]
-  A well-typed term $q$ is in the operational normal form if and only if $q$ is in the syntactic normal form.
-\end{lemma}
-
-\begin{proof}
-  Let us prove that the operational normal form implies syntactic one and vice versa. 
-  \begin{itemize}
-  \item [($\Rightarrow$)] By induction on the term structure. 
-  \item [($\Leftarrow$)] By induction on the normal form structure.
-      
-  \end{itemize}
-\end{proof}
-
-\subsection{Equivalence}
-
-The equivalence judgement is of the form
-$\judgeaequiv{\varphi}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
-algorithmic terms (potentially with unassigned variables), $\varphi$ and
-$\varphi'$ are contexts formed by the following grammar:
-$$\varphi, \varphi' ::= \cdot \bnfalt \varphi, (\hat{v} := \tau) $$
-where $\tau$ is a ground term.
-
-Note that we define equivalence syntactically, as such, we do not maintain the typing
-information throughout the algorithm. 
-
-\begin{definition}[Algorithmic Equivalence]  The unification algorithm (and the equivalence relation) is defined
-  as application of the following rules {\bf top to bottom}:
-
-\begin{itemize}
-    \item[Reduction closure]
-      \begin{mathpar}
-        \Infer{}
-              {
-                \reduces{e_1}{e_1'}\\
-                \judgeaequiv{\varphi}{e_1'}{e_2}{\varphi'}
-              }
-              {
-                \judgeaequiv{\varphi}{e_1}{e_2}{\varphi'}
-              }
-        \and
-        \Infer{}
-              {
-                \reduces{e_2}{e_2'}\\
-                \judgeaequiv{\varphi}{e_1}{e_2'}{\varphi'}
-              }
-              {
-                \judgeaequiv{\varphi}{e_1}{e_2}{\varphi'}
-              }
-      \end{mathpar}
-
-    \item[Base rules]
-      \begin{mathpar}
-        \Infer{}
-              { }
-              {
-                \judgeaequiv{\varphi}{e}{e}{\varphi}
-              }
-        \and
-        \Infer{}
-              {
-                (\evarassign{\hat{v}}{v}) \in \varphi
-              }
-              {
-                \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi}
-              }
-        \and
-        \Infer{}
-              { (\evarassign{\hat{v}}{\cdot}) \notin \varphi  }
-              {
-                \judgeaequiv{\varphi}{v}{\hat{v}}{\varphi, \evarassign{\hat{v}}{v}}
-              }
-        \and
-      \end{mathpar}
-
-
-    \item[Congruence]
-
-      \ilyam{fix the congruence rules, add evaluation on types}
-   \begin{mathpar}
-
-
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{t}{t'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{v}{v'}{\varphi_2}
-         }
-         {
-           \judgeaequiv{\varphi}{t v}{t' v'}{\varphi_2}
-         }
-   \and
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi'}
-         }
-         {
-           \judgeaequiv{\varphi}{\force{v}}{\force{v'}}{\varphi'}
-         }
-   \and
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi'}
-         }
-         {
-           \judgeaequiv{\varphi}{\return{v}}{\return{v'}}{\varphi'}
-         }
-   \and
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
-         }
-         {
-           \judgeaequiv{\varphi}{\fun{x:A}{t}}{\fun{x:A'}{t'}}{\varphi_2}
-         }
-   \and
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1}\\
-           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}\\
-           \judgeaequiv{\varphi_2}{v}{v'}{\varphi_3}
-         }
-         {
-           \judgeaequiv{\varphi}{(\letval{x:A}{t}{v})}{(\letval{x:A'}{t'}{v'})}{\varphi_3}
-         }
-   \and
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1}\\
-           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}\\
-           \judgeaequiv{\varphi_2}{v}{v'}{\varphi_3}
-         }
-         {
-           \judgeaequiv{\varphi}{(\dletval{x:A}{t}{v})}{(\dletval{x:A'}{t'}{v'})}{\varphi_3}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
-         }
-         {
-           \judgeaequiv{\varphi}{\recsigma{v}{X}{t}}{\recsigma{v'}{X}{t'}}{\varphi_2}
-         }
-   \and     
-
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{X}{X'}{\varphi_2} \\
-         }
-         {
-           \judgeaequiv{\varphi}{\pitype{x:A}{X}}{\pitype{x:A}{X'}}{\varphi_2}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{X}{X'}{\varphi_2} \\
-         }
-         {
-           \judgeaequiv{\varphi}{\foralltype{x:A}{X}}{\foralltype{x:A}{X'}}{\varphi_2}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{t}{t'}{\varphi_2}
-         }
-         {
-           \judgeaequiv{\varphi}{\receq{v}{X}{t}}{\receq{v'}{X}{t'}}{\varphi_2}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi'}
-         }
-         {
-           \judgeaequiv{\varphi}{\valtocomp{A}}{\valtocomp{A'}}{\varphi'}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{X}{X'}{\varphi'}
-         }
-         {
-           \judgeaequiv{\varphi}{\comptoval{X}}{\comptoval{X'}}{\varphi'}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{B}{B'}{\varphi_2} \\
-         }
-         {
-           \judgeaequiv{\varphi}{\sigmatype{x:A}{B}}{\sigmatype{x:A}{B}}{\varphi_2}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{A}{A'}{\varphi_1} \\
-           \judgeaequiv{\varphi_1}{v}{v'}{\varphi_2} \\
-           \judgeaequiv{\varphi_2}{w}{w'}{\varphi_3} \\
-         }
-         {
-           \judgeaequiv{\varphi}{\eqtype{A}{v}{w}}{\eqtype{A'}{v'}{w'}}{\varphi_3}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{t}{t'}{\varphi'}
-         }
-         {
-           \judgeaequiv{\varphi}{\thunk{t}}{\thunk{t'}}{\varphi'}
-         }
-   \and     
-   \Infer{}
-         {
-           \judgeaequiv{\varphi}{v}{v'}{\varphi_1}\\
-           \judgeaequiv{\varphi_1}{w}{w'}{\varphi_2}
-         }
-         {
-           \judgeaequiv{\varphi}{\pair{v}{w}}{\pair{v'}{w'}}{\varphi_2}
-         }
-\end{mathpar}
-
-\end{itemize}
-\end{definition}
-
-\begin{definition}[Equivalence]
-  We write $\tau \equiv \tau'$ denoting $\judgeaequiv{\cdot}{\tau}{\tau'}{\cdot}$.
-\end{definition}
-
-\begin{lemma} [Unification completeness]
-  If $\varphi(\rho)$ or $\varphi(\rho')$ is ground and 
-  $\judgeaequiv{\varphi}{\rho}{\rho'}{\varphi'}$ holds, then $\varphi'(\rho)$
-  and $\varphi'(\rho')$ are ground.
-\end{lemma}
-\ilyam{There might be some problems with the meaningless existential variables}
-
 \section{Computational form of the terms}
-\newcommand{\fullterm}[2]{{#1}\,{#2}_1\dots{#2}_{\narg{#1}}}
 
 Let us consider the term syntax from a different perspective:
 
@@ -536,39 +215,119 @@ Let us consider the term syntax from a different perspective:
                                    \bnfalt \force{}
     \\[1em]
 
-    \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi \bnfalt \forall \bnfalt
-                                       \valtocomp{} \bnfalt \Sigma \bnfalt x
+    \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi x \bnfalt \forall x \bnfalt
+                                       \valtocomp{} \bnfalt \Sigma x \bnfalt x
     \\[1em]
 
     \mbox{Formers} & F & ::= & C \bnfalt E \bnfalt N
     \\[1em]
 
-    \mbox{Terms} & \sigma, \tau & ::= & \fullterm{F}{\tau}
-    \\[1em]
-
+    \mbox{Terms} & \sigma, \tau, \nu & ::= & \fullterm{F}{\tau}
   \end{array}
 \end{mathpar}
-
-
 Here $\narg{F}$ designates the number of the arguments of the term former $F$.
-
-\ilyam{todo: table for \#}.
+\ilyam{todo: table for \narg{F}}.
 \end{definition}
 
-It is easy to see that the syntax from \cref{def:comp-syntax} is equivalent to
-the one from \cref{def:syntax}.
+It is easy to see that the syntax of \emph{terms} from \cref{def:syntax} defines
+the \emph{subset} of terms defined by \cref{def:comp-syntax}. In fact, any
+\emph{well-typed} term must have a form defined by \cref{def:syntax}. We will
+use these two representation interchangeably.
 
-Notice that the constructors and eliminators are paired in that sense that any
-\emph{redex} in our system is the elimination of the corresponding constructor,
-i.e. a term of the form $E\,(\fullterm{C}{\sigma})\, \tau_2 \dots
+\section{Reduction}
+
+First, we define the \emph{redex contraction}.
+\begin{definition}[Redex Contraction]
+  \label{def:redex-contr}
+  We define the top-level redex contraction in the following way:
+  \begin{multicols}{2}
+    \begin{itemize}
+
+    \item $\contracts{(\fun{x:\nu}{\sigma})\tau}{\subst{\sigma}{x}{\tau}}$
+      
+    \item $\contracts{\letval{x:\nu}{\return{\sigma}}{\tau}}{\subst{\tau}{x}{\sigma}}$
+
+    \item $\contracts{\dletval{x:\nu}{\return{\sigma}}{\tau}}{\subst{\tau}{x}{\sigma}}$
+
+    \item $\contracts{\force{\thunk{\tau}}}{\tau}$
+
+    \item $\contracts{\recsigma{\pair{\tau_1}{\tau_2}}{\nu}{\sigma}}{\sigma \,
+        \tau_1 \, \tau_2}$
+
+    \item $\contracts{\receq{\refl}{\nu}{\tau}}{\tau}$
+
+    \end{itemize}
+  \end{multicols}
+
+  The terms on the left hand side of $\contracts{\spcdot}{\spcdot}$ are called \emph{redexes}.
+  
+\end{definition}
+
+Notice that any redex from \cref{def:redex-contr} is an elimination of a
+constructor, i.e. a term of the form $E\,(\fullterm{C}{\sigma})\, \tau_2 \dots
 \tau_{\narg{E}}$ where $E$ and $C$ are ``matched''.
 Vice versa, if a term of the form
 $E\,(\fullterm{C}{\sigma})\, \tau_2 \dots \tau_{\narg{E}}$ is
 \emph{well-typed}, it is a redex. 
 
-Using this syntax, it is convenient to express computational properties of
-the term, e.g. being in the normal form ($\mathsf{NF}$):
 
+Informally, reduction of a term $\tau$ is a redex contraction happening in some
+\emph{subterm} of $\tau$.
+
+\begin{definition}[Reduction]
+  \begin{mathpar}
+    \Infer{Redex}{\contracts{\tau}{\tau'}}{\reduces{\tau}{\tau'}}
+    \and
+    \Infer{Cong$^F_i$}{\reduces{\tau_i}{\tau_i'}}
+    {\reduces
+      {F\,\tau_1\dots\tau_i\dots\tau_{\narg{F}}}
+      {F\,\tau_1\dots\tau_i'\dots\tau_{\narg{F}}}}
+  \end{mathpar}
+
+\end{definition}
+
+\begin{lemma}[Substitution preserves reduction]
+  \label{lemma:subst-res}
+
+  \ilyam{Functoriality of the substitution?}
+  \begin{mathpar}
+    \Infer{}
+    {\reduces{\tau}{\tau'}}
+    {\reduces{\subst{\tau}{x}{\sigma}}
+      {\subst{\tau'}{x}{\sigma}}}
+  \end{mathpar}
+\end{lemma}
+\begin{proof}
+  Induction on $\reduces{\tau}{\tau'}$. Substitution is congruent, therefore,
+  the induction goes down to the redexes.
+
+  \begin{itemize}
+    \item
+  Suppose that
+  $\reduces{(\fun{x:\nu}{\sigma})\sigma'}{\subst{\sigma}{x}{\sigma'}}$.
+  We need to prove that
+  $\reduces{\subst{(\fun{x:\nu}{\sigma})\sigma'}{y}{\tau}}{\subst{\subst{\sigma}{x}{\sigma'}}{y}{\tau}}$.
+  We know that $\subst{(\fun{x:\nu}{\sigma})\sigma'}{y}{\tau} =
+  (\fun{x:\nu}{\subst{\sigma}{y}{\tau}})(\subst{\sigma'}{y}{\tau})$,
+  which reduces to
+  $\subst{\subst{\sigma}{y}{\tau}}{x}{\subst{\sigma'}{y}{\tau}}$. But
+  $$\subst{\subst{\sigma}{y}{\tau}}{x}{\subst{\sigma'}{y}{\tau}} =
+  \subst{\subst{\sigma}{x}{\sigma'}}{y}{\tau},$$
+  assuming that $x \notin \fv{\tau}$, which is guaranteed because the
+  substitution is capture-avoiding. 
+
+  \item
+    The other cases are similar or straightforward
+  \end{itemize}
+\end{proof}
+
+\section{Normal Form}
+
+Using the syntax from \cref{def:comp-syntax}, it is convenient to express
+computational properties of the term, e.g. being in the normal form
+($\mathsf{NF}$).
+
+\begin{definition}[Normal Form]
 \begin{mathpar}
   \Infer{}{\judgeSatom{\tau}}{\judgeSnf{\tau}}
   \and
@@ -578,14 +337,77 @@ the term, e.g. being in the normal form ($\mathsf{NF}$):
   \and
   \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\tau}}}
 \end{mathpar}
+\end{definition}
 
-\subsection{Safe occurrence}
+The intuition is that
+\begin{enumerate*}
+\item[(i)] normal terms are not reducible;
+\item[(ii)] atomic terms are not reducible and, in addition, do not cause
+  reduction when the eliminators are applied to them.
+\end{enumerate*}
+
+Although it is easy to see that the terms in normal form are not reducible,
+the opposite is only true for the well-typed terms:
+
+\begin{proposition}[Normal form and irreducibility]
+  \begin{mathpar}
+    \Infer{}{\judgeSnf{\tau}}{\nexists \tau', \reduces{\tau}{\tau'}}
+    \and
+    \Infer{}{\tau \text{ is well-typed } \\ \nexists \tau', \reduces{\tau}{\tau'}}{\judgeSnf{\tau}}
+  \end{mathpar}
+\end{proposition}
+
+Hereafter, we assume all the terms are well typed.
+\ilyam{Well-typedness is required for the unification and equivalence to be
+  well-founded (otherwise induction is not possible). TODO: normalization (halting)!}
+
+% \begin{definition}[Syntactic normal form]
+%   We say that the term $\tau$ is in the syntactic
+%   normal form if and only if it is formed by the following grammar:
+
+%   \begin{mathpar}
+%     \begin{array}{llcl}
+%       \mbox{Normal Computations} & t_n, X_n & ::= &
+%       \fun{x:A_n}{t_n} \bnfalt
+%       \return{v_n} \bnfalt
+%       t_a
+%       \\[1em]
+
+%       \mbox{Atomic Computations} & t_a & ::= &
+%                                                \force{v_a} \bnfalt
+%       t_a v_n \bnfalt
+%       \recsigma{v_a}{X_n}{t_n} \bnfalt
+%       \receq{v_a}{X_n}{t_n} \bnfalt \\ &&& 
+%       \letval{x : A_n}{t_a}{t_n} \bnfalt
+%       \dletval{x : A_n}{t_a}{t_n} \\ &&&
+%       \valtocomp{A_n} \bnfalt
+%       \pitype{x:A_n}{X_n} \bnfalt
+%       \foralltype{x:A_n}{X_n}
+%       \\[1em]
+
+%       \mbox{Normal Values} & v_n, A_n & ::= &
+%       \pair{v_n}{v_n} \bnfalt
+%       \thunk{t_n} \bnfalt
+%       \refl \bnfalt
+%       v_a
+%       \\[1em]
+
+%       \mbox{Atomic Values} & v_a & ::= & x \bnfalt \\ &&& \comptoval{X_n} \bnfalt
+%                                          \sigmatype{x:A_n}{A_n} \bnfalt \eqtype{A_n}{v_n}{v_n}
+%       \\[1em]
+
+%     \end{array}
+%   \end{mathpar}
+% \end{definition}
+
+
+\section{Safe Occurrence}
 
 Another important property that we express in this syntax is \emph{safe
   occurrence of the variable}. The judgement $\judgeSok{x}{\tau}$ means $x$
 occurs safely in $\tau$.
 
-Ideally, we would like to forbid the situations when \emph{in any normal form}
+Ideally, we would like to forbid the situations when \emph{in some normal form}
 of $\tau$, some instantiation of $x$ generates a new redex. In other words, we
 would like to ensure that
 \emph{all normal forms} of $\tau$ do not contain $E \, x \, \tau_2 \dots
@@ -603,19 +425,19 @@ However, this property is undecidable by Rice's theorem: notice that
   under ``algorithmic equivalence''.
 \end{enumerate*}
 As it is undecidable, it is impossible to express this judgement using
-well-founded inference rules (i.e. generating finite trees).
+well-founded inference rules (i.e. unambiguously generating finite trees).
 
 Since precise syntactic representation of this property is impossible, we
 under-approximate this property in the following way:
 
 \begin{mathpar}
-  \Infer{}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\tau}}}
+  \Infer{C-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\tau}}}
   \and
-  \Infer{}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{N}}}}{\judgeSok{x}{\fullterm{N}{\tau}}}
+  \Infer{N-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{N}}}}{\judgeSok{x}{\fullterm{N}{\tau}}}
   \and
-  \Infer{}{x \notin \fv{\fullterm{E}{\tau}}}{\judgeSok{x}{\fullterm{E}{\tau}}}
+  \Infer{E-FV}{x \notin \fv{\fullterm{E}{\tau}}}{\judgeSok{x}{\fullterm{E}{\tau}}}
   \and
-  \Infer{}
+  \Infer{E-Cong}
   {\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{E}}}
     \\ 
     \tau_1 \neq x
@@ -627,7 +449,9 @@ under-approximate this property in the following way:
 In the last rule, ``$\tau_1 \neq x$'' means literal syntactic inequality.
 Intuitively, ``$\judgeSinert{\tau}$'' means that $\tau$ preserves its
 top-level structure under the reduction, i.e. the reduction always happens in
-the subterms of $\tau$ but never on the top-level. Formally, it is defined as follows:
+the subterms of $\tau$ but never on the top-level. In fact, the relation we
+define is a little bit stronger, as it also forbids changing of the structure 
+of the eliminator's first argument. Formally, it is defined as follows:
 
 \begin{mathpar}
   \Infer{}{ }{\judgeSinert{\fullterm{N}{\tau}}}
@@ -636,16 +460,447 @@ the subterms of $\tau$ but never on the top-level. Formally, it is defined as fo
   \and
   \Infer{}{ }{\judgeSinert{E\,(\fullterm{N}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
   \and
-  \Infer{}
+  \Infer{EE-Inert}
   {\judgeSinert{\fullterm{E'}{\sigma}}}
   {\judgeSinert{E\,(\fullterm{E'}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
 \end{mathpar}
+
+As a heuristics, it is possible to extend the ``Safe Occurrence'' property by
+injecting some of the redex contractions from \cref{def:redex-contr} into the
+inference system. Notice that only non-substituting contractions are allowed
+because the latter would violate the finiteness of the inference trees.
+
+\begin{mathpar}
+  \Infer{}
+  {\judgeSok{x}{\tau}}
+  {\judgeSok{x}{\force{\thunk{\tau}}}}
+  \and
+  \Infer{}
+  {
+    \judgeSok{x}{{@\, (@\, \sigma \, \tau_1)\, \tau_2}} \\
+    \judgeSok{x}{\tau'} \\
+  }
+  {\judgeSok{x}{
+      \recsigma{\pair{\tau_1}{\tau_2}}{\tau'}{\sigma}}
+  }
+  \and
+  \Infer{}
+  {
+    \judgeSok{x}{\sigma} \\
+    \judgeSok{x}{\tau} \\
+  }
+  {\judgeSok{x}{
+      \receq{\refl}{\sigma}{\tau}}
+  }
+\end{mathpar}
+
+
+\begin{lemma}[Conguence of the safe occurrence]
+  \label{lemma:cong-safe-occurrence}
+  \begin{mathpar}
+  \Infer{}
+  {
+    \judgeSok{x}{\fullterm{F}{\sigma}}
+  }
+  {
+    \judgeSok{x}{\sigma_1} \\
+    \cdots \\
+    \judgeSok{x}{\sigma_{\narg{F}}}
+  }
+  \end{mathpar}
+\end{lemma}
+\begin{proof}
+  Trivial induction.
+\end{proof}
+
+
+\begin{lemma}[Reduction-Substitution Commutativity]
+  \begin{mathpar}
+    \Infer{}
+    {
+      \judgeSok{x}{\sigma}\\
+      \judgeSnf{\tau}\\
+      \reduces{\subst{\sigma}{x}{\tau}}{\sigma'}\\
+    }
+    {\exists \sigma^* \text{ s.t. } \reduces{\sigma}{\sigma^*} \text{ and } \subst{\sigma^*}{x}{\tau} = \sigma' }
+  \end{mathpar}
+
+  Or in the commutative diagram form: 
+    if $\judgeSok{x}{\sigma}$ and $\judgeSnf{\tau}$ then
+    \begin{tikzcd}
+        \sigma & {\sigma^*} \\
+        \bullet & {\sigma'}
+        \arrow["{{x:=\tau}}"', from=1-1, to=2-1]
+        \arrow["\rightarrow"', from=2-1, to=2-2]
+        \arrow["\rightarrow", dashed, from=1-1, to=1-2]
+        \arrow["{x := \tau}", dashed, from=1-2, to=2-2]
+      \end{tikzcd}
+\end{lemma}
+
+\begin{proof}
+  Let us destruct the substitution $\subst{\sigma}{x}{\tau}$. Notice that
+  $\sigma \neq x$ because $\subst{x}{x}{\tau} = \tau \nrightarrow \spcdot$. It
+  means that the substitution is performed by congruence: $\sigma =
+  \fullterm{F}{\sigma}$ (for some $F \neq x$), and $\subst{\sigma}{x}{\tau} =
+  F\, (\subst{\sigma_1}{x}{\tau}) \dots (\subst{\sigma_{\narg{F}}}{x}{\tau}) $.
+  Notice that $\judgeSok{x}{\sigma_i}$ for $i = 1 \dots \narg F$ by
+  \cref{lemma:cong-safe-occurrence}.
+
+  Induction on $\reduces{\subst{\sigma}{x}{\tau}}{\sigma'}$.
+  The reduction step can be justified either by the congruence or the redex contraction.
+  \begin{itemize}
+  \item If the reduction step is done by congruence, then the required
+    $\sigma^*$ is of the form $\fullterm{F}{\sigma^*}$ where $\sigma^*_1 \dots
+    \sigma^*_{\narg{F}}$ are constructed by the straightforward application of
+    the induction hypothesis to $\sigma_1 \dots \sigma_{\narg{F}}$.
+
+  \item If the reduction is the top-level redex contraction, then
+    $\subst{\sigma}{x}{\tau}$ is a redex, i.e. $F$ is an eliminator $E$ and
+    $\subst{\sigma_1}{x}{\tau}$ is formed by a constructor $C$.
+    Notice that because
+    $\judgeSok{x}{\fullterm{E}{\sigma}}$, $\sigma_1
+    \neq x$. Therefore, the substitution $\subst{\sigma_1}{x}{\tau}$ is also done by
+    congruence: $\sigma_1 = \fullterm{C}{\zeta}$ and thus,
+    $\sigma = E \, (\fullterm{C}{\zeta}) \, \sigma_2 \dots \sigma_{\narg{E}}$.
+
+    Let us destruct $\judgeSok{x}{\sigma}$. Since $\sigma$ is not inert, either
+    \begin{enumerate*}
+      \item[(i)] $x \notin \fv{\sigma}$, then the substitution is the identity, and we
+        can take $\sigma^* = \sigma'$); or
+      \item[(ii)] one of the ``additional'' rules is applied to get
+        $\judgeSok{x}{\sigma}$. In all of these three cases, we can perform the
+        same top-level redex contraction to acquire $\sigma^*$. This operation
+        commutes with substitution because all it does is restructuring the
+        top-level form of $\sigma$ without changing the subterms $\zeta_1,
+        \dots, \zeta_{\narg{C}}, \sigma_2, \dots, \sigma_{\narg{E}}$, thus, the
+        required property holds.
+
+        \ilyam{to be fair, the beta-reduction also commutes with the
+          substitution, but we still need the inertness so that OK is preserved
+          under reduction.}
+        
+    \end{enumerate*}
+  \end{itemize}
+\end{proof}
+
+
+\begin{lemma}[Inertness preservation]
+  \label{lemma:inertness-pres}
+  \begin{mathpar}
+    \Infer{}{\judgeSinert{\tau} \\ \reduces{\tau}{\tau'}}{\judgeSinert{\tau'}}
+  \end{mathpar}
+\end{lemma}
+
+\begin{proof}
+  Induction on $\judgeSinert{\tau}$.
+\end{proof}
+
+
+\begin{lemma}[Safe occurrence preservation]
+  \begin{mathpar}
+    \Infer{}{\judgeSok{x}{\tau} \\ \reduces{\tau}{\tau'}}{\judgeSok{x}{\tau'}}
+  \end{mathpar}
+\end{lemma}
+
+\begin{proof}
+  Induction on $\judgeSok{x}{\tau}$.
+  \begin{itemize}
+    \item For C-Cong (N-Cong), we apply the induction hypothesis and C-Cong (N-Cong, resp.).
+    \item For E-FV, notice that the reduction does not increase the set of free variables,
+      and thus, E-FV is applicable after the reduction of one of the $\tau_i$.
+    \item The E-Cong case is a little bit more complicated.
+      Notice that $\tau_1 \nrightarrow x$. This is because if $\tau_1$ is an
+      eliminator, it must be inert by EE-Inert.
+      Then we can consider in which $\tau_i$ the reduction happened, 
+      apply the induction hypothesis and \cref{lemma:inertness-pres}.
+    \item For the additional rules, the reduction can be either by congruence
+      (and then we apply the induction hypothesis,
+      \cref{lemma:cong-safe-occurrence} and the same rule) or by the
+      top-level redex contraction, and then the required property is exactly one
+      of the premises.
+  \end{itemize}
+
+\end{proof}
+
+\section{Equivalence and Unification}
+
+\begin{definition}[Syntax of algorithmic terms]
+  \label{def:alg-terms}
+  Throughout the algorithm, we will use the auxiliary pre-cooked terms,
+  containing some unassigned parts. For this purpose, we extend the syntax of
+  terms (\cref{def:syntax}) by adding the ``hatted'' unification (existential)
+  variables $\hat{x}$ to the set of values:
+  $$\mbox{Values} \inc \hat{x}$$
+  Similarly, we extend the syntax from \cref{def:comp-syntax} by adding
+  $\hat{x}$ to the Neutral Formers:
+  $$\mbox{Neutral Formers} \inc \hat{x}$$
+\end{definition}
+
+\begin{notation}
+To denote that the term is algorithmic, i.e. potentially contains the
+unification variables, we use $\pi$ and $\rho$. If the term does not contain the
+unification variables it is called \emph{ground} and denoted as $\sigma$ and
+$\tau$.
+\end{notation}
+
+\begin{definition}[Equivalence]
+  We define equivalence on ground terms:
+
+  \begin{itemize}
+
+  \item[Reduction closure]
+    \begin{mathpar}
+      \Infer{}
+      {
+        \reduces{\tau_1}{\tau_1'}\\
+        \judgeequivunt{\tau_1'}{\tau_2}
+      }
+      {
+        \judgeequivunt{\tau_1}{\tau_2}
+      }
+      \and
+      \Infer{}
+      {
+        \reduces{\tau_2}{\tau_2'}\\
+        \judgeequivunt{\tau_1}{\tau_2'}\\
+        \judgeSnf{\tau_1}
+      }
+      {
+        \judgeequivunt{\tau_1}{\tau_2}
+      }
+    \end{mathpar}
+
+  \item[Congruence]
+    \begin{mathpar}
+
+      \Infer{}
+      {
+        \judgeequivunt{\sigma_1}{\tau_1} \\
+        \dots\\
+        \judgeequivunt{\sigma_{\narg{F}}}{\tau_{\narg{F}}} \\
+        \judgeSnf{\fullterm{F}{\sigma}} \\
+        \judgeSnf{\fullterm{F}{\tau}}
+      }
+      {
+        \judgeequivunt{\fullterm{F}{\sigma}}{\fullterm{F}{\tau}}
+      }
+    \end{mathpar}
+
+  \end{itemize}
+
+\end{definition}
+
+The unification (or algorithmic equivalence) judgement is of the form
+$\judgeunify{\varphi}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
+algorithmic terms (potentially with unassigned variables), $\varphi$ and
+$\varphi'$ are contexts formed by the following grammar:
+\begin{definition}[Unification Context] Unification context is a \emph{set} of
+  pairs: 
+$$\varphi, \psi ::= \emptyctx \bnfalt \varphi, \evarassign{\hat{v}}{\tau} $$
+where $\tau$ is a ground term.
+\end{definition}
+
+% \begin{definition}[Instantiation of an algorithmic term]
+%   We say that a context $\varphi$ instantiates algorithmic term $\rho$ if it
+%   contains an assignment for every existential variable of $\rho$ :
+%   \begin{mathpar}
+%     \Infer{}
+%     {
+%     }
+%     {
+%       \judgeinst{\varphi, \evarassign{\hat{x}}{\spcdot}}{\hat{x}}
+%     }
+%     \and
+%     \Infer{}
+%     {
+%       \judgeinst{\varphi}{\hat{x}}
+%     }
+%     {
+%       \judgeinst{\varphi, \evarassign{\spcdot}{\spcdot}}{\hat{x}}
+%     }
+%     \and
+%     \Infer{}
+%     {
+%       F \neq \hat{x}\\
+%       \judgeinst{\varphi}{\rho_1}\\
+%       \dots\\
+%       \judgeinst{\varphi}{\rho_{\narg{F}}}\\
+%     }
+%     {
+%       \judgeinst{\varphi}{\fullterm{F}{\rho}}
+%     }
+
+%   \end{mathpar}
+% \end{definition}
+
+\begin{definition}[Well-formed unification context]
+  We say that a unification context $\varphi$ is well-formed if the mapping it
+  represents is a partial function, whose image terms are normal and ground:
+  \begin{mathpar}
+
+    \Infer{}
+    { }
+    {
+      \judgectx{ }{\emptyctx}
+    }
+    \and
+    \Infer{}
+    { 
+    \judgectx{ }{\varphi} \\
+    \evarassign{\hat{x}}{\spcdot} \notin \varphi \\
+    \judgeSnf{\tau}
+    }
+    {
+      \judgectx{ }{\varphi, \evarassign{\hat{x}}{\tau}}
+    }
+  \end{mathpar}
+\end{definition}
+
+\begin{definition}[Application of the well-formed context]
+  If the unification context $\Omega$ is well-formed,
+  We write $\ctxtapp{\Omega}{\tau}$ meaning the application of the partial
+  (substitution) function represented by $\Omega$ to the term $\tau$:
+  \begin{itemize}
+  \item $\ctxtapp{\emptyctx}{\tau} = \tau$
+  \item $\ctxtapp{\Omega, \evarassign{\hat{x}}{\sigma}}{\tau} = \subst{(\ctxtapp{\Omega}{\tau})}{\hat{x}}{\sigma}$
+  \end{itemize}
+
+\end{definition}
+
+\begin{definition}[Unification]  The unification algorithm is defined
+  as follows:
+
+\begin{itemize}
+    \item[Base rules]
+      \begin{mathpar}
+        \Infer{}
+        { 
+          \evarassign{\hat{v}}{\spcdot} \notin \varphi \\
+          \judgeSnf{\tau}
+        }
+        {
+          \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
+        }
+        \and
+        \Infer{}
+        { 
+          \evarassign{\hat{v}}{\tau} \in \varphi
+        }
+        {
+          \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi}
+        }
+      \end{mathpar}
+
+    \item[Reduction closure]
+      \begin{mathpar}
+        \Infer{}
+        {
+          \reduces{\rho_1}{\rho_1'}\\
+          \judgeunify{\varphi}{\rho_1'}{\tau_2}{\varphi'}
+        }
+        {
+          \judgeunify{\varphi}{\rho_1}{\tau_2}{\varphi'}
+        }
+        \and
+        \Infer{}
+        {
+          \reduces{\tau_2}{\tau_2'}\\
+          \judgeunify{\varphi}{\rho_1}{\tau_2'}{\varphi'}\\
+          \judgeSnf{\rho_1}
+        }
+        {
+          \judgeunify{\varphi}{\rho_1}{\tau_2}{\varphi'}
+        }
+      \end{mathpar}
+
+    \item[Congruence]
+   \begin{mathpar}
+
+     \Infer{}
+     {
+       \judgeunify{\varphi_0}{\rho_1}{\tau_1}{\varphi_1} \\
+       \dots\\
+       \judgeunify{\varphi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\varphi_{\narg{F}}} \\
+       \judgeSnf{\fullterm{F}{\rho}} \\
+       \judgeSnf{\fullterm{F}{\tau}}
+     }
+     {
+       \judgeunify{\varphi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\varphi_{\narg{F}}}
+     }
+\end{mathpar}
+
+\end{itemize}
+\end{definition}
+
+
+We prove the soundness and completeness of the unification w.r.t. the equality
+defined above. Intuitively, soundness means that the output context produced by
+the unification algorithm does not make the terms non-unifiable.
+
+\begin{lemma} [Unification soundness]
+  \begin{mathpar}
+    \Infer{}
+    { \judgectx{}{\varphi_1}\\
+      \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2} \\
+    }
+    { \judgectx{}{\varphi_2}\\
+      \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
+    }
+  \end{mathpar}
+\end{lemma}
+
+
+\begin{definition}[Safe algorithmic term]
+  We say that the algorithmic term $\rho$ is \emph{safe} iff 
+  all the unification variables occur safely in it:
+  \begin{mathpar}
+    \Infer{}
+    {\forall \hat{x},~ \judgeSok{\hat{x}}{\rho}}
+    {\judgeSokterm{\rho}}
+  \end{mathpar}
+
+\end{definition}
+
+\begin{lemma} [Unification completeness]
+  \begin{mathpar}
+    \Infer{}
+    { \judgectx{}{\Omega}\\
+      \judgeSokterm{\rho}\\
+      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}\\
+    }
+    {
+      \forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+      \judgeunify{\varphi}{\rho}{\tau}{\psi} \\
+    }
+  \end{mathpar}
+
+\end{lemma}
+
+% \begin{lemma} [Unification completeness]
+%   If $\varphi(\rho)$ or $\varphi(\rho')$ is ground and 
+%   $\judgeunify{\varphi}{\rho}{\rho'}{\varphi'}$ holds, then $\varphi'(\rho)$
+%   and $\varphi'(\rho')$ are ground.
+% \end{lemma}
+% \ilyam{There might be some problems with the meaningless existential variables}
+
+
 
 
 \section{Typing}
 \label{sec:rules}
 
-To make typing decidable, we restrict the system in several ways. In particular,
+
+\begin{definition}[Typing declarative context]
+\begin{mathpar}
+  \begin{array}{llcl}
+
+    \mbox{Contexts} & \Gamma & ::= & \emptyctx \bnfalt \Gamma, x:A \bnfalt \Gamma, \isvtype{B} \\[1em]
+  \end{array}
+\end{mathpar}
+\end{definition}
+
+
+To make the typing decidable, we restrict the system in several ways. In particular,
 when we form $\foralltype{x:A}{X}$, we require $x$ to belong to $\fv{X}$ and occur
 safely in $X$.
 
@@ -654,7 +909,7 @@ safely in $X$.
 \begin{mathpar}
   \Infer{Ctx0}
         { }
-        { \judgectx{}{\cdot}}
+        { \judgectx{}{\emptyctx}}
 
         \and
  \Infer{CtxIT}
@@ -699,20 +954,20 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 \and
 
 \end{mathpar}
-\subsection{Equivalence}
+\subsection{Subsumption}
 
 \begin{mathpar}
   
-  \Infer{EqivC}
+  \Infer{$\csubt$}
         { \judgecInfer{\Gamma}{t}{Y} \\
-          X \equiv Y \\
+          \judgecsubt{\Gamma}{X}{Y} \\
           }
         { \judgecCheck{\Gamma}{t}{X} }
   \and
 
-  \Infer{EqivV}
+  \Infer{$\vsubt$}
         { \judgevInfer{\Gamma}{v}{B} \\
-          A \equiv B \\
+          \judgevsubt{\Gamma}{A}{B} \\
         }
         { \judgevCheck{\Gamma}{v}{A} }
 \end{mathpar}
@@ -1056,8 +1311,8 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   \Infer{$\subt$Eq}
         {
           \judgeavsubt{\varphi}{A}{B}{\varphi'} \\
-          \judgeaequiv{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{\varphi''} \\
-          \judgeaequiv{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{\varphi'''} \\
+          \judgeunify{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{\varphi''} \\
+          \judgeunify{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{\varphi'''} \\
         }
         {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
 
@@ -1079,7 +1334,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
    \Infer{let$\subt$}
          {
            e \text{ and } A \text{ are ground}\\
-           \judgeaequiv{\varphi, \hat{v}}
+           \judgeunify{\varphi, \hat{v}}
                        {e}
                        {\return{\hat{v}}}
                        {\varphi', \evarassign{\hat{v}}{v}}\\
@@ -1090,7 +1345,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
    \Infer{$\subt$let}
          {
-           \judgeaequiv{\varphi, \hat{v}}
+           \judgeunify{\varphi, \hat{v}}
                        {e}
                        {\return{\hat{v}}}
                        {\varphi', \evarassign{\hat{v}}{v}}\\
@@ -1105,7 +1360,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
          {
            \judgeavsubt{\varphi}{B}{A}{\varphi_1}\\
            \judgeavsubt{\varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
-           \judgeaequiv{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\varphi_3}\\
+           \judgeunify{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\varphi_3}\\
            \judgeacsubt{\varphi_3, x:{\ctxtapp{\varphi_1}{A}}}{\ctxtapp{\varphi_3}{X}}{Y}{\varphi_4}\\
          }
          {
@@ -1134,7 +1389,7 @@ We also add $\reduces{\recnat{\natzero}{X}{b}{s}}{b}$ and
 $\reduces{\recnat{\natsucc{v}}{X}{b}{s}}{s \, v \, \recnat{v}{X}{b}{s}}$ to the reduction rules.
 
 Notice that we do not unify under the induction operators. For example,
-$\judgeaequiv{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\varphi, \evarassign{\hat{v}}{\natzero}}$
+$\judgeunify{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\varphi, \evarassign{\hat{v}}{\natzero}}$
 is not admissible.
 Moreover, the general unification is undecidable in this case.
 
@@ -1389,7 +1644,7 @@ As such, we weaken the notion of `ground` terms in such a way that they might ha
     \end{mathpar}
      
   \item[($\vtoc$E$\infers$)]
-    \ilyam{Depends on $\unival \equiv \cdot$ }
+    \ilyam{Depends on $\unival \equiv \spcdot$ }
   \item[(Let$\infers$)]
     The desired property is in the premises.
   \item[(DLet$\infers$)]
