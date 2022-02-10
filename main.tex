@@ -7,6 +7,7 @@
 \usepackage{cleveref}
 \usepackage{multicol}
 \usepackage{quiver}
+\usepackage{wrapfig}
 \usepackage[inline, shortlabels]{enumitem}
 
 \usepackage[colorinlistoftodos]{todonotes} 
@@ -350,6 +351,7 @@ Although it is easy to see that the terms in normal form are not reducible,
 the opposite is only true for the well-typed terms:
 
 \begin{proposition}[Normal form and irreducibility]
+  \label{prop:nf-irred}
   \begin{mathpar}
     \Infer{}{\judgeSnf{\tau}}{\nexists \tau', \reduces{\tau}{\tau'}}
     \and
@@ -515,6 +517,7 @@ because the latter would violate the finiteness of the inference trees.
 
 
 \begin{lemma}[Reduction-Substitution Commutativity]
+  \label{lemma:red-subst-commute}
   \begin{mathpar}
     \Infer{}
     {
@@ -596,7 +599,8 @@ because the latter would violate the finiteness of the inference trees.
 \end{proof}
 
 
-\begin{lemma}[Safe occurrence preservation]
+\begin{lemma}[Reduction preserves safe occurrence]
+  \label{lemma:safe-occur-pres}
   \begin{mathpar}
     \Infer{}{\judgeSok{x}{\tau} \\ \reduces{\tau}{\tau'}}{\judgeSok{x}{\tau'}}
   \end{mathpar}
@@ -643,6 +647,19 @@ unification variables it is called \emph{ground} and denoted as $\sigma$ and
 $\tau$.
 \end{notation}
 
+\begin{definition}[Safe algorithmic term]
+  We say that the algorithmic term $\rho$ is \emph{safe} iff 
+  all the unification variables occur safely in it:
+  \begin{mathpar}
+    \Infer{}
+    {\forall \hat{x},~ \judgeSok{\hat{x}}{\rho}}
+    {\judgeSokterm{\rho}}
+  \end{mathpar}
+\end{definition}
+
+
+
+
 \begin{definition}[Equivalence]
   We define equivalence on ground terms:
 
@@ -650,7 +667,7 @@ $\tau$.
 
   \item[Reduction closure]
     \begin{mathpar}
-      \Infer{}
+      \Infer{Red-L}
       {
         \reduces{\tau_1}{\tau_1'}\\
         \judgeequivunt{\tau_1'}{\tau_2}
@@ -767,13 +784,79 @@ where $\tau$ is a ground term.
 
 \end{definition}
 
+Intuitively, when a context is applied to a term, the components of
+the context are applied to the term one-by-one. This way, the properties holding
+for a single substitution, can be lifted up to the context application.
+\begin{corollary}[Context application commutes with the reduction]
+  \label{corollary:red-app-commute}
+    \begin{mathpar}
+      \Infer{}
+      {
+        \judgectx{}{\Omega}\\
+        \judgeSokterm{\rho}\\
+        \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
+      }
+      {\exists \rho^* \text{ s.t. } \reduces{\rho}{\rho^*} \text{ and } \ctxtapp{\Omega}{\rho^*} = \rho'}
+    \end{mathpar}
+  \end{corollary}
+
+  \begin{figure}[h]
+    \label{fig:red-app-commute-scheme}
+    \centering
+    \begin{tikzcd}
+      \rho & {\rho^*} \\
+      \bullet & {\rho^*_2} \\
+      \bullet & {\rho^*_n} \\
+      {[\Omega]\rho} & {\rho'}
+      \arrow["{\hat{x}_1:=\tau_1}"', from=1-1, to=2-1]
+      \arrow["{\hat{x}_1:=\tau_1}", dashed, from=1-2, to=2-2]
+      \arrow["\rightarrow", dashed, from=1-1, to=1-2]
+      \arrow["\rightarrow", dashed, from=2-1, to=2-2]
+      \arrow[dotted, no head, from=2-1, to=3-1]
+      \arrow[dotted, no head, from=2-2, to=3-2]
+      \arrow["{\hat{x}_n := \tau_n}"', from=3-1, to=4-1]
+      \arrow["\rightarrow", from=4-1, to=4-2]
+      \arrow["\rightarrow", dashed, from=3-1, to=3-2]
+      \arrow["{\hat{x}_n:=\tau_n}", dashed, from=3-2, to=4-2]
+    \end{tikzcd}
+    \caption{Proof scheme}
+  \end{figure}
+
+  \begin{proof}
+    Induction on $\ctxtapp{\Omega}{\rho}$ using \cref{lemma:red-subst-commute}.
+    See \cref{fig:red-app-commute-scheme} for the details: we acquire $\rho^*$
+    by consequently applying \cref{lemma:red-subst-commute} bottom-to-top to
+    construct $\rho^*_n, \dots, \rho^*_2, \rho^*$.
+    The premises required for \cref{lemma:red-subst-commute} hold because 
+    $\judgectx{}{\Omega}$ and $\judgeSokterm{\rho}$.
+  \end{proof}
+
+  \begin{corollary} [Context application preserves reduction]
+    \label{corollary:ctx-app-pres-red}
+    \begin{mathpar}
+      \Infer{}{\judgectx{}{\Omega} \\ \reduces{\rho}{\rho'}}
+      {\reduces{\ctxtapp{\Omega}{\rho}}{\ctxtapp{\Omega}{\rho'}}}
+    \end{mathpar}
+  \end{corollary}
+  \begin{proof}
+    Induction on $\Omega$ using  \cref{lemma:subst-res}.
+  \end{proof}
+ 
+  \begin{corollary} [Reduction preserves safety]
+    \cref{lemma:safe-occur-pres}
+    \begin{mathpar}
+      \Infer{}{\judgeSokterm{\rho} \\ \reduces{\rho}{\rho'}}{\judgeSokterm{\rho'}}
+    \end{mathpar}
+  \end{corollary}
+
+
 \begin{definition}[Unification]  The unification algorithm is defined
   as follows:
 
 \begin{itemize}
     \item[Base rules]
       \begin{mathpar}
-        \Infer{}
+        \Infer{U-Add}
         { 
           \evarassign{\hat{v}}{\spcdot} \notin \varphi \\
           \judgeSnf{\tau}
@@ -782,7 +865,7 @@ where $\tau$ is a ground term.
           \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
         }
         \and
-        \Infer{}
+        \Infer{U-Keep}
         { 
           \evarassign{\hat{v}}{\tau} \in \varphi
         }
@@ -793,7 +876,7 @@ where $\tau$ is a ground term.
 
     \item[Reduction closure]
       \begin{mathpar}
-        \Infer{}
+        \Infer{Red-L}
         {
           \reduces{\rho_1}{\rho_1'}\\
           \judgeunify{\varphi}{\rho_1'}{\tau_2}{\varphi'}
@@ -802,7 +885,7 @@ where $\tau$ is a ground term.
           \judgeunify{\varphi}{\rho_1}{\tau_2}{\varphi'}
         }
         \and
-        \Infer{}
+        \Infer{Red-R}
         {
           \reduces{\tau_2}{\tau_2'}\\
           \judgeunify{\varphi}{\rho_1}{\tau_2'}{\varphi'}\\
@@ -845,21 +928,132 @@ the unification algorithm does not make the terms non-unifiable.
     }
     { \judgectx{}{\varphi_2}\\
       \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
+      \varphi_1 \subseteq \varphi_2
     }
   \end{mathpar}
 \end{lemma}
 
+\begin{proof}
+  Induction on $\judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}$.
+  \begin{itemize}
+    \item
+      $
+      \Infer{}
+      { 
+        \evarassign{\hat{v}}{\spcdot} \notin \varphi_1 \\
+        \judgeSnf{\tau}
+      }
+      {
+        \judgeunify{\varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
+      }
+      $
+      Then $\rho = \hat{v}$ and $\varphi_2 = \varphi_1, \evarassign{\hat{v}}{\tau}$.
+      \begin{itemize}
+        \item It is easy to see that $\judgectx{}{\varphi_2}$ because
+          $\judgectx{}{\varphi_1, \evarassign{\hat{v}}{\tau}}$  by definition of the
+          well-formed context (all the required premises are given);
+        \item $\judgeequivunt{\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
+            \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau}{\tau}$;
+        \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition.
 
-\begin{definition}[Safe algorithmic term]
-  We say that the algorithmic term $\rho$ is \emph{safe} iff 
-  all the unification variables occur safely in it:
-  \begin{mathpar}
-    \Infer{}
-    {\forall \hat{x},~ \judgeSok{\hat{x}}{\rho}}
-    {\judgeSokterm{\rho}}
-  \end{mathpar}
+       
+     \end{itemize}
+   \item 
+      $
+      \Infer{}
+      { 
+        \evarassign{\hat{v}}{\tau} \in \varphi
+      }
+      {
+        \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi}
+      }
+      $
+      Then $\rho = \hat{v}$ and $\varphi_1 = \varphi_2 = \varphi$.
+      \begin{itemize}
+      \item $\judgectx{}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
+        $\judgectx{}{\varphi_1}$ is in the premises;
+      \item $\judgeequivunt{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
+        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$;
+      \item $\varphi \subseteq \varphi$ trivially.
+      \end{itemize}
+    \item
+      $
+      \Infer{}
+      {
+        \reduces{\rho}{\rho'}\\
+        \judgeunify{\varphi_1}{\rho'}{\tau}{\varphi_2}
+      }
+      {
+        \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}
+      }
+      $
+      Then by the induction hypothesis:
+      $\varphi_1 \subseteq \varphi_2$,
+      $\judgectx{}{\varphi_2}$ and $\judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
+      To prove that $\judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
+      $$
+      \Infer{Red-L}
+      {
+        \reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}\\
+        \judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}
+      }
+      {
+        \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau}
+      }
+      $$
+      Here $\reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}$
+      holds by \cref{corollary:ctx-app-pres-red}.
+    \item
+      $
+      \Infer{}
+      {
+        \reduces{\tau}{\tau'}\\
+        \judgeunify{\varphi_1}{\rho}{\tau'}{\varphi_2}\\
+        \judgeSnf{\rho}
+      }
+      {
+        \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}
+      }
+      $
+      Analogously to the previous case.
 
-\end{definition}
+    \item
+      $
+      \Infer{}
+      {
+        \judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1} \\
+        \dots\\
+        \judgeunify{\psi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\psi_{\narg{F}}} \\
+        \judgeSnf{\fullterm{F}{\rho}} \\
+        \judgeSnf{\fullterm{F}{\tau}}
+      }
+      {
+        \judgeunify{\psi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}
+      }
+      $
+      Then $\varphi_1 = \psi_0$, $\varphi_2 = \psi_{\narg{F}}$, $\rho =
+      \fullterm{F}{\rho}$, $\tau = \fullterm{F}{\tau}$. 
+
+      We can apply the induction hypothesis to the first unification judgement
+      in the premise (i.e. to $\judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1}$) acquiring:
+      $\judgectx{}{\psi_1}$ and
+      $\judgeequivunt{\ctxtapp{\psi_1}{\rho_1}}{\tau_1}$. Then, because
+      $\judgectx{}{\psi_1}$, we can apply the induction hypothesis to the second
+      premise. Continuing this process, we acquire:
+      \begin{itemize}
+        \item
+          $\varphi_1 = \psi_0 \subseteq \cdots \subseteq \psi_{\narg{F}} = \varphi_2$;
+        \item
+          $\judgectx{}{\varphi_2}$
+        \item $\judgeequivunt{\ctxtapp{\psi_i}{\rho_i}}{\tau_i}$ for $i =
+          1\dots\narg{F}$. Hence, because $\psi_i \subseteq \varphi_2$,
+          $\judgeequivunt{\ctxtapp{\varphi_2}{\rho_i}}{\tau_i}$, which implies
+          that $\judgeequivunt{\ctxtapp{\varphi_2}{\fullterm{F}{\rho}}}{\fullterm{F}{\tau}}$
+      \end{itemize}
+  \end{itemize}
+
+\end{proof}
+
 
 \begin{lemma} [Unification completeness]
   \begin{mathpar}
@@ -875,6 +1069,107 @@ the unification algorithm does not make the terms non-unifiable.
   \end{mathpar}
 
 \end{lemma}
+
+\begin{proof}
+  Induction on $\judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}$.
+  
+  \begin{itemize}
+  \item
+    $
+    \Infer{}
+      {
+        \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
+        \judgeequivunt{\rho'}{\tau}
+      }
+      {
+        \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}
+      }
+      $ By \cref{corollary:red-app-commute}, there exists $\rho^*$ s.t.
+      $\reduces{\rho}{\rho^*}$ and $\ctxtapp{\Omega}{\rho^*} = \rho'$.
+
+
+      By \cref{lemma:safe-occur-pres}, $\judgeSokterm{\rho^*}$.
+      Then we apply the induction hypothis to $\Omega$, $\rho^*$, and $\tau$.
+      To acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+      \judgeunify{\varphi}{\rho^*}{\tau}{\psi}$,
+      where we can replace $\rho^*$ with $\rho$ by Red-L.
+
+  \item
+    $
+    \Infer{}
+    {
+      \reduces{\tau}{\tau'}\\
+      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau'}\\
+      \judgeSnf{\ctxtapp{\Omega}{\rho}}
+    }
+    {
+      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}
+    }
+    $
+    We can apply the induction hypothesis to $\Omega$, $\rho$, and $\tau'$ right
+    away to acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq
+    \Omega. ~ \judgeunify{\varphi}{\rho}{\tau'}{\psi}$, where we replace $\tau'$
+    with $\tau$ by Red-R.
+
+  \item
+    $
+    \Infer{}
+    {
+      \judgeequivunt{\sigma_1}{\tau_1} \\
+      \dots\\
+      \judgeequivunt{\sigma_{\narg{F}}}{\tau_{\narg{F}}} \\
+      \judgeSnf{\fullterm{F}{\sigma}} \\
+      \judgeSnf{\fullterm{F}{\tau}}
+    }
+    {
+      \judgeequivunt{\fullterm{F}{\sigma}}{\fullterm{F}{\tau}}
+    }
+    $
+    Then $\ctxtapp{\Omega}{\rho} = \fullterm{F}{\sigma}$ and $\tau =
+    \fullterm{F}{\tau}$.
+    Let us destruct $\ctxtapp{\Omega}{\rho}$. \ilyam{we need a lemma to destruct
+    it this way}
+    \begin{itemize}
+      \item $\rho = \hat{x}$ and $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in
+        \Omega$. Let us consider an arbitrary $\varphi \subseteq \Omega$.
+        $\varphi$ must be well-formed, then either $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in
+        \varphi$ or $\evarassign{\hat{x}}{\spcdot} \notin \varphi$.
+        \begin{itemize}
+        \item $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in \varphi$ then we
+          take $\psi = \varphi$ and apply U-Keep. 
+        \item $\evarassign{\hat{x}}{\spcdot} \notin \varphi$ then we
+          take $\psi = \varphi, \evarassign{\hat{x}}{\fullterm{F}{\sigma}}$
+          and apply U-Add. The term to which we assign $\hat{x}$ is in the normal form by one
+          of the premises. 
+        \end{itemize}
+      \item $\rho = \fullterm{F}{\rho}$, $F \neq \hat{x}$, and
+        $\ctxtapp{\Omega}{\rho_i} = \sigma_i$ for $i = 1\dots\narg{F}$.
+
+        By the corollary of \cref{lemma:cong-safe-occurrence},
+        $\judgeSokterm{\rho_i}$. So we can apply the induction hypothesis to all
+        the components to acquire $\narg{F}$ facts: $\forall \varphi \subseteq \Omega.
+        ~ \exists \psi \subseteq \Omega. ~ \judgeunify{\varphi}{\rho_i}{\tau_i}{\psi}$.
+
+        Let us apply the first fact to an arbitrary $\varphi = \psi_0 \subseteq
+        \Omega$ to acquire $\psi_1 \subseteq \Omega$. Then we apply the second
+        fact to $\psi_1 $, acquiring $\psi_2 \subseteq \Omega$. Repeating the process, we have:
+        $\judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1}, ~ \dots, ~
+        \judgeunify{\psi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\psi_{\narg{F}}}$.
+
+        Notice that by \cref{lemma:subst-res,prop:nf-irred},
+        $\judgeSnf{\fullterm{F}{\rho}}$. Then we apply the congruence
+        unification rule and get
+        $\judgeunify{\varphi}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}$,
+        i.e. $\judgeunify{\varphi}{\rho}{\tau}{\psi_{\narg{F}}}$, so we take
+        $\psi_{\narg{F}}$ as $\psi$.
+        
+    \end{itemize}
+    
+  \end{itemize}
+
+\end{proof}
+
+
 
 % \begin{lemma} [Unification completeness]
 %   If $\varphi(\rho)$ or $\varphi(\rho')$ is ground and 
@@ -1678,3 +1973,13 @@ As such, we weaken the notion of `ground` terms in such a way that they might ha
 \printbibliography
 
 \end{document}
+
+
+% (\x.x^, x^) = (\y.y, y)  |- x^:=y
+
+% (\x.y, y) != (\y.y, y)
+
+
+
+% Г \forall x. n
+
