@@ -8,7 +8,9 @@
 \usepackage{multicol}
 \usepackage{quiver}
 \usepackage{wrapfig}
+\usepackage{esvect}
 \usepackage[inline, shortlabels]{enumitem}
+\usepackage{array}
 
 \usepackage[colorinlistoftodos]{todonotes} 
 
@@ -70,8 +72,10 @@
 \newcommand{\return}[1]{\mathsf{return}\,{#1}}
 \newcommand{\thunk}[1]{\{{#1}\}}
 
-\newcommand{\recsigma}[3]{\mathsf{rec}_{\Sigma}^{#2}({#1},{#3})}
-\newcommand{\receq}[3]{\mathsf{rec}_{\mathsf{eq}}^{#2}({#1},{#3})}
+\newcommand{\recsigmaname}{\mathsf{rec}_{\Sigma}}
+\newcommand{\recsigma}[3]{\recsigmaname^{#2}({#1},{#3})}
+\newcommand{\receqname}{\mathsf{rec}_{\mathsf{eq}}}
+\newcommand{\receq}[3]{\receqname^{#2}({#1},{#3})}
 
 \newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
 
@@ -97,6 +101,7 @@
 \newcommand{\recnat}[4]{\mathsf{rec}_{\nattype}^{#2}({#1},{#3},{#4})}
 
 \newcommand{\narg}[1]{|{#1}|}
+\newcommand{\arity}[1]{\mathsf{ar}{#1}}
 
 
 % This is a command to define a judgement -- we'll one command per judgement
@@ -129,6 +134,8 @@
 \newcommand{\judgeequiv}[4]{{#1} \vdash {#2} \equiv {#3} : {#4}}
 \newcommand{\judgeequivunt}[2]{{#1} \equiv {#2}}
 
+\newcommand{\judgealpha}[2]{{#1} \sim_{\alpha} {#2}}
+
 \newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \vsubt {#3} {\color{purple}\dashv}\,{#4}}
 \newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \csubt {#3} {\color{purple}\dashv}\,{#4}}
 
@@ -147,7 +154,12 @@
 
 \newcommand{\fv}[1]{\mathsf{FV}(#1)}
 
+
+\newcommand{\absclose}[2]{\vv{x}^{#1} #2}
+
 \newcommand{\fullterm}[2]{{#1}\,#2_1 \dots #2_{\narg{#1}}}
+\newcommand{\fulltermm}[2]{{#1}\,(\absclose{\arity{#1}_1}{#2_1}) \dots (\absclose{\arity{#1}_{\narg{#1}}}{#2_{\narg{#1}})}}
+\newcommand{\fulltermmm}[1]{{#1}\,P^{\arity{#1}} \dots P^{\arity{#1}_{\narg{#1}}}}
 
 % This is a command to define an inference rule. The optional argument to
 % \inferrule* is the label for the rule. 
@@ -163,7 +175,7 @@
 
 \declareop\inc{3}{\mathrel{+}=}
 
-
+\newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
 
 \begin{document}
 
@@ -209,37 +221,96 @@ Let us consider the term syntax from a different perspective:
 
 \begin{mathpar}
   \begin{array}{llcl}
-    \mbox{Constructors} & C & ::= & \lambda x \bnfalt (,) \bnfalt \refl \bnfalt \return{} \bnfalt \thunk{} 
+    \mbox{Constructors} & C & ::= & \lambda \bnfalt (,) \bnfalt \refl \bnfalt \return{} \bnfalt \thunk{} 
     \\[1em]
     \mbox{Eliminators} & E & ::= & @ \bnfalt \recsigma{}{}{} \bnfalt \receq{}{}{}
                                    \bnfalt \letname \bnfalt \dletname
                                    \bnfalt \force{}
     \\[1em]
 
-    \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi x \bnfalt \forall x \bnfalt
-                                       \valtocomp{} \bnfalt \Sigma x \bnfalt x
+    \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi \bnfalt \forall \bnfalt
+                                       \valtocomp{} \bnfalt \Sigma \bnfalt x
     \\[1em]
 
     \mbox{Formers} & F & ::= & C \bnfalt E \bnfalt N
     \\[1em]
 
-    \mbox{Terms} & \sigma, \tau, \nu & ::= & \fullterm{F}{\tau}
+    \mbox{Abstractor Heads} & \vv{x}^0 & ::= & .\\
+                        & \vv{x}^{n + 1} & ::= & x\,.\, \vv{x}^n \\
+                       & \vv{x}          & ::= & \vv{x}^0 \bnfalt \vv{x}^1
+                                                 \bnfalt \dots
+    \\[1em]
+
+    \mbox{Abstractors} & P^n, Q^n & ::= & \vv{x}^n \tau\\
+                       & P, Q    &  ::= & P^1 \bnfalt P^2 \bnfalt \dots
+    \\[1em]
+
+    % \mbox{Terms} & \sigma, \tau, \nu & ::= & \fullterm{F}{\tau}
+    \mbox{Terms} & \sigma, \tau, \nu & ::= & \fulltermm{F}{\tau}
   \end{array}
 \end{mathpar}
-Here $\narg{F}$ designates the number of the arguments of the term former $F$.
-\ilyam{todo: table for \narg{F}}.
+
 \end{definition}
+
+\begin{definition} [Arity]
+  For every term former $F$ we define its arity $\arity{F}$ as the array of integers desctibing its
+  arguments. Integer denotes the number of new binding variables ``created'' by
+  $F$ that can be used in the corresponding subterm. For brevity, we denote
+  length of $\arity{F}$ as $\narg{F}$.
+   
+  \begin{table}[h]
+    \setlength\tabcolsep{5pt}
+    \begin{tabular}{L|LLLLLLLLLLLLLLLLL}
+      F         & \lambda & (,)   & \refl & \return{} & \thunk{} & @     & \recsigmaname & \receqname & \letname & \dletname & \force{} & \comptoval & \Pi   & \forall & \valtocomp{} & \Sigma & x  \\
+      \hline
+      \arity{F} & [1, 0]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,0,0]         & [0,0,0]       & [1,0,0]  & [1,0,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [1,0]  & [] \\
+      \narg{F}  & 1       & 2     & 0     & 1         & 1        & 2     & 3               & 3             & 3        & 3         & 1        & 1          & 2     & 2       & 1            & 2      & 0 
+    \end{tabular}
+  \end{table}
+
+\end{definition}
+
+\ilyam{Notice that we rearrange the arguments in $\lambda$ and let-bindings so
+  that any redex is always an eliminator whose \emph{first} argument is a constructor}
 
 It is easy to see that the syntax of \emph{terms} from \cref{def:syntax} defines
 the \emph{subset} of terms defined by \cref{def:comp-syntax}. In fact, any
 \emph{well-typed} term must have a form defined by \cref{def:syntax}. We will
 use these two representation interchangeably.
 
+\section{Alpha-equivalence}
+
+\begin{definition}[Variable Renaming]
+  \ilyam{todo}
+\end{definition}
+
+\begin{definition}[Alpha-equivalence]
+  \begin{mathpar}
+    \Infer{}
+    {\forall i, \judgealpha{P_i}{Q_i}}
+    {\judgealpha{\fullterm{F}{P}}{\fullterm{F}{Q}}}
+    \and
+    \ilyam{todo}
+  \end{mathpar}
+
+\end{definition}
+
+\section{Susbtititution}
+\begin{definition}[Substitution]
+  \ilyam{todo}
+\end{definition}
+
+\begin{lemma}[Functionality of Substituion]
+  Substitution is a functional on the classes of alpha-equivalence.
+\end{lemma}
+\ilyam{todo}
+
 \section{Reduction}
 
 First, we define the \emph{redex contraction}.
 \begin{definition}[Redex Contraction]
   \label{def:redex-contr}
+  \ilyam{Defined on $\alpha$-equivalence classes!}
   We define the top-level redex contraction in the following way:
   \begin{multicols}{2}
     \begin{itemize}
@@ -276,13 +347,14 @@ Informally, reduction of a term $\tau$ is a redex contraction happening in some
 \emph{subterm} of $\tau$.
 
 \begin{definition}[Reduction]
+  \ilyam{Defined on $\alpha$-equivalence classes!}
   \begin{mathpar}
     \Infer{Redex}{\contracts{\tau}{\tau'}}{\reduces{\tau}{\tau'}}
     \and
-    \Infer{Cong$^F_i$}{\reduces{\tau_i}{\tau_i'}}
+    \Infer{Cong$^F_i$}{\reduces{\tau}{\tau'}}
     {\reduces
-      {F\,\tau_1\dots\tau_i\dots\tau_{\narg{F}}}
-      {F\,\tau_1\dots\tau_i'\dots\tau_{\narg{F}}}}
+      {F\,P_1\dots (\absclose{\arity{F}_i}{\tau}) \dots P_{\narg{F}}}
+      {F\,P_1\dots (\absclose{\arity{F}_i}{\tau'}) \dots P_{\narg{F}}}}
   \end{mathpar}
 
 \end{definition}
@@ -290,7 +362,7 @@ Informally, reduction of a term $\tau$ is a redex contraction happening in some
 \begin{lemma}[Substitution preserves reduction]
   \label{lemma:subst-res}
 
-  \ilyam{Functoriality of the substitution?}
+  \ilyam{Stated for $\alpha$-equivalence classes!}
   \begin{mathpar}
     \Infer{}
     {\reduces{\tau}{\tau'}}
@@ -332,11 +404,11 @@ computational properties of the term, e.g. being in the normal form
 \begin{mathpar}
   \Infer{}{\judgeSatom{\tau}}{\judgeSnf{\tau}}
   \and
-  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{C}}}}{\judgeSnf{\fullterm{C}{\tau}}}
+  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{C}}}}{\judgeSnf{\fullterm{C}{\vv{x}\tau}}}
   \and
-  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{N}}}}{\judgeSatom{\fullterm{N}{\tau}}}
+  \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{N}}}}{\judgeSatom{\fullterm{N}{\vv{x}\tau}}}
   \and
-  \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\tau}}}
+  \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\vv{x}\tau}}}
 \end{mathpar}
 \end{definition}
 
@@ -432,6 +504,8 @@ well-founded inference rules (i.e. unambiguously generating finite trees).
 Since precise syntactic representation of this property is impossible, we
 under-approximate this property in the following way:
 
+\ilyam{TODO: add safe occurrence in abstractors}
+
 \begin{mathpar}
   \Infer{C-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\tau}}}
   \and
@@ -496,13 +570,20 @@ because the latter would violate the finiteness of the inference trees.
   }
 \end{mathpar}
 
+\begin{lemma}[Correctness of the definition]
+  Safe occurrence is defined up to alpha-equivalence. 
+\end{lemma}
+\begin{proof}
+\ilyam{todo}
+\end{proof}
 
 \begin{lemma}[Conguence of the safe occurrence]
   \label{lemma:cong-safe-occurrence}
   \begin{mathpar}
   \Infer{}
   {
-    \judgeSok{x}{\fullterm{F}{\sigma}}
+    \judgeSok{x}{\fullterm{F}{\vv{x}\sigma}} \\
+    \ilyam{x is not captured by the abstractors}
   }
   {
     \judgeSok{x}{\sigma_1} \\
@@ -518,6 +599,7 @@ because the latter would violate the finiteness of the inference trees.
 
 \begin{lemma}[Reduction-Substitution Commutativity]
   \label{lemma:red-subst-commute}
+  \ilyam{stated for $\alpha$-equivalence classes}
   \begin{mathpar}
     \Infer{}
     {
@@ -707,10 +789,16 @@ $\tau$.
 
 \end{definition}
 
+\begin{definition}[Binding Context] Binding context is a \emph{set}
+  of variables that have been bond.
+  $$ B ::= \emptyctx \bnfalt B, x $$
+\end{definition}
+
+
 The unification (or algorithmic equivalence) judgement is of the form
-$\judgeunify{\varphi}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
+$\judgeunify{\varphi; B}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
 algorithmic terms (potentially with unassigned variables), $\varphi$ and
-$\varphi'$ are contexts formed by the following grammar:
+$\varphi'$ are contexts formed by the following grammar.
 \begin{definition}[Unification Context] Unification context is a \emph{set} of
   pairs: 
 $$\varphi, \psi ::= \emptyctx \bnfalt \varphi, \evarassign{\hat{v}}{\tau} $$
@@ -771,6 +859,12 @@ where $\tau$ is a ground term.
       \judgectx{ }{\varphi, \evarassign{\hat{x}}{\tau}}
     }
   \end{mathpar}
+\end{definition}
+
+\begin{definition}[Safe unification context]
+  We say that a unification context $\Omega$ is safe under the binding context $B$
+  ($\judgectx{B}{\Omega}$)
+  if the free variables of $\Omega$ do not intersect with $B$.
 \end{definition}
 
 \begin{definition}[Application of the well-formed context]
@@ -924,11 +1018,13 @@ the unification algorithm does not make the terms non-unifiable.
   \begin{mathpar}
     \Infer{}
     { \judgectx{}{\varphi_1}\\
-      \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2} \\
+      \judgeunify{B; \varphi_1}{\rho}{\tau}{\varphi_2} \\
+      \judgectx{B}{\varphi_1}
     }
     { \judgectx{}{\varphi_2}\\
       \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
-      \varphi_1 \subseteq \varphi_2
+      \varphi_1 \subseteq \varphi_2 \\
+      \judgectx{B}{\varphi_2} \\
     }
   \end{mathpar}
 \end{lemma}
@@ -1063,8 +1159,9 @@ the unification algorithm does not make the terms non-unifiable.
       \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}\\
     }
     {
+      \forall \judgectx{B}{\Omega}. ~
       \forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
-      \judgeunify{\varphi}{\rho}{\tau}{\psi} \\
+      \judgeunify{B; \varphi}{\rho}{\tau}{\psi} \\
     }
   \end{mathpar}
 
