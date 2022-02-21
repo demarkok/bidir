@@ -78,6 +78,7 @@
 \newcommand{\receq}[3]{\receqname^{#2}({#1},{#3})}
 
 \newcommand{\subst}[3]{{#1}\{{#2}\,:=\,{#3}\}}
+\newcommand{\rename}[3]{{#1}\{{#2}\rightsquigarrow{#3}\}}
 
 \newcommand{\subt}{\leqslant}
 \newcommand{\vsubt}{\leqslant^v}
@@ -109,6 +110,7 @@
 
 \newcommand{\judge}[3]{{#1} \vdash {#2} : {#3}}
 \newcommand{\judgectx}[2]{{#1} \vdash {#2}}
+\newcommand{\judgebindctx}[2]{{#1} \cap {#2} = \emptyset}
 
 
 \newcommand{\checks}{{\color{blue} \Leftarrow}}
@@ -178,9 +180,7 @@
 \newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
 
 \begin{document}
-
 \section{Syntax}
-
 \begin{definition}[Syntax of terms]
   \label{def:syntax}
 
@@ -304,6 +304,7 @@ use these two representation interchangeably.
   Substitution is a functional on the classes of alpha-equivalence.
 \end{lemma}
 \ilyam{todo}
+
 
 \section{Reduction}
 
@@ -774,14 +775,46 @@ $\tau$.
 
       \Infer{}
       {
-        \judgeequivunt{\sigma_1}{\tau_1} \\
+        \judgeequivunt{P_1}{Q_1} \\
         \dots\\
-        \judgeequivunt{\sigma_{\narg{F}}}{\tau_{\narg{F}}} \\
-        \judgeSnf{\fullterm{F}{\sigma}} \\
-        \judgeSnf{\fullterm{F}{\tau}}
+        \judgeequivunt{P_{\narg{F}}}{Q_{\narg{F}}} \\
+        \judgeSnf{\fullterm{F}{P}} \\
+        \judgeSnf{\fullterm{F}{Q}}
       }
       {
-        \judgeequivunt{\fullterm{F}{\sigma}}{\fullterm{F}{\tau}}
+        \judgeequivunt{\fullterm{F}{P}}{\fullterm{F}{Q}}
+      }
+      \and
+      % \Infer{}
+      % {
+      %   z \text{ is fresh}\\
+      %   \judgeequivunt
+      %   {\rename{\absclose{n}{\sigma}}{x}{z}}
+      %   {\rename{\absclose{n}{\tau}}{y}{z}}
+      % }
+      % {
+      %   \judgeequivunt{x.\absclose{n}{\sigma}}{y.\absclose{n}{\tau}}
+      % }
+      % \and
+
+      \Infer{}
+      {
+      \judgeequivunt
+      {\absclose{n}{\sigma}}
+      {\absclose{n}{\tau}}
+      }
+        {
+        \judgeequivunt{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}
+      }
+        \and
+
+
+      \Infer{}
+      {
+        \judgeequivunt{\sigma}{\tau}
+      }
+      {
+        \judgeequivunt{.\sigma}{.\tau}
       }
     \end{mathpar}
 
@@ -790,7 +823,7 @@ $\tau$.
 \end{definition}
 
 \begin{definition}[Binding Context] Binding context is a \emph{set}
-  of variables that have been bond.
+  of variables that have been bound.
   $$ B ::= \emptyctx \bnfalt B, x $$
 \end{definition}
 
@@ -863,7 +896,7 @@ where $\tau$ is a ground term.
 
 \begin{definition}[Safe unification context]
   We say that a unification context $\Omega$ is safe under the binding context $B$
-  ($\judgectx{B}{\Omega}$)
+  ($\judgebindctx{B}{\Omega}$)
   if the free variables of $\Omega$ do not intersect with $B$.
 \end{definition}
 
@@ -953,18 +986,20 @@ for a single substitution, can be lifted up to the context application.
         \Infer{U-Add}
         { 
           \evarassign{\hat{v}}{\spcdot} \notin \varphi \\
-          \judgeSnf{\tau}
+          \judgeSnf{\tau} \\
+          \judgebindctx{B}{\tau} \\
         }
         {
-          \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
+          \judgeunify{B;\varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
         }
         \and
         \Infer{U-Keep}
         { 
-          \evarassign{\hat{v}}{\tau} \in \varphi
+          \evarassign{\hat{v}}{\tau} \in \varphi \\
+          \ilyam{up-to-alpha-equivalence!}
         }
         {
-          \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi}
+          \judgeunify{B;\varphi}{\hat{v}}{\tau}{\varphi}
         }
       \end{mathpar}
 
@@ -976,7 +1011,7 @@ for a single substitution, can be lifted up to the context application.
           \judgeunify{\varphi}{\rho_1'}{\tau_2}{\varphi'}
         }
         {
-          \judgeunify{\varphi}{\rho_1}{\tau_2}{\varphi'}
+          \judgeunify{B; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
         \and
         \Infer{Red-R}
@@ -986,24 +1021,67 @@ for a single substitution, can be lifted up to the context application.
           \judgeSnf{\rho_1}
         }
         {
-          \judgeunify{\varphi}{\rho_1}{\tau_2}{\varphi'}
+          \judgeunify{B; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
       \end{mathpar}
 
     \item[Congruence]
    \begin{mathpar}
+     \Infer{}
+     {
+       \judgeunify{B;\varphi_0}{P_1}{Q_1}{\varphi_1} ~
+       \dots ~
+       \judgeunify{B;\varphi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\varphi_{\narg{F}}} \\
+       \judgeSnf{\fullterm{F}{P}} \\
+       \judgeSnf{\fullterm{F}{Q}}
+     }
+     {
+       \judgeunify{B; \varphi_0}{\fullterm{F}{P}}{\fullterm{F}{Q}}{\varphi_{\narg{F}}}
+     } \and
+     % \Infer{}
+     % {
+     %   z \text{ is fresh} \\
+     %   \judgeunify{B,z; \varphi}
+     %   {\rename{\absclose{n}{\rho}}{x}{z}}
+     %   {\rename{\absclose{n}{\tau}}{y}{z}}
+     %   {\psi}
+     % }
+     % {
+     %   \judgeunify{B; \varphi}
+     %   {x.\absclose{n}{\rho}}
+     %   {y.\absclose{n}{\tau}}
+     %   {\psi}
+     % } \and
 
      \Infer{}
      {
-       \judgeunify{\varphi_0}{\rho_1}{\tau_1}{\varphi_1} \\
-       \dots\\
-       \judgeunify{\varphi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\varphi_{\narg{F}}} \\
-       \judgeSnf{\fullterm{F}{\rho}} \\
-       \judgeSnf{\fullterm{F}{\tau}}
+       \judgeunify{B,x; \varphi}
+       {\absclose{n}{\rho}}
+       {\absclose{n}{\tau}}
+       {\psi}
      }
      {
-       \judgeunify{\varphi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\varphi_{\narg{F}}}
+       \judgeunify{B; \varphi}
+       {x.\absclose{n}{\rho}}
+       {x.\absclose{n}{\tau}}
+       {\psi}
+     } \and
+
+     \Infer{}
+     {
+       \judgeunify{B; \varphi}
+       {\rho}
+       {\tau}
+       {\psi}
      }
+     {
+       \judgeunify{B; \varphi}
+       {.\rho}
+       {.\tau}
+       {\psi}
+     } \and
+
+
 \end{mathpar}
 
 \end{itemize}
@@ -1019,28 +1097,29 @@ the unification algorithm does not make the terms non-unifiable.
     \Infer{}
     { \judgectx{}{\varphi_1}\\
       \judgeunify{B; \varphi_1}{\rho}{\tau}{\varphi_2} \\
-      \judgectx{B}{\varphi_1}
+      \judgebindctx{B}{\varphi_1}
     }
     { \judgectx{}{\varphi_2}\\
       \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
       \varphi_1 \subseteq \varphi_2 \\
-      \judgectx{B}{\varphi_2} \\
+      \judgebindctx{B}{\varphi_2} \\
     }
   \end{mathpar}
 \end{lemma}
 
 \begin{proof}
-  Induction on $\judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}$.
+  Induction on $\judgeunify{B; \varphi_1}{\rho}{\tau}{\varphi_2}$.
   \begin{itemize}
     \item
       $
       \Infer{}
       { 
         \evarassign{\hat{v}}{\spcdot} \notin \varphi_1 \\
-        \judgeSnf{\tau}
+        \judgeSnf{\tau} \\
+        \judgebindctx{B}{\tau}
       }
       {
-        \judgeunify{\varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
+        \judgeunify{B; \varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
       }
       $
       Then $\rho = \hat{v}$ and $\varphi_2 = \varphi_1, \evarassign{\hat{v}}{\tau}$.
@@ -1051,7 +1130,11 @@ the unification algorithm does not make the terms non-unifiable.
         \item $\judgeequivunt{\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
             \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau}{\tau}$;
         \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition.
-
+        \item $B \cap \fv{\varphi_1, \evarassign{\hat{v}}{\tau}} = B \cap
+          \fv{\varphi_1} \cup B \cap \fv{\tau}$, which is
+          empty because $\judgebindctx{B}{\varphi_1}$ and
+          $\judgebindctx{B}{\tau}$.
+          Hence $\judgebindctx{B}{\varphi_2}$.
        
      \end{itemize}
    \item 
@@ -1061,7 +1144,7 @@ the unification algorithm does not make the terms non-unifiable.
         \evarassign{\hat{v}}{\tau} \in \varphi
       }
       {
-        \judgeunify{\varphi}{\hat{v}}{\tau}{\varphi}
+        \judgeunify{B; \varphi}{\hat{v}}{\tau}{\varphi}
       }
       $
       Then $\rho = \hat{v}$ and $\varphi_1 = \varphi_2 = \varphi$.
@@ -1069,8 +1152,11 @@ the unification algorithm does not make the terms non-unifiable.
       \item $\judgectx{}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
         $\judgectx{}{\varphi_1}$ is in the premises;
       \item $\judgeequivunt{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
-        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$;
+        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$
+        \ilyam{alpha-equivalence};
       \item $\varphi \subseteq \varphi$ trivially.
+      \item $\judgebindctx{B}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
+        $\judgebindctx{B}{\varphi_1}$ is in the premises.
       \end{itemize}
     \item
       $
@@ -1085,7 +1171,8 @@ the unification algorithm does not make the terms non-unifiable.
       $
       Then by the induction hypothesis:
       $\varphi_1 \subseteq \varphi_2$,
-      $\judgectx{}{\varphi_2}$ and $\judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
+      $\judgectx{}{\varphi_2}$, $\judgebindctx{B}{\varphi_2}$,
+      and $\judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
       To prove that $\judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
       $$
       \Infer{Red-L}
@@ -1149,7 +1236,6 @@ the unification algorithm does not make the terms non-unifiable.
   \end{itemize}
 
 \end{proof}
-
 
 \begin{lemma} [Unification completeness]
   \begin{mathpar}
