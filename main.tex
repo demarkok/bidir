@@ -19,6 +19,15 @@
 \usepackage[natbib=true, abbreviate=false, dateabbrev=true, isbn=true, doi=false, urldate=comp, url=true, maxbibnames=9, maxcitenames=2, backref=false, backend=biber, style=alphabetic, language=american]{biblatex}
 \addbibresource{biblio.bib}
 
+\newcounter{daggerfootnote}
+\newcommand*{\daggerfootnote}[1]{%
+  \setcounter{daggerfootnote}{\value{footnote}}%
+  \renewcommand*{\thefootnote}{\fnsymbol{footnote}}%
+  \footnote[2]{#1}%
+  \setcounter{footnote}{\value{daggerfootnote}}%
+  \renewcommand*{\thefootnote}{\arabic{footnote}}%
+}
+
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{definition}{Definition}
@@ -91,7 +100,9 @@
 \newcommand{\evarassign}[2]{({#1} \mathsf{:=} {#2})}
 \newcommand{\spcdot}{\mkern 2mu\cdot\mkern 2mu}
 \newcommand{\emptyctx}{\spcdot}
+\newcommand{\mapentry}[2]{{#1} \mapsto {#2}}
 
+\newcommand{\fventry}[2]{{#1}^{#2}}
 
 \newcommand{\reduces}[2]{{#1} \rightarrow {#2}}
 \newcommand{\contracts}[2]{{#1} \rightharpoonup {#2}}
@@ -110,7 +121,8 @@
 
 \newcommand{\judge}[3]{{#1} \vdash {#2} : {#3}}
 \newcommand{\judgectx}[2]{{#1} \vdash {#2}}
-\newcommand{\judgebindctx}[2]{{#1} \cap {#2} = \emptyset}
+\newcommand{\judgesafeinenv}[2]{{#1}  \vdash {#2}}
+\newcommand{\judgesafeinenvv}[3]{{#1}[{#2}]  \vdash {#3}}
 
 
 \newcommand{\checks}{{\color{blue} \Leftarrow}}
@@ -135,6 +147,7 @@
 
 \newcommand{\judgeequiv}[4]{{#1} \vdash {#2} \equiv {#3} : {#4}}
 \newcommand{\judgeequivunt}[2]{{#1} \equiv {#2}}
+\newcommand{\judgeequivuntg}[3]{{#1} \vdash {#2} \equiv {#3}}
 
 \newcommand{\judgealpha}[2]{{#1} \sim_{\alpha} {#2}}
 
@@ -155,9 +168,12 @@
 
 
 \newcommand{\fv}[1]{\mathsf{FV}(#1)}
-
+\newcommand{\codom}[1]{\mathsf{im}(#1)}
 
 \newcommand{\absclose}[2]{\vv{x}^{#1} #2}
+
+\newcommand{\vars}[1]{\mathsf{vars}(#1)}
+
 
 \newcommand{\fullterm}[2]{{#1}\,#2_1 \dots #2_{\narg{#1}}}
 \newcommand{\fulltermm}[2]{{#1}\,(\absclose{\arity{#1}_1}{#2_1}) \dots (\absclose{\arity{#1}_{\narg{#1}}}{#2_{\narg{#1}})}}
@@ -191,7 +207,7 @@
     \mbox{Computations} & X, Y, t, u & ::= & t v \bnfalt
     \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \foralltype{x:A}{X} \bnfalt \force {v} \bnfalt \return{v}
     \bnfalt \fun{x:A}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
-    \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{X}{t} \bnfalt \receq{v}{X}{t}
+    \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{x.X}{t} \bnfalt \receq{v}{x.y.X}{t}
     \\[1em]
 
     \mbox{Values} & A, B, v, w & ::= & x \bnfalt \comptoval{X}
@@ -263,8 +279,8 @@ Let us consider the term syntax from a different perspective:
     \begin{tabular}{L|LLLLLLLLLLLLLLLLL}
       F         & \lambda & (,)   & \refl & \return{} & \thunk{} & @     & \recsigmaname & \receqname & \letname & \dletname & \force{} & \comptoval & \Pi   & \forall & \valtocomp{} & \Sigma & x  \\
       \hline
-      \arity{F} & [1, 0]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,0,0]         & [0,0,0]       & [1,0,0]  & [1,0,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [1,0]  & [] \\
-      \narg{F}  & 1       & 2     & 0     & 1         & 1        & 2     & 3               & 3             & 3        & 3         & 1        & 1          & 2     & 2       & 1            & 2      & 0 
+      \arity{F} & [1, 0]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,1,0]         & [0,2,0]       & [1,0,0]  & [1,0,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [0,1]  & [] \\
+      \narg{F}  & 2       & 2     & 0     & 1         & 1        & 2     & 3               & 3             & 3        & 3         & 1        & 1          & 2     & 2       & 1            & 2      & 0 
     \end{tabular}
   \end{table}
 
@@ -281,7 +297,13 @@ use these two representation interchangeably.
 \section{Alpha-equivalence}
 
 \begin{definition}[Variable Renaming]
-  \ilyam{todo}
+  \begin{mathpar}
+    \Infer{}{ }{\rename{x}{x}{z} = z} \and
+    \Infer{}{x \neq y}{\rename{x}{y}{z} = x} \and
+    \Infer{}{F \neq x}{\rename{\fullterm{F}{P}}{y}{z} = F\, (\rename{P_1}{y}{z}) \dots (\rename{P_{\narg{F}}}{y}{z})} \and
+    \Infer{}{ }{\rename{.\tau}{y}{z} = .(\rename{\tau}{y}{z})} \and
+    \Infer{}{x' \text{ is fresh} }{\rename{x.P}{y}{z} = x'.(\rename{(\rename{P}{x}{x'})}{y}{z})}
+  \end{mathpar}
 \end{definition}
 
 \begin{definition}[Alpha-equivalence]
@@ -290,10 +312,37 @@ use these two representation interchangeably.
     {\forall i, \judgealpha{P_i}{Q_i}}
     {\judgealpha{\fullterm{F}{P}}{\fullterm{F}{Q}}}
     \and
-    \ilyam{todo}
+    \Infer{}
+    {\judgealpha{\sigma}{\tau}}
+    {\judgealpha{.\sigma}{.\tau}}
+    \and
+    \Infer{}
+    { y \text{ is fresh}\\
+      \judgealpha{\rename{\sigma}{x}{y}}{\rename{\tau}{x}{y}}}
+    {\judgealpha{x.\sigma}{x.\tau}}
+    \and
   \end{mathpar}
 
 \end{definition}
+
+\begin{lemma}
+  Alpha-equivalence is an equivalence relation on terms and abstractors.
+\end{lemma}
+\ilyam{Admitted.}
+
+\begin{lemma}[Functionality of Variable Renaming]
+  Variable Renaming is a functional on the classes of alpha-equivalence.
+\end{lemma}
+\ilyam{Admitted.}
+
+Hereafter, we assume every statement about terms and abstractors defined on the
+equivalence classes. Whenever we use the ``concrete term syntax'', we mean the
+alpha-equivalence class of this term if the term is in the covariant position of
+the statement or definition (e.g. we are constructing a function returning an
+equivalence class as an output); and \emph{any term of this form from this
+  class} if the term is in the contravariant position (e.g. we are constructing
+a function taking an equivalence class as an input).
+
 
 \section{Susbtititution}
 \begin{definition}[Substitution]
@@ -303,7 +352,7 @@ use these two representation interchangeably.
 \begin{lemma}[Functionality of Substituion]
   Substitution is a functional on the classes of alpha-equivalence.
 \end{lemma}
-\ilyam{todo}
+\ilyam{Admitted.}
 
 
 \section{Reduction}
@@ -311,7 +360,6 @@ use these two representation interchangeably.
 First, we define the \emph{redex contraction}.
 \begin{definition}[Redex Contraction]
   \label{def:redex-contr}
-  \ilyam{Defined on $\alpha$-equivalence classes!}
   We define the top-level redex contraction in the following way:
   \begin{multicols}{2}
     \begin{itemize}
@@ -337,10 +385,10 @@ First, we define the \emph{redex contraction}.
 \end{definition}
 
 Notice that any redex from \cref{def:redex-contr} is an elimination of a
-constructor, i.e. a term of the form $E\,(\fullterm{C}{\sigma})\, \tau_2 \dots
-\tau_{\narg{E}}$ where $E$ and $C$ are ``matched''.
+constructor, i.e. a term of the form $E\,(\fullterm{C}{P})\, Q_2 \dots
+Q_{\narg{E}}$ where $E$ and $C$ are ``matched''.
 Vice versa, if a term of the form
-$E\,(\fullterm{C}{\sigma})\, \tau_2 \dots \tau_{\narg{E}}$ is
+$E\,(\fullterm{C}{P})\, Q_2 \dots Q_{\narg{E}}$ is
 \emph{well-typed}, it is a redex. 
 
 
@@ -348,7 +396,6 @@ Informally, reduction of a term $\tau$ is a redex contraction happening in some
 \emph{subterm} of $\tau$.
 
 \begin{definition}[Reduction]
-  \ilyam{Defined on $\alpha$-equivalence classes!}
   \begin{mathpar}
     \Infer{Redex}{\contracts{\tau}{\tau'}}{\reduces{\tau}{\tau'}}
     \and
@@ -363,7 +410,6 @@ Informally, reduction of a term $\tau$ is a redex contraction happening in some
 \begin{lemma}[Substitution preserves reduction]
   \label{lemma:subst-res}
 
-  \ilyam{Stated for $\alpha$-equivalence classes!}
   \begin{mathpar}
     \Infer{}
     {\reduces{\tau}{\tau'}}
@@ -409,7 +455,8 @@ computational properties of the term, e.g. being in the normal form
   \and
   \Infer{}{\judgeSnf{\tau_{1}}~\dots~\judgeSnf{\tau_{\narg{N}}}}{\judgeSatom{\fullterm{N}{\vv{x}\tau}}}
   \and
-  \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\vv{x}\tau}}}
+  \Infer{}{\judgeSatom{\tau_1}\\\judgeSnf{\tau_2}~\dots~\judgeSnf{\tau_{\narg{E}}}}{\judgeSatom{\fullterm{E}{\vv{x}\tau}}
+  }
 \end{mathpar}
 \end{definition}
 
@@ -508,20 +555,22 @@ under-approximate this property in the following way:
 \ilyam{TODO: add safe occurrence in abstractors}
 
 \begin{mathpar}
-  \Infer{C-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\tau}}}
+  \Infer{C-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{C}}}}{\judgeSok{x}{\fullterm{C}{\vv{x}\tau}}}
   \and
-  \Infer{N-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{N}}}}{\judgeSok{x}{\fullterm{N}{\tau}}}
+  \Infer{N-Cong}{\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{N}}}}{\judgeSok{x}{\fullterm{N}{\vv{x}\tau}}}
   \and
-  \Infer{E-FV}{x \notin \fv{\fullterm{E}{\tau}}}{\judgeSok{x}{\fullterm{E}{\tau}}}
+  \Infer{E-FV}{x \notin \fv{\fullterm{E}{\tau}}}{\judgeSok{x}{\fullterm{E}{\vv{x}\tau}}}
   \and
   \Infer{E-Cong}
   {\judgeSok{x}{\tau_{1}}~\dots~\judgeSok{x}{\tau_{\narg{E}}}
     \\ 
     \tau_1 \neq x
     \\ 
-    \judgeSinert{\fullterm{E}{\tau}}
+    \judgeSinert{\fullterm{E}{\vv{x}\tau}}
   }
-  {\judgeSok{x}{\fullterm{E}{\tau}}}
+  {\judgeSok{x}{\fullterm{E}{\vv{x}\tau}}
+   \\ \ilyam{(implicit $\alpha$-rename!)}
+  }
 \end{mathpar}
 In the last rule, ``$\tau_1 \neq x$'' means literal syntactic inequality.
 Intuitively, ``$\judgeSinert{\tau}$'' means that $\tau$ preserves its
@@ -531,15 +580,15 @@ define is a little bit stronger, as it also forbids changing of the structure
 of the eliminator's first argument. Formally, it is defined as follows:
 
 \begin{mathpar}
-  \Infer{}{ }{\judgeSinert{\fullterm{N}{\tau}}}
+  \Infer{}{ }{\judgeSinert{\fullterm{N}{\vv{x}\tau}}}
   \and
   \Infer{}{ }{\judgeSinert{\fullterm{C}{\tau}}}
   \and
-  \Infer{}{ }{\judgeSinert{E\,(\fullterm{N}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
+  \Infer{}{ }{\judgeSinert{E\,(\fullterm{N}{\vv{x}\sigma})\,\vv{x}\tau_2 \dots \vv{x}\tau_{\narg{E}}}}
   \and
   \Infer{EE-Inert}
-  {\judgeSinert{\fullterm{E'}{\sigma}}}
-  {\judgeSinert{E\,(\fullterm{E'}{\sigma})\,\tau_2 \dots \tau_{\narg{E}}}}
+  {\judgeSinert{\fullterm{E'}{\vv{x}\sigma}}}
+  {\judgeSinert{E\,(\fullterm{E'}{\vv{x}\sigma})\,\vv{x}\tau_2 \dots \vv{x}\tau_{\narg{E}}}}
 \end{mathpar}
 
 As a heuristics, it is possible to extend the ``Safe Occurrence'' property by
@@ -571,25 +620,25 @@ because the latter would violate the finiteness of the inference trees.
   }
 \end{mathpar}
 
-\begin{lemma}[Correctness of the definition]
-  Safe occurrence is defined up to alpha-equivalence. 
-\end{lemma}
-\begin{proof}
-\ilyam{todo}
-\end{proof}
+% \begin{lemma}[Correctness of the definition]
+%   Safe occurrence is defined up to alpha-equivalence. 
+% \end{lemma}
+% \begin{proof}
+% \ilyam{todo}
+% \end{proof}
 
 \begin{lemma}[Conguence of the safe occurrence]
   \label{lemma:cong-safe-occurrence}
   \begin{mathpar}
   \Infer{}
   {
-    \judgeSok{x}{\fullterm{F}{\vv{x}\sigma}} \\
-    \ilyam{x is not captured by the abstractors}
+    \judgeSok{x}{\fullterm{F}{P}}
+    % \ilyam{x is not captured by the abstractors}
   }
   {
-    \judgeSok{x}{\sigma_1} \\
+    \judgeSok{x}{P_1} \\
     \cdots \\
-    \judgeSok{x}{\sigma_{\narg{F}}}
+    \judgeSok{x}{P_{\narg{F}}}
   }
   \end{mathpar}
 \end{lemma}
@@ -600,7 +649,6 @@ because the latter would violate the finiteness of the inference trees.
 
 \begin{lemma}[Reduction-Substitution Commutativity]
   \label{lemma:red-subst-commute}
-  \ilyam{stated for $\alpha$-equivalence classes}
   \begin{mathpar}
     \Infer{}
     {
@@ -741,6 +789,11 @@ $\tau$.
 \end{definition}
 
 
+\begin{definition}[Binding Context]
+  \begin{mathpar}
+    \Gamma ::= \emptyctx \bnfalt \Gamma, ~ x
+  \end{mathpar}
+\end{definition}
 
 
 \begin{definition}[Equivalence]
@@ -753,20 +806,20 @@ $\tau$.
       \Infer{Red-L}
       {
         \reduces{\tau_1}{\tau_1'}\\
-        \judgeequivunt{\tau_1'}{\tau_2}
+        \judgeequivuntg{\Gamma}{\tau_1'}{\tau_2}
       }
       {
-        \judgeequivunt{\tau_1}{\tau_2}
+        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2}
       }
       \and
       \Infer{}
       {
         \reduces{\tau_2}{\tau_2'}\\
-        \judgeequivunt{\tau_1}{\tau_2'}\\
+        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2'}\\
         \judgeSnf{\tau_1}
       }
       {
-        \judgeequivunt{\tau_1}{\tau_2}
+        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2}
       }
     \end{mathpar}
 
@@ -775,14 +828,14 @@ $\tau$.
 
       \Infer{}
       {
-        \judgeequivunt{P_1}{Q_1} \\
+        \judgeequivuntg{\Gamma}{P_1}{Q_1} \\
         \dots\\
-        \judgeequivunt{P_{\narg{F}}}{Q_{\narg{F}}} \\
+        \judgeequivuntg{\Gamma}{P_{\narg{F}}}{Q_{\narg{F}}} \\
         \judgeSnf{\fullterm{F}{P}} \\
         \judgeSnf{\fullterm{F}{Q}}
       }
       {
-        \judgeequivunt{\fullterm{F}{P}}{\fullterm{F}{Q}}
+        \judgeequivuntg{\Gamma}{\fullterm{F}{P}}{\fullterm{F}{Q}}
       }
       \and
       % \Infer{}
@@ -799,22 +852,22 @@ $\tau$.
 
       \Infer{}
       {
-      \judgeequivunt
+        \judgeequivuntg{\Gamma, x}
       {\absclose{n}{\sigma}}
       {\absclose{n}{\tau}}
       }
         {
-        \judgeequivunt{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}
+          \judgeequivuntg{\Gamma}{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}
       }
         \and
 
 
       \Infer{}
       {
-        \judgeequivunt{\sigma}{\tau}
+        \judgeequivuntg{\Gamma}{\sigma}{\tau}
       }
       {
-        \judgeequivunt{.\sigma}{.\tau}
+        \judgeequivuntg{\Gamma}{.\sigma}{.\tau}
       }
     \end{mathpar}
 
@@ -822,54 +875,53 @@ $\tau$.
 
 \end{definition}
 
-\begin{definition}[Binding Context] Binding context is a \emph{set}
-  of variables that have been bound.
-  $$ B ::= \emptyctx \bnfalt B, x $$
+\begin{definition}[Free Variable Environment] Free variable environment $E$ is a
+  (partial) \emph{mapping} from unification variables to sets of regular
+  variables. $E[\hat{v}]$ is a set $\Gamma$ of variables associated with $\hat{v}$
+  that are allowed to be used in the initialization. Morally, $\Gamma$ is a
+  binding context at the moment when $\hat{v}$ was introduced.
+  \begin{mathpar}
+    E ::= \emptyctx \bnfalt E, ~ \mapentry{\hat{v}}{\Gamma}
+  \end{mathpar}
 \end{definition}
 
+\begin{definition}[Admissible term]
+  \begin{mathpar}
+    \Infer{}
+    {\fv{\tau} \subseteq \Gamma}
+    {\judgesafeinenv{\Gamma}{\tau}}
+  \end{mathpar}
+\end{definition}
+
+\begin{definition}[Unification Context] Unification context represents a
+  (partial) solution of the unification problem. Syntactically, it is a \emph{set} of
+  pairs. Each pair represent an initialization of a unification variable: 
+  $$\varphi, \psi ::= \emptyctx \bnfalt \varphi, \evarassign{\hat{v}}{\tau} $$
+  where $\tau$ is a ground term.
+\end{definition}
 
 The unification (or algorithmic equivalence) judgement is of the form
-$\judgeunify{\varphi; B}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
+$\judgeunify{E; \varphi}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
 algorithmic terms (potentially with unassigned variables), $\varphi$ and
-$\varphi'$ are contexts formed by the following grammar.
-\begin{definition}[Unification Context] Unification context is a \emph{set} of
-  pairs: 
-$$\varphi, \psi ::= \emptyctx \bnfalt \varphi, \evarassign{\hat{v}}{\tau} $$
-where $\tau$ is a ground term.
+$\varphi'$ are unification contexts, E is a free variable environment.
+
+
+\begin{definition}[Admissible unification context] The unification context $\varphi$ is
+  admissible by the environment $E$ if the term $\tau$ it assigns to the unification
+  variable $\hat{v}$ is admissible by the set of variables $E[\hat{v}]$
+  (in particular, $E$ is defined on $\hat{v}$).
+  \begin{mathpar}
+    \Infer{}
+    { }
+    {\judgesafeinenv{E}{\emptyctx}}
+
+    \and
+    \Infer{}
+    {\judgesafeinenvv{E}{\hat{v}}{\tau}}
+    {\judgesafeinenv{E}{\varphi, \evarassign{\hat{v}}{\tau}}}
+  \end{mathpar}
 \end{definition}
 
-% \begin{definition}[Instantiation of an algorithmic term]
-%   We say that a context $\varphi$ instantiates algorithmic term $\rho$ if it
-%   contains an assignment for every existential variable of $\rho$ :
-%   \begin{mathpar}
-%     \Infer{}
-%     {
-%     }
-%     {
-%       \judgeinst{\varphi, \evarassign{\hat{x}}{\spcdot}}{\hat{x}}
-%     }
-%     \and
-%     \Infer{}
-%     {
-%       \judgeinst{\varphi}{\hat{x}}
-%     }
-%     {
-%       \judgeinst{\varphi, \evarassign{\spcdot}{\spcdot}}{\hat{x}}
-%     }
-%     \and
-%     \Infer{}
-%     {
-%       F \neq \hat{x}\\
-%       \judgeinst{\varphi}{\rho_1}\\
-%       \dots\\
-%       \judgeinst{\varphi}{\rho_{\narg{F}}}\\
-%     }
-%     {
-%       \judgeinst{\varphi}{\fullterm{F}{\rho}}
-%     }
-
-%   \end{mathpar}
-% \end{definition}
 
 \begin{definition}[Well-formed unification context]
   We say that a unification context $\varphi$ is well-formed if the mapping it
@@ -894,19 +946,19 @@ where $\tau$ is a ground term.
   \end{mathpar}
 \end{definition}
 
-\begin{definition}[Safe unification context]
-  We say that a unification context $\Omega$ is safe under the binding context $B$
-  ($\judgebindctx{B}{\Omega}$)
-  if the free variables of $\Omega$ do not intersect with $B$.
-\end{definition}
+% \begin{definition}[Safe unification context]
+%   We say that a unification context $\varphi$ is safe under the binding context $B$
+%   ($\judgesafeinenv{B}{\varphi}$)
+%   if the free variables of $\varphi$ do not intersect with $B$.
+% \end{definition}
 
 \begin{definition}[Application of the well-formed context]
-  If the unification context $\Omega$ is well-formed,
-  We write $\ctxtapp{\Omega}{\tau}$ meaning the application of the partial
-  (substitution) function represented by $\Omega$ to the term $\tau$:
+  If the unification context $\varphi$ is well-formed,
+  We write $\ctxtapp{\varphi}{\tau}$ meaning the application of the partial
+  (substitution) function represented by $\varphi$ to the term $\tau$:
   \begin{itemize}
   \item $\ctxtapp{\emptyctx}{\tau} = \tau$
-  \item $\ctxtapp{\Omega, \evarassign{\hat{x}}{\sigma}}{\tau} = \subst{(\ctxtapp{\Omega}{\tau})}{\hat{x}}{\sigma}$
+  \item $\ctxtapp{\varphi, \evarassign{\hat{x}}{\sigma}}{\tau} = \subst{(\ctxtapp{\varphi}{\tau})}{\hat{x}}{\sigma}$
   \end{itemize}
 
 \end{definition}
@@ -928,7 +980,6 @@ for a single substitution, can be lifted up to the context application.
   \end{corollary}
 
   \begin{figure}[h]
-    \label{fig:red-app-commute-scheme}
     \centering
     \begin{tikzcd}
       \rho & {\rho^*} \\
@@ -947,6 +998,7 @@ for a single substitution, can be lifted up to the context application.
       \arrow["{\hat{x}_n:=\tau_n}", dashed, from=3-2, to=4-2]
     \end{tikzcd}
     \caption{Proof scheme}
+    \label{fig:red-app-commute-scheme}
   \end{figure}
 
   \begin{proof}
@@ -970,11 +1022,14 @@ for a single substitution, can be lifted up to the context application.
   \end{proof}
  
   \begin{corollary} [Reduction preserves safety]
-    \cref{lemma:safe-occur-pres}
+    \label{corollary:safety-pres}
     \begin{mathpar}
       \Infer{}{\judgeSokterm{\rho} \\ \reduces{\rho}{\rho'}}{\judgeSokterm{\rho'}}
     \end{mathpar}
   \end{corollary}
+  \begin{proof}
+    Follows from \cref{lemma:safe-occur-pres}.
+  \end{proof}
 
 
 \begin{definition}[Unification]  The unification algorithm is defined
@@ -987,10 +1042,10 @@ for a single substitution, can be lifted up to the context application.
         { 
           \evarassign{\hat{v}}{\spcdot} \notin \varphi \\
           \judgeSnf{\tau} \\
-          \judgebindctx{B}{\tau} \\
+          \judgesafeinenvv{E}{\hat{v}}{\tau} \\
         }
         {
-          \judgeunify{B;\varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
+          \judgeunify{\Gamma; E; \varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
         }
         \and
         \Infer{U-Keep}
@@ -999,7 +1054,7 @@ for a single substitution, can be lifted up to the context application.
           \ilyam{up-to-alpha-equivalence!}
         }
         {
-          \judgeunify{B;\varphi}{\hat{v}}{\tau}{\varphi}
+          \judgeunify{\Gamma; E;\varphi}{\hat{v}}{\tau}{\varphi}
         }
       \end{mathpar}
 
@@ -1008,20 +1063,20 @@ for a single substitution, can be lifted up to the context application.
         \Infer{Red-L}
         {
           \reduces{\rho_1}{\rho_1'}\\
-          \judgeunify{\varphi}{\rho_1'}{\tau_2}{\varphi'}
+          \judgeunify{\Gamma; \varphi}{\rho_1'}{\tau_2}{\varphi'}
         }
         {
-          \judgeunify{B; \varphi}{\rho_1}{\tau_2}{\varphi'}
+          \judgeunify{\Gamma; E; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
         \and
         \Infer{Red-R}
         {
           \reduces{\tau_2}{\tau_2'}\\
-          \judgeunify{\varphi}{\rho_1}{\tau_2'}{\varphi'}\\
+          \judgeunify{\Gamma; \varphi}{\rho_1}{\tau_2'}{\varphi'}\\
           \judgeSnf{\rho_1}
         }
         {
-          \judgeunify{B; \varphi}{\rho_1}{\tau_2}{\varphi'}
+          \judgeunify{\Gamma; E; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
       \end{mathpar}
 
@@ -1029,14 +1084,14 @@ for a single substitution, can be lifted up to the context application.
    \begin{mathpar}
      \Infer{}
      {
-       \judgeunify{B;\varphi_0}{P_1}{Q_1}{\varphi_1} ~
+       \judgeunify{\Gamma; E;\varphi_0}{P_1}{Q_1}{\varphi_1} ~
        \dots ~
-       \judgeunify{B;\varphi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\varphi_{\narg{F}}} \\
+       \judgeunify{\Gamma; E;\varphi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\varphi_{\narg{F}}} \\
        \judgeSnf{\fullterm{F}{P}} \\
        \judgeSnf{\fullterm{F}{Q}}
      }
      {
-       \judgeunify{B; \varphi_0}{\fullterm{F}{P}}{\fullterm{F}{Q}}{\varphi_{\narg{F}}}
+       \judgeunify{\Gamma; E; \varphi_0}{\fullterm{F}{P}}{\fullterm{F}{Q}}{\varphi_{\narg{F}}}
      } \and
      % \Infer{}
      % {
@@ -1055,27 +1110,28 @@ for a single substitution, can be lifted up to the context application.
 
      \Infer{}
      {
-       \judgeunify{B,x; \varphi}
+       \judgeunify{\Gamma, x; E; \varphi}
        {\absclose{n}{\rho}}
        {\absclose{n}{\tau}}
        {\psi}
      }
      {
-       \judgeunify{B; \varphi}
+       \judgeunify{\Gamma; E; \varphi}
        {x.\absclose{n}{\rho}}
        {x.\absclose{n}{\tau}}
        {\psi}
-     } \and
+     }
+     \and
 
      \Infer{}
      {
-       \judgeunify{B; \varphi}
+       \judgeunify{\Gamma; E; \varphi}
        {\rho}
        {\tau}
        {\psi}
      }
      {
-       \judgeunify{B; \varphi}
+       \judgeunify{\Gamma; E; \varphi}
        {.\rho}
        {.\tau}
        {\psi}
@@ -1096,19 +1152,20 @@ the unification algorithm does not make the terms non-unifiable.
   \begin{mathpar}
     \Infer{}
     { \judgectx{}{\varphi_1}\\
-      \judgeunify{B; \varphi_1}{\rho}{\tau}{\varphi_2} \\
-      \judgebindctx{B}{\varphi_1}
+      \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2} \\
+      \judgesafeinenv{E}{\varphi_1} \\
+      \codom{E} \subseteq \Gamma
     }
     { \judgectx{}{\varphi_2}\\
-      \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
       \varphi_1 \subseteq \varphi_2 \\
-      \judgebindctx{B}{\varphi_2} \\
+      \judgesafeinenv{E}{\varphi_2} \\
     }
   \end{mathpar}
 \end{lemma}
 
 \begin{proof}
-  Induction on $\judgeunify{B; \varphi_1}{\rho}{\tau}{\varphi_2}$.
+  Induction on $\judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}$.
   \begin{itemize}
     \item
       $
@@ -1116,10 +1173,10 @@ the unification algorithm does not make the terms non-unifiable.
       { 
         \evarassign{\hat{v}}{\spcdot} \notin \varphi_1 \\
         \judgeSnf{\tau} \\
-        \judgebindctx{B}{\tau}
+        \judgesafeinenvv{E}{\hat{v}}{\tau}
       }
       {
-        \judgeunify{B; \varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
+        \judgeunify{\Gamma; E; \varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
       }
       $
       Then $\rho = \hat{v}$ and $\varphi_2 = \varphi_1, \evarassign{\hat{v}}{\tau}$.
@@ -1127,15 +1184,13 @@ the unification algorithm does not make the terms non-unifiable.
         \item It is easy to see that $\judgectx{}{\varphi_2}$ because
           $\judgectx{}{\varphi_1, \evarassign{\hat{v}}{\tau}}$  by definition of the
           well-formed context (all the required premises are given);
-        \item $\judgeequivunt{\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
-            \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau}{\tau}$;
-        \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition.
-        \item $B \cap \fv{\varphi_1, \evarassign{\hat{v}}{\tau}} = B \cap
-          \fv{\varphi_1} \cup B \cap \fv{\tau}$, which is
-          empty because $\judgebindctx{B}{\varphi_1}$ and
-          $\judgebindctx{B}{\tau}$.
-          Hence $\judgebindctx{B}{\varphi_2}$.
-       
+        \item $\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
+            \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau$.
+          $\judgeequivuntg{\Gamma}{\tau}{\tau}$;
+        \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition;
+
+        \item $\judgesafeinenv{E}{\varphi_1, \evarassign{\hat{v}}{\tau}}$
+          because $\judgesafeinenv{E}{\varphi_1}$ and $\judgesafeinenvv{E}{\hat{v}}{\tau}$.
      \end{itemize}
    \item 
       $
@@ -1144,44 +1199,44 @@ the unification algorithm does not make the terms non-unifiable.
         \evarassign{\hat{v}}{\tau} \in \varphi
       }
       {
-        \judgeunify{B; \varphi}{\hat{v}}{\tau}{\varphi}
+        \judgeunify{\Gamma; E; \varphi}{\hat{v}}{\tau}{\varphi}
       }
       $
       Then $\rho = \hat{v}$ and $\varphi_1 = \varphi_2 = \varphi$.
       \begin{itemize}
       \item $\judgectx{}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
         $\judgectx{}{\varphi_1}$ is in the premises;
-      \item $\judgeequivunt{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
-        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$
-        \ilyam{alpha-equivalence};
+      \item $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
+        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$.
       \item $\varphi \subseteq \varphi$ trivially.
-      \item $\judgebindctx{B}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
-        $\judgebindctx{B}{\varphi_1}$ is in the premises.
+      \item $\judgesafeinenv{E}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
+        $\judgesafeinenv{E}{\varphi_1}$ is in the lemma premises.
       \end{itemize}
     \item
       $
       \Infer{}
       {
         \reduces{\rho}{\rho'}\\
-        \judgeunify{\varphi_1}{\rho'}{\tau}{\varphi_2}
+        \judgeunify{\Gamma; E; \varphi_1}{\rho'}{\tau}{\varphi_2}
       }
       {
-        \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
       }
       $
       Then by the induction hypothesis:
       $\varphi_1 \subseteq \varphi_2$,
-      $\judgectx{}{\varphi_2}$, $\judgebindctx{B}{\varphi_2}$,
-      and $\judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
-      To prove that $\judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
+      $\judgectx{}{\varphi_2}$,
+      $\judgesafeinenv{E}{\varphi_2}$,
+      and $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
+      To prove that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
       $$
       \Infer{Red-L}
       {
         \reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}\\
-        \judgeequivunt{\ctxtapp{\varphi_2}{\rho'}}{\tau}
+        \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}
       }
       {
-        \judgeequivunt{\ctxtapp{\varphi_2}{\rho}}{\tau}
+        \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}
       }
       $$
       Here $\reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}$
@@ -1191,11 +1246,11 @@ the unification algorithm does not make the terms non-unifiable.
       \Infer{}
       {
         \reduces{\tau}{\tau'}\\
-        \judgeunify{\varphi_1}{\rho}{\tau'}{\varphi_2}\\
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau'}{\varphi_2}\\
         \judgeSnf{\rho}
       }
       {
-        \judgeunify{\varphi_1}{\rho}{\tau}{\varphi_2}
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
       }
       $
       Analogously to the previous case.
@@ -1204,23 +1259,26 @@ the unification algorithm does not make the terms non-unifiable.
       $
       \Infer{}
       {
-        \judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1} \\
+        \judgeunify{\Gamma; E;\psi_0}{P_1}{Q_1}{\psi_1} \\
         \dots\\
-        \judgeunify{\psi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\psi_{\narg{F}}} \\
-        \judgeSnf{\fullterm{F}{\rho}} \\
-        \judgeSnf{\fullterm{F}{\tau}}
+        \judgeunify{\Gamma; E;\psi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\psi_{\narg{F}}} \\
+        \judgeSnf{\fullterm{F}{P}} \\
+        \judgeSnf{\fullterm{F}{Q}}
       }
       {
-        \judgeunify{\psi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}
+        \judgeunify{\Gamma; E; \psi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}
       }
       $
+
       Then $\varphi_1 = \psi_0$, $\varphi_2 = \psi_{\narg{F}}$, $\rho =
-      \fullterm{F}{\rho}$, $\tau = \fullterm{F}{\tau}$. 
+      \fullterm{F}{P}$, $\tau = \fullterm{F}{Q}$. 
 
       We can apply the induction hypothesis to the first unification judgement
-      in the premise (i.e. to $\judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1}$) acquiring:
-      $\judgectx{}{\psi_1}$ and
-      $\judgeequivunt{\ctxtapp{\psi_1}{\rho_1}}{\tau_1}$. Then, because
+      in the premise (i.e. to $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q_1}{\psi_1}$) acquiring:
+      $\judgectx{}{\psi_1}$,
+      $\judgectx{E}{\psi_1}$,
+      and
+      $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_1}{P_1}}{Q_1}$. Then, because
       $\judgectx{}{\psi_1}$, we can apply the induction hypothesis to the second
       premise. Continuing this process, we acquire:
       \begin{itemize}
@@ -1228,26 +1286,110 @@ the unification algorithm does not make the terms non-unifiable.
           $\varphi_1 = \psi_0 \subseteq \cdots \subseteq \psi_{\narg{F}} = \varphi_2$;
         \item
           $\judgectx{}{\varphi_2}$
-        \item $\judgeequivunt{\ctxtapp{\psi_i}{\rho_i}}{\tau_i}$ for $i =
+        \item
+          $\judgectx{E}{\varphi_2}$
+        \item $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_i}{P_i}}{Q_i}$ for $i =
           1\dots\narg{F}$. Hence, because $\psi_i \subseteq \varphi_2$,
-          $\judgeequivunt{\ctxtapp{\varphi_2}{\rho_i}}{\tau_i}$, which implies
-          that $\judgeequivunt{\ctxtapp{\varphi_2}{\fullterm{F}{\rho}}}{\fullterm{F}{\tau}}$
+          $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{P_i}}{Q_i}$, which implies
+          that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\fullterm{F}{P}}}{\fullterm{F}{Q}}$
       \end{itemize}
+
+      \item
+        $
+        \Infer{}
+        {
+          \judgeunify{\Gamma, x; E; \varphi_1}
+          {\absclose{n}{\rho}}
+          {\absclose{n}{\tau}}
+          {\varphi_2}
+        }
+        {
+          \judgeunify{\Gamma; E; \varphi_1}
+          {x.\absclose{n}{\rho}}
+          {x.\absclose{n}{\tau}}
+          {\varphi_2}
+        }
+      $
+
+      Then we apply the induction hypothesis to
+      $ \judgeunify{\Gamma, x; E; \varphi_1} {\absclose{n}{\rho}} {\absclose{n}{\tau}} {\varphi_2} $
+      and acquire 
+      \begin{itemize}
+        \item $\judgectx{}{\varphi_2}$
+        \item $\varphi_1 \subseteq \varphi_2$
+        \item $\judgectx{E}{\varphi_2}$
+        \item
+          $\judgeequivunt{\ctxtapp{\varphi_2}{\absclose{n}{\rho}}}{\absclose{n}{\tau}}$.
+          By the Barendrecht's convention, $x \notin \Gamma$, hence, 
+          $x \notin \codom{E}$. Since $\judgectx{E}{\varphi_2}$, $x \notin \fv{\varphi_2}$.
+          Therefore, $x.\ctxtapp{\varphi_2}{\absclose{n}{\rho}} =
+          \ctxtapp{\varphi_2}{x.\absclose{n}{\rho}}$, which gives us the
+          required equivalence. 
+          \ilyam{extract a lemma}
+      \end{itemize}
+
+    \item
+      $
+      \Infer{}
+      {
+        \judgeunify{\Gamma; E; \varphi}
+        {\rho}
+        {\tau}
+        {\psi}
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi}
+        {.\rho}
+        {.\tau}
+        {\psi}
+      }
+      $ 
+      Trivially by the induction hypothesis. 
+
+
+
+
   \end{itemize}
 
 \end{proof}
 
+
+% \begin{lemma}[Reflexivity of unification]
+%   $\judgeunify{\Gamma; E;\varphi}{\tau}{\tau}{\varphi}$
+% \end{lemma}
+% \begin{proof}
+%   Straightforward induction.
+% \end{proof}
+
+% \begin{lemma} [Unification invariance under substitution]
+%   \label{lemma:unif-inv-under-subst}
+%   \begin{mathpar}
+%     \Infer{}
+%     {\judgeunify{\Gamma; E;\varphi}{\rho}{\tau}{\psi} \\
+%      x \notin \fv{\psi}
+%     }
+%     {\judgeunify{\Gamma; E;\varphi}{\subst{\rho}{x}{\sigma}}{\subst{\tau}{x}{\sigma}}{\psi}}
+%   \end{mathpar}
+% \end{lemma}
+% \begin{proof}
+%   Induction on 
+%   $\judgeunify{E;\varphi}{\rho}{\tau}{\psi}$.
+%   \ilyam{seems straightforward}
+% \end{proof}
+
+
 \begin{lemma} [Unification completeness]
   \begin{mathpar}
     \Infer{}
-    { \judgectx{}{\Omega}\\
+    {
+      \judgectx{E}{\Omega}\\
+      \judgectx{}{\Omega}\\
       \judgeSokterm{\rho}\\
-      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}\\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}\\
     }
     {
-      \forall \judgectx{B}{\Omega}. ~
       \forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
-      \judgeunify{B; \varphi}{\rho}{\tau}{\psi} \\
+      \judgeunify{\Gamma; E; \varphi}{\rho}{\tau}{\psi} \\
     }
   \end{mathpar}
 
@@ -1262,19 +1404,19 @@ the unification algorithm does not make the terms non-unifiable.
     \Infer{}
       {
         \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
-        \judgeequivunt{\rho'}{\tau}
+        \judgeequivuntg{\Gamma}{\rho'}{\tau}
       }
       {
-        \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}
+        \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
       }
       $ By \cref{corollary:red-app-commute}, there exists $\rho^*$ s.t.
       $\reduces{\rho}{\rho^*}$ and $\ctxtapp{\Omega}{\rho^*} = \rho'$.
 
 
       By \cref{lemma:safe-occur-pres}, $\judgeSokterm{\rho^*}$.
-      Then we apply the induction hypothis to $\Omega$, $\rho^*$, and $\tau$.
+      Then we apply the induction hypothesis to $E$, $\Omega$, $\rho^*$, and $\tau$.
       To acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
-      \judgeunify{\varphi}{\rho^*}{\tau}{\psi}$,
+      \judgeunify{\Gamma; E; \varphi}{\rho^*}{\tau}{\psi}$,
       where we can replace $\rho^*$ with $\rho$ by Red-L.
 
   \item
@@ -1282,71 +1424,108 @@ the unification algorithm does not make the terms non-unifiable.
     \Infer{}
     {
       \reduces{\tau}{\tau'}\\
-      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau'}\\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau'}\\
       \judgeSnf{\ctxtapp{\Omega}{\rho}}
     }
     {
-      \judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
     }
     $
-    We can apply the induction hypothesis to $\Omega$, $\rho$, and $\tau'$ right
+    We can apply the induction hypothesis to $E, \Omega$, $\rho$, $\Gamma$, and $\tau'$ right
     away to acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq
-    \Omega. ~ \judgeunify{\varphi}{\rho}{\tau'}{\psi}$, where we replace $\tau'$
+    \Omega. ~ \judgeunify{\Gamma; E;\varphi}{\rho}{\tau'}{\psi}$, where we replace $\tau'$
     with $\tau$ by Red-R.
 
   \item
     $
     \Infer{}
     {
-      \judgeequivunt{\sigma_1}{\tau_1} \\
+      \judgeequivuntg{\Gamma}{Q_1}{Q'_1} \\
       \dots\\
-      \judgeequivunt{\sigma_{\narg{F}}}{\tau_{\narg{F}}} \\
-      \judgeSnf{\fullterm{F}{\sigma}} \\
-      \judgeSnf{\fullterm{F}{\tau}}
+      \judgeequivuntg{\Gamma}{Q_{\narg{F}}}{Q'_{\narg{F}}} \\
+      \judgeSnf{\fullterm{F}{Q}} \\
+      \judgeSnf{\fullterm{F}{Q'}}
     }
     {
-      \judgeequivunt{\fullterm{F}{\sigma}}{\fullterm{F}{\tau}}
+      \judgeequivuntg{\Gamma}{\fullterm{F}{Q}}{\fullterm{F}{Q'}}
     }
     $
-    Then $\ctxtapp{\Omega}{\rho} = \fullterm{F}{\sigma}$ and $\tau =
-    \fullterm{F}{\tau}$.
+    Then $\ctxtapp{\Omega}{\rho} = \fullterm{F}{Q}$ and $\tau =
+    \fullterm{F}{Q'}$.
     Let us destruct $\ctxtapp{\Omega}{\rho}$. \ilyam{we need a lemma to destruct
     it this way}
     \begin{itemize}
-      \item $\rho = \hat{x}$ and $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in
+      \item $\rho = \hat{x}$ and $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
         \Omega$. Let us consider an arbitrary $\varphi \subseteq \Omega$.
-        $\varphi$ must be well-formed, then either $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in
+        $\varphi$ is well-formed, then either $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
         \varphi$ or $\evarassign{\hat{x}}{\spcdot} \notin \varphi$.
         \begin{itemize}
-        \item $\evarassign{\hat{x}}{\fullterm{F}{\sigma}} \in \varphi$ then we
+        \item $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in \varphi$ then we
           take $\psi = \varphi$ and apply U-Keep. 
         \item $\evarassign{\hat{x}}{\spcdot} \notin \varphi$ then we
-          take $\psi = \varphi, \evarassign{\hat{x}}{\fullterm{F}{\sigma}}$
-          and apply U-Add. The term to which we assign $\hat{x}$ is in the normal form by one
-          of the premises. 
+          take $\psi = \varphi, \evarassign{\hat{x}}{\fullterm{F}{Q}}$
+          and apply U-Add. The term $\fullterm{F}{Q}$
+          is in the normal form by one
+          of the premises. $\judgectx{E[\hat{x}]}{\fullterm{F}{Q}}$ because
+          $\judgectx{E}{\Omega} \ni \evarassign{\hat{x}}{\fullterm{F}{Q}}$.
+
         \end{itemize}
-      \item $\rho = \fullterm{F}{\rho}$, $F \neq \hat{x}$, and
-        $\ctxtapp{\Omega}{\rho_i} = \sigma_i$ for $i = 1\dots\narg{F}$.
+      \item $\rho = \fullterm{F}{P}$, $F \neq \hat{x}$, 
+        $\ctxtapp{\Omega}{P_i} = Q_i$ and $\judgeequivuntg{\Gamma}{Q_i}{Q'_i}$ for $i = 1\dots\narg{F}$.
 
         By the corollary of \cref{lemma:cong-safe-occurrence},
-        $\judgeSokterm{\rho_i}$. So we can apply the induction hypothesis to all
+        $\judgeSokterm{P_i}$. So we can apply the induction hypothesis to all
         the components to acquire $\narg{F}$ facts: $\forall \varphi \subseteq \Omega.
-        ~ \exists \psi \subseteq \Omega. ~ \judgeunify{\varphi}{\rho_i}{\tau_i}{\psi}$.
+        ~ \exists \psi \subseteq \Omega. ~ \judgeunify{\Gamma; E; \varphi}{P_i}{Q'_i}{\psi}$.
 
         Let us apply the first fact to an arbitrary $\varphi = \psi_0 \subseteq
         \Omega$ to acquire $\psi_1 \subseteq \Omega$. Then we apply the second
         fact to $\psi_1 $, acquiring $\psi_2 \subseteq \Omega$. Repeating the process, we have:
-        $\judgeunify{\psi_0}{\rho_1}{\tau_1}{\psi_1}, ~ \dots, ~
-        \judgeunify{\psi_{\narg{F}-1}}{\rho_{\narg{F}}}{\tau_{\narg{F}}}{\psi_{\narg{F}}}$.
+        $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q'_1}{\psi_1}, ~ \dots, ~
+        \judgeunify{\Gamma; E; \psi_{\narg{F}-1}}{P_{\narg{F}}}{Q'_{\narg{F}}}{\psi_{\narg{F}}}$.
 
         Notice that by \cref{lemma:subst-res,prop:nf-irred},
-        $\judgeSnf{\fullterm{F}{\rho}}$. Then we apply the congruence
+        $\judgeSnf{\fullterm{F}{P}}$. Then we apply the congruence
         unification rule and get
-        $\judgeunify{\varphi}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}$,
-        i.e. $\judgeunify{\varphi}{\rho}{\tau}{\psi_{\narg{F}}}$, so we take
+        $\judgeunify{\Gamma; E;\varphi}{\fullterm{F}{P}}{\fullterm{F}{Q'}}{\psi_{\narg{F}}}$,
+        i.e. $\judgeunify{\Gamma; E;\varphi}{\rho}{\tau}{\psi_{\narg{F}}}$, so we take
         $\psi_{\narg{F}}$ as $\psi$.
-        
+
     \end{itemize}
+    
+  \item
+    $
+    \Infer{}
+    {\judgeequivuntg{\Gamma, x}{\absclose{n}{\sigma}} {\absclose{n}{\tau}} }
+    {\judgeequivuntg{\Gamma}{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}}
+    $
+
+    Then
+    $\ctxtapp{\Omega}{\rho} = x.\absclose{n}{\sigma}$, which means that $\rho =
+    x.\absclose{n}{\rho'}$, and  $\ctxtapp{\Omega}{\absclose{n}{\rho'}} =
+    \absclose{n}{\sigma}$. Notice that
+    $\judgeSokterm{\absclose{n}{\rho'}}$, which means the induction hypothesis
+    is applicable and gives us $\forall \varphi \subseteq \Omega. ~ \exists \psi
+    \subseteq \Omega. ~
+    \judgeunify{\Gamma,x;E;\varphi}{\absclose{n}{\rho'}}{\absclose{n}{\tau}}{\psi}$.
+    % We choose a fresh variable $y$. By \cref{lemma:unif-inv-under-subst},
+    % $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+    % \judgeunify{E;\varphi}{\rename{(\absclose{n}{\rho'})}{x}{y}}{\rename{(\absclose{n}{\sigma})}{x}{y}}{\psi}$.
+    Then we can apply the corresponding
+    unification rule to get the required unification judgement: 
+    $\judgeunify{\Gamma; E; \varphi}{x.\absclose{n}{\rho'}}{x.\absclose{n}{\tau}}{\psi}$.
+
+  \item
+    $
+    \Infer{}
+    {
+      \judgeequivunt{\sigma}{\tau}
+    }
+    {
+      \judgeequivunt{.\sigma}{.\tau}
+    }
+    $
+    Trivially by the induction hypothesis.
     
   \end{itemize}
 
@@ -1423,7 +1602,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
 \Infer{Var}
       { \judgeInctx{x:A}{\Gamma} }
-      { \judgevInfer{\Gamma, x:A}{x}{A} }
+      { \judgevInfer{\Gamma}{x}{A} }
 \and
 
 \Infer{VarT}
@@ -1498,7 +1677,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   \Infer{$\Sigma$}
         { \judgevtype{\Gamma}     {A} \\
           \judgevtype{\Gamma, x:A}{B} }
-        { \judgectype{\Gamma}{\sigmatype{x:A}{B}} }
+        { \judgevtype{\Gamma}{\sigmatype{x:A}{B}} }
   \and
   
 
@@ -1636,10 +1815,10 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{$\Sigma$E}
         {
+          \judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}} \\
           \judgectype{\Gamma, p : (\sigmatype{x:A}{B})}{X} \\
-          \judgevCheck{\Gamma}{v}{\sigmatype{x:A}{B}} \\
           \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{\subst{X}{p}{\pair{x}{y}}}}}
-        { \judgecInfer{\Gamma}{\recsigma{v}{X}{t}}{\subst{X}{p}{v}}}
+        { \judgecInfer{\Gamma}{\recsigma{v}{p.X}{t}}{\subst{X}{p}{v}}}
   \and
 
 \end{mathpar}
@@ -1655,12 +1834,11 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \and
 
-
   \Infer{$\mathsf{eq}$E$\checks$}
-        { \judgevCheck{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
+        { \judgevInfer{\Gamma}{v}{\eqtype{A}{w_1}{w_2}} \\
           \judgectype{\Gamma, x:A, p:\eqtype{A}{w_1}{x}}{X} \\
-          \judgecCheck{\Gamma}{t}{X\,w_1\,\refl} }
-        { \judgecCheck{\Gamma}{\receq{v}{X}{t}}{\subst{\subst{X}{x}{w_2}}{p}{v}}}
+          \judgecCheck{\Gamma}{t}{\subst{\subst{X}{x}{w_1}}{p}{\refl}}}
+        { \judgecInfer{\Gamma}{\receq{v}{x.p.X}{t}}{\subst{\subst{X}{x}{w_2}}{p}{v}}}
 
 \end{mathpar}
 
@@ -1705,14 +1883,13 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   \Infer{$\subt$Eq}
         {
           \judgevsubt{\Gamma}{A}{B} \\
-          \judgeequiv{\Gamma}{v_1}{v_2}{A} \\
-          \judgeequiv{\Gamma}{w_1}{w_2}{A} \\
+          \judgeequivuntg{\vars{\Gamma}}{v_1}{v_2} \\
+          \judgeequivuntg{\vars{\Gamma}}{w_1}{w_2} \\
         }
         {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
       
   \Infer{$\forall \subt$}
         {
-          X \text{ is }  x\text{-neutral}\\
           \judge{\Gamma}{v}{A}\\
           \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}
         }
@@ -1726,7 +1903,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{let$\subt$}
         {
-          \judgeequiv{\Gamma}{e}{\return{v}}{A}\\
+          \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
           \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
         }
         { \judgecsubt{\Gamma}{(\letval{x:A}{e}{X})}{Y}}
@@ -1734,7 +1911,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
         
   \Infer{$\subt$let}
         {
-          \judgeequiv{\Gamma}{e}{\return{v}}{A}\\
+          \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
           \judgecsubt{\Gamma}{X}{\subst{Y}{y}{v}}\\
         }
         { \judgecsubt{\Gamma}{X}{(\letval{y:A}{e}{Y})}}
@@ -1743,7 +1920,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
         {
           \judgevsubt{\Gamma}{A}{B}\\
           \judgevsubt{\Gamma}{B}{A}\\
-          \judgeequiv{\Gamma}{e_1}{e_2}{A}\\
+          \judgeequivuntg{\vars{\Gamma}}{e_1}{e_2}\\
           \judgecsubt{\Gamma, x:A}{X}{Y}\\
          }
         {
@@ -1760,93 +1937,90 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{$\subt \Sigma$}
         {
-          \judgeavsubt{\varphi}{A_1}{B_1}{\varphi'}\\
-          \judgeavsubt{\varphi', x:A_1}{A_2}{B_2}{\varphi''}\\
+          \judgeavsubt{\Gamma; E; \varphi}{A_1}{B_1}{\varphi'}\\
+          \judgeavsubt{\Gamma, x:A_1; E; \varphi'}{A_2}{B_2}{\varphi''}\\
         }
-        {\judgeavsubt{\varphi}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}{\varphi''}}
+        {\judgeavsubt{\Gamma; E; \varphi}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}{\varphi''}}
 
   \Infer{$\subt \Pi$}
         {
-          \judgeavsubt{\varphi}{A_2}{A_1}{\varphi'}\\
-          \judgeacsubt{\varphi', x:A_2}{\ctxtapp{\varphi'}{X_1}}{X_2}{\varphi''}\\
+          \judgeavsubt{\Gamma; E; \varphi}{A_2}{A_1}{\varphi'}\\
+          \judgeacsubt{\Gamma, x:A_2; E; \varphi'}{X_1}{X_2}{\varphi''}\\
         }
-        {\judgeacsubt{\varphi}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}{\varphi''}}
+        {\judgeacsubt{\Gamma; E; \varphi}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}{\varphi''}}
 
   \Infer{$\subt \ctov$}
         {
-          \judgeacsubt{\varphi}{X_2}{X_1}{\varphi'} \\
-          \judgeacsubt{\varphi'}{X_1}{\ctxtapp{\varphi'}{X_2}}{\varphi''} \\
+          \judgeacsubt{\Gamma; E; \varphi}{X_2}{X_1}{\varphi'} \\
+          \judgeacsubt{\Gamma; E; \varphi'}{X_1}{\ctxtapp{\varphi'}{X_2}}{\varphi''} \\
         }
-        {\judgeavsubt{\varphi}{\comptoval{X_1}}{\comptoval{X_2}}{\varphi''}}
+        {\judgeavsubt{\Gamma; E; \varphi}{\comptoval{X_1}}{\comptoval{X_2}}{\varphi''}}
 
   \Infer{$\subt \vtoc$}
         {
-          \judgeavsubt{\varphi}{A_2}{A_1}{\varphi'} \\
-          \judgeavsubt{\varphi'}{\ctxtapp{\varphi'}{A_1}}{A_2}{\varphi''} \\
+          \judgeavsubt{\Gamma; E; \varphi}{A_2}{A_1}{\varphi'} \\
+          \judgeavsubt{\Gamma; E; \varphi'}{\ctxtapp{\varphi'}{A_1}}{A_2}{\varphi''} \\
         }
-        {\judgeacsubt{\varphi}{\valtocomp{A_1}}{\valtocomp{A_2}}{\varphi''}}
+        {\judgeacsubt{\Gamma; E; \varphi}{\valtocomp{A_1}}{\valtocomp{A_2}}{\varphi''}}
   
   \Infer{$\subt$Eq}
         {
-          \judgeavsubt{\varphi}{A}{B}{\varphi'} \\
-          \judgeunify{\varphi'}{v_1}{\ctxtapp{\varphi'}{v_2}}{\varphi''} \\
-          \judgeunify{\varphi''}{w_1}{\ctxtapp{\varphi''}{w_2}}{\varphi'''} \\
+          \judgeavsubt{\Gamma; E; \varphi}{A}{B}{\varphi'} \\
+          \judgeunify{\vars{\Gamma}; E; \varphi'}{v_2}{v_1}{\varphi''} \\
+          \judgeunify{\vars{\Gamma}; E; \varphi''}{w_2}{w_1}{\varphi'''} \\
         }
         {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
 
    \Infer{$\forall \subt$}
          {
-           \judgeacsubt{\varphi,\hat{v}}
-                       {\subst{X}{x}{\hat{v}}}
+           \judgeacsubt{\Gamma; E, (\mapentry{\hat{v}}{\vars{\Gamma}}); \varphi}
+                       {\rename{X}{x}{\hat{v}}}
                        {Y}
                        {\varphi'}
          }
-         {\judgeacsubt{\varphi}{(\foralltype{x:A}{X})}{Y}{\varphi'}}
+         {\judgeacsubt{\Gamma; E; \varphi}{(\foralltype{x:A}{X})}{Y}{\varphi'}}
 
    \Infer{$\subt \forall$}
          {
-           \judgeacsubt{\varphi, y : A}{X}{Y}{\varphi'}\\
+           \judgeacsubt{\Gamma, y : A; E; \varphi}{X}{Y}{\varphi'}\\
          }
-         {\judgeacsubt{\varphi}{X}{(\foralltype{y:A}{Y})}{\varphi'}}
+         {\judgeacsubt{\Gamma; E; \varphi}{X}{(\foralltype{y:A}{Y})}{\varphi'}}
 
    \Infer{let$\subt$}
          {
-           e \text{ and } A \text{ are ground}\\
-           \judgeunify{\varphi, \hat{v}}
-                       {e}
-                       {\return{\hat{v}}}
-                       {\varphi', \evarassign{\hat{v}}{v}}\\
-           \judgeacsubt{\varphi'}
-                       {\subst{\ctxtapp{\varphi'}{X}}{x}{v}}{Y}{\varphi', \evarassign{\hat{v}}{v}}\\
+           {\color{blue} e \text{ and } A \text{ are ground}}\\
+           \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+           \judgeacsubt{\Gamma; E; \varphi}
+                       {\subst{X}{x}{v}}{Y}{\varphi'}\\
          }
-         { \judgeacsubt{\varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi''}}
+         { \judgeacsubt{\Gamma; E; \varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi'}}
 
    \Infer{$\subt$let}
          {
-           \judgeunify{\varphi, \hat{v}}
-                       {e}
-                       {\return{\hat{v}}}
-                       {\varphi', \evarassign{\hat{v}}{v}}\\
-           \judgeacsubt{\varphi'}
-                       {\ctxtapp{\varphi'}{X}}
+           \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+           \judgeacsubt{\Gamma; E; \varphi}
+                       {X}
                        {\subst{Y}{y}{v}}
-                       {\varphi''}\\
+                       {\varphi'}\\
          }
-         { \judgeacsubt{\varphi}{X}{(\letval{y:A}{e}{Y})}{\varphi''} }
+         { \judgeacsubt{\Gamma; E; \varphi}{X}{(\letval{y:A}{e}{Y})}{\varphi'} }
 
    \Infer{let$\subt$let}
          {
-           \judgeavsubt{\varphi}{B}{A}{\varphi_1}\\
-           \judgeavsubt{\varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
-           \judgeunify{\varphi_2}{\ctxtapp{\varphi_1}{e_2}}{e_1}{\varphi_3}\\
-           \judgeacsubt{\varphi_3, x:{\ctxtapp{\varphi_1}{A}}}{\ctxtapp{\varphi_3}{X}}{Y}{\varphi_4}\\
+           \judgeavsubt{\Gamma; E; \varphi}{B}{A}{\varphi_1}\\
+           \judgeavsubt{\Gamma; E; \varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
+           \judgeunify{\vars{\Gamma};  E; \varphi_2}{e_1}{e_2}{\varphi_3}\\
+           \judgeacsubt{\Gamma, x:{\color{blue} \ctxtapp{\varphi_1}{A}}; E; \varphi_3}{X}{Y}{\varphi_4}\\
          }
          {
-           \judgeacsubt{\varphi}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}{\varphi_4}
+           \judgeacsubt{\Gamma; E; \varphi}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}{\varphi_4}
          }
 
 \end{mathpar}
 
+\ilyam{I removed the context application everywhere except where it is needed to
+preserve the ground invariance. The necessary assignments are kept in the unification
+context.}
 
 \ilyam{In (let$\subt$), type $A$ can have unresolved variables, hence, the first
   unification in the premises can instantiate them, and thus, must be
