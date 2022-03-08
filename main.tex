@@ -1690,7 +1690,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{Let-type}
         { \judgectype{\Gamma, x:A}{X} \\
-          \judgecCheck{\Gamma}{e}{A} }
+          \judgecCheck{\Gamma}{e}{\valtocomp{A}}}
         { \judgectype{\Gamma}{(\letval{x:A}{e}{X})} }
   \and
 
