@@ -43,7 +43,6 @@
 \newcommand{\bnfalt}{\;\;|\;\;}
 
 
-
 % Now we give some commands to define the syntax of the language. 
 
 \newcommand{\fun}[2]{\lambda {#1}.\,{#2}}
@@ -1050,8 +1049,7 @@ for a single substitution, can be lifted up to the context application.
         \and
         \Infer{U-Keep}
         { 
-          \evarassign{\hat{v}}{\tau} \in \varphi \\
-          \ilyam{up-to-alpha-equivalence!}
+          \evarassign{\hat{v}}{\tau} \in \varphi
         }
         {
           \judgeunify{\Gamma; E;\varphi}{\hat{v}}{\tau}{\varphi}
@@ -1988,7 +1986,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
    \Infer{let$\subt$}
          {
-           {\color{blue} e \text{ and } A \text{ are ground}}\\
+           % {\color{blue} e \text{ and } A \text{ are ground}}\\
            \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
            \judgeacsubt{\Gamma; E; \varphi}
                        {\subst{X}{x}{v}}{Y}{\varphi'}\\
@@ -2022,14 +2020,14 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 preserve the ground invariance. The necessary assignments are kept in the unification
 context.}
 
-\ilyam{In (let$\subt$), type $A$ can have unresolved variables, hence, the first
-  unification in the premises can instantiate them, and thus, must be
-  algorithmic.}
+% \ilyam{In (let$\subt$), type $A$ can have unresolved variables, hence, the first
+%   unification in the premises can instantiate them, and thus, must be
+%   algorithmic.}
 
-\ilyam{In (let$\subt$), we require $e$ to be ground, which makes the algorithmic
-  system incomplete w.r.t. the declarative system.\\
-  E.g. $(\foralltype{x:1}{\letval{y:1}{\return{x}}{\valtocomp{\eqtype{\comptoval{\valtocomp{1}}}{\thunk{y}}{\thunk{y}}}}}) \leqslant \eqtype{\comptoval{\valtocomp{1}}}{\thunk{\return{()}}}{\thunk{\return{()}}}$
-  holds for the declarative system but not for the algorithmic.}
+% \ilyam{In (let$\subt$), we require $e$ to be ground, which makes the algorithmic
+%   system incomplete w.r.t. the declarative system.\\
+%   E.g. $(\foralltype{x:1}{\letval{y:1}{\return{x}}{\valtocomp{\eqtype{\comptoval{\valtocomp{1}}}{\thunk{y}}{\thunk{y}}}}}) \leqslant \eqtype{\comptoval{\valtocomp{1}}}{\thunk{\return{()}}}{\thunk{\return{()}}}$
+%   holds for the declarative system but not for the algorithmic.}
 
 \subsection{Natural Numbers and Undecidability}
 
