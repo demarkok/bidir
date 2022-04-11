@@ -59,6 +59,7 @@
 \newcommand{\snd}[1]{\mathsf{snd}\,{#1}}
 
 \newcommand{\unit}{\langle\rangle}
+\newcommand{\unittype}{\mathsf{1}}
 
 \newcommand{\ctov}{\mathcal{U}}
 \newcommand{\vtoc}{\mathcal{F}}
@@ -105,6 +106,8 @@
 
 \newcommand{\reduces}[2]{{#1} \rightarrow {#2}}
 \newcommand{\contracts}[2]{{#1} \rightharpoonup {#2}}
+\newcommand{\bigstepsto}[2]{{#1} \Downarrow {#2}}
+\newcommand{\nf}[1]{\Downarrow \hspace{-2pt} {#1}}
 
 \newcommand{\nattype}{\mathbb{N}}
 \newcommand{\natzero}{\mathsf{0}}
@@ -158,7 +161,8 @@
 \newcommand{\judgeSnf}[1]{{#1}\,\mathsf{NF}}
 \newcommand{\judgeSatom}[1]{{#1}\,\mathsf{ATOM}}
 \newcommand{\judgeSinert}[1]{{#1}\,\mathsf{INERT}}
-\newcommand{\judgeSok}[2]{{#1} \in {#2}\,\mathsf{OK}}
+\newcommand{\judgeSok}[2]{{#1} \in^{?} {#2}\,\mathsf{OK}}
+\newcommand{\judgeSOK}[2]{{#1} \in^{!} {#2}\,\mathsf{OK}}
 \newcommand{\judgeSokterm}[1]{{#1} \,\mathsf{OK}}
 
 \newcommand{\judgeinst}[2]{{#1} \vdash {#2}}
@@ -167,7 +171,12 @@
 
 
 \newcommand{\fv}[1]{\mathsf{FV}(#1)}
+\newcommand{\evok}[1]{\mathsf{EV}^{\mathsf{OK}}(#1)}
+\newcommand{\ev}[1]{\mathsf{EV}(#1)}
+\newcommand{\trace}[1]{\mathsf{tr}({#1})}
+\newcommand{\tracecont}[2]{\mathsf{tr}({#1}, {#2})}
 \newcommand{\codom}[1]{\mathsf{im}(#1)}
+\newcommand{\background}[2]{\mathsf{bg}({#1}, {#2})}
 
 \newcommand{\absclose}[2]{\vv{x}^{#1} #2}
 
@@ -209,7 +218,7 @@
     \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{x.X}{t} \bnfalt \receq{v}{x.y.X}{t}
     \\[1em]
 
-    \mbox{Values} & A, B, v, w & ::= & x \bnfalt \comptoval{X}
+    \mbox{Values} & A, B, v, w & ::= & x \bnfalt a \bnfalt \comptoval{X}
     \bnfalt \sigmatype{x:A}{B} \bnfalt \refl \bnfalt \eqtype{A}{v}{w} \bnfalt
     \thunk{t} \bnfalt \pair{v}{w} \\[1em]
 
@@ -225,6 +234,9 @@ The upper-case literals represent type-terms, and the lower-case
 represent term-terms (which can be typed with some type-terms)
 with one exception: in $\letval{x : A}{t}{u}$,
 $u$ can represent a type-term.
+
+We reserve $x$ and $y$ to denote term-level variables, and $a$ and $b$ to denote
+type-level variables.
 
 \section{Computational form of the terms}
 
@@ -278,7 +290,7 @@ Let us consider the term syntax from a different perspective:
     \begin{tabular}{L|LLLLLLLLLLLLLLLLL}
       F         & \lambda & (,)   & \refl & \return{} & \thunk{} & @     & \recsigmaname & \receqname & \letname & \dletname & \force{} & \comptoval & \Pi   & \forall & \valtocomp{} & \Sigma & x  \\
       \hline
-      \arity{F} & [1, 0]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,1,0]         & [0,2,0]       & [1,0,0]  & [1,0,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [0,1]  & [] \\
+      \arity{F} & [0, 1]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,1,0]         & [0,2,0]       & [0,1,0]  & [0,1,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [0,1]  & [] \\
       \narg{F}  & 2       & 2     & 0     & 1         & 1        & 2     & 3               & 3             & 3        & 3         & 1        & 1          & 2     & 2       & 1            & 2      & 0 
     \end{tabular}
   \end{table}
@@ -478,9 +490,20 @@ the opposite is only true for the well-typed terms:
   \end{mathpar}
 \end{proposition}
 
-Hereafter, we assume all the terms are well typed.
-\ilyam{Well-typedness is required for the unification and equivalence to be
-  well-founded (otherwise induction is not possible). TODO: normalization (halting)!}
+\begin{definition}[Reduction to the Normal Form]
+  \begin{mathpar}
+    \Infer{}{\reduces{\tau}{\tau'} \\ \judgeSnf{\tau'}}{\bigstepsto{\tau}{\tau'}}
+  \end{mathpar}
+\end{definition}
+
+\begin{proposition}[Reduction-Substitution distributivity]
+  \label{prop:red-subst-distr}
+  $$\nf{(\subst{\sigma}{x}{\nf{v}})} = \nf{(\subst{\sigma}{x}{v})}$$
+\end{proposition}
+
+% Hereafter, we assume all the terms are well typed.
+% \ilyam{Well-typedness is required for the unification and equivalence to be
+%   well-founded (otherwise induction is not possible). TODO: normalization (halting)!}
 
 % \begin{definition}[Syntactic normal form]
 %   We say that the term $\tau$ is in the syntactic
@@ -524,8 +547,70 @@ Hereafter, we assume all the terms are well typed.
 
 \section{Safe Occurrence}
 
-Another important property that we express in this syntax is \emph{safe
-  occurrence of the variable}. The judgement $\judgeSok{x}{\tau}$ means $x$
+\ilyam{Hmm.. Discussing the type system before actually introducing it...}
+
+In this section, we describe the basis of the restriction that we put on the type system to
+make the type checking and type inference decidable. First, let us motivate why we need to
+restrict the type system.
+
+\subsection{The necessity of the restrictions}
+
+We motivate the restrictions that we put on the type system by considering two
+well-known undecidable problems: the Inhabitation problem and Hilbert's tenth
+problem. We will show that both of them can be reduced to the typing problems in
+the unrestricted system.
+
+\paragraph{The Inhabitation}
+
+Let us consider the term $\unit$ checked against type $\foralltype{x : \tau}{\unittype}$.
+It is easy to see that the checking succeed if and only if $\tau$ is inhabited.
+Thus, to ensure the decidability of the type checking, we require $x$, bound by 
+some $\forall$, to occur within the body of that $\forall$. In other words, 
+only do we allow $\foralltype{x:\sigma}{\tau}$ to be formed, if
+$x \in \fv{\tau}$.
+
+% We want the typing to be preserved under reduction.
+% It means that we must ensure that so are the restrictions we put on terms/types.
+% The property ``$x \in \fv{\tau}$'' is clearly fails to be the invariant, since reduction
+% may reduce the set of free variables. 
+
+% Fortunately, ``$x \in \fv{\tau}$'' becomes an invariant as soon as we restrict
+% the positions where $x$ can occur in $\tau$. This positional restriction is
+% dictated by another undecidability that we want to avoid.
+
+\paragraph{Hilbert's Tenth Problem}
+
+As will be shown in
+\cref{sec:rules,sec:declarative-supbyping,sec:algorithmic-subtyping},
+the ``driver'' of the type inference algorithm is the subtyping algorithm, and
+the ``driver'' of the subtyping, is the unification. Let us show that in the
+unrestricted case, the unification is undecidable.
+
+The type system can be easily extended with natural numbers. To this purpose, we
+must add $\nattype$, $\natzero$, and $\natsucc{v}$ to the values, and
+$\recnat{v}{X}{base}{step}$ to the computations with obvious typing inference
+rules.
+We also add $\contracts{\recnat{\natzero}{X}{b}{s}}{b}$ and
+$\contracts{\recnat{\natsucc{v}}{X}{b}{s}}{s \, v \, \recnat{v}{X}{b}{s}}$ to the contraction rules.
+
+Then the unification that we will not provide is, for example, the following:
+$\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}} \equiv \natzero$, where
+$\hat{v}$ is the unification variable that we must initialize.
+Although $\evarassign{\hat{v}}{\natzero}$ solves this unification,
+we rule out such cases from our unification algorithm.
+This is because having the unification variable on the reducible position
+means being able to ``invert'' the recursion, which is too powerful to be decidable.
+
+Specifically, after we defined integers,
+arithmetic operations, we can define any arbitrary polynomial 
+$P(\hat{x}_1, \dots, \hat{x}_n)$.
+The unification of this polynomial with $\natzero$
+corresponds to solving a diophantine equation, which is undecidable.
+
+\subsection{The Restriction on Quantifiers}
+
+To deal with both aforementioned undecidabilities, we introduce a syntactic 
+judgement ``\emph{safe occurrence of the variable}''. The judgement $\judgeSok{x}{\tau}$ means $x$
 occurs safely in $\tau$.
 
 Ideally, we would like to forbid the situations when \emph{in some normal form}
@@ -534,7 +619,7 @@ would like to ensure that
 \emph{all normal forms} of $\tau$ do not contain $E \, x \, \tau_2 \dots
 \tau_{\narg{E}}$ as a subterm.
 
-However, this property is undecidable by Rice's theorem: notice that
+However, this property is undecidable by Rice's theorem. Notice that
 \begin{enumerate*}
 
 \item[(i)] we do not require terms to have types at this stage, thus, the
@@ -545,11 +630,14 @@ However, this property is undecidable by Rice's theorem: notice that
 \item[(iii)] the property judges about the normal forms and thus, is invariant
   under ``algorithmic equivalence''.
 \end{enumerate*}
+
 As it is undecidable, it is impossible to express this judgement using
 well-founded inference rules (i.e. unambiguously generating finite trees).
-
 Since precise syntactic representation of this property is impossible, we
-under-approximate this property in the following way:
+under-approximate this property via $\judgeSok{x}{\tau}$ judgement:
+
+
+\begin{definition}[Safe Occurrence]
 
 \ilyam{TODO: add safe occurrence in abstractors}
 
@@ -571,13 +659,16 @@ under-approximate this property in the following way:
    \\ \ilyam{(implicit $\alpha$-rename!)}
   }
 \end{mathpar}
+\end{definition}
+
 In the last rule, ``$\tau_1 \neq x$'' means literal syntactic inequality.
 Intuitively, ``$\judgeSinert{\tau}$'' means that $\tau$ preserves its
 top-level structure under the reduction, i.e. the reduction always happens in
-the subterms of $\tau$ but never on the top-level. In fact, the relation we
+the subterms of $\tau$ but never on the top level. In fact, the relation we
 define is a little bit stronger, as it also forbids changing of the structure 
 of the eliminator's first argument. Formally, it is defined as follows:
 
+\begin{definition}[Inert Terms]
 \begin{mathpar}
   \Infer{}{ }{\judgeSinert{\fullterm{N}{\vv{x}\tau}}}
   \and
@@ -589,12 +680,16 @@ of the eliminator's first argument. Formally, it is defined as follows:
   {\judgeSinert{\fullterm{E'}{\vv{x}\sigma}}}
   {\judgeSinert{E\,(\fullterm{E'}{\vv{x}\sigma})\,\vv{x}\tau_2 \dots \vv{x}\tau_{\narg{E}}}}
 \end{mathpar}
+\end{definition}
 
 As a heuristics, it is possible to extend the ``Safe Occurrence'' property by
-injecting some of the redex contractions from \cref{def:redex-contr} into the
-inference system. Notice that only non-substituting contractions are allowed
-because the latter would violate the finiteness of the inference trees.
+embedding \emph{some} of the redex contractions from \cref{def:redex-contr} into the
+inference system. Notice that only non-substituting contractions are allowed.
+This is because otherwise, we embed the full evaluation into the inference
+system, which makes it non-well-founded (and undecidable).
 
+\begin{definition}[Safe Occurrence Extension]
+\label{def:safe-occurrence-extension}
 \begin{mathpar}
   \Infer{}
   {\judgeSok{x}{\tau}}
@@ -617,7 +712,39 @@ because the latter would violate the finiteness of the inference trees.
   {\judgeSok{x}{
       \receq{\refl}{\sigma}{\tau}}
   }
+  \and
+  \ilyam{The blue rules are experimental!}
+  \and
+  {\color{blue}
+  \Infer{}
+  { x \notin \tau \\
+    x \notin \nu \\
+    \judgeSok{x}{\sigma} \\
+  }
+  { \judgeSok{x}{(\fun{y:\nu}{\sigma})\tau} }
+
+  \and
+
+  \Infer{}
+  { x \notin \sigma \\
+    x \notin \nu \\
+    \judgeSok{x}{\tau} \\
+  }
+  { \judgeSok{x}{\letval{y:\nu}{\return{\sigma}}{\tau}} }
+
+  }
+  \and
+  {
+  \color{blue}
+  \Infer{}
+  { x \notin \sigma \\
+    x \notin \nu \\
+    \judgeSok{x}{\tau} \\
+  }
+  { \judgeSok{x}{\dletval{y:\nu}{\return{\sigma}}{\tau}} }
+  }
 \end{mathpar}
+\end{definition}
 
 % \begin{lemma}[Correctness of the definition]
 %   Safe occurrence is defined up to alpha-equivalence. 
@@ -716,8 +843,31 @@ because the latter would violate the finiteness of the inference trees.
   \end{itemize}
 \end{proof}
 
+\begin{corollary}[Normalization-Substitution Commutativity]
+  \label{corollary:nf-subst-commute}
+  \begin{mathpar}
+    \Infer{}
+    {
+      \judgeSok{x}{\sigma}\\
+      \judgeSnf{\tau}\\
+    }
+    { \nf{(\subst{\sigma}{x}{\tau})} = \subst{(\nf{\sigma})}{x}{\tau} }
+    
+    \Infer{}
+    {
+      \judgeSok{x}{\sigma}\\
+    }
+    { \nf{(\subst{\sigma}{x}{\tau})} = \subst{(\nf{\sigma})}{x}{\nf{\tau}} }
+  \end{mathpar}
+\end{corollary}
+\begin{proof}
+  By replicating \cref{lemma:red-subst-commute}. 
+  If $\tau$ is not in the normal form, \cref{prop:red-subst-distr} is applied.
+\end{proof}
 
-\begin{lemma}[Inertness preservation]
+
+
+\begin{lemma}[Reduction preserves inertness]
   \label{lemma:inertness-pres}
   \begin{mathpar}
     \Infer{}{\judgeSinert{\tau} \\ \reduces{\tau}{\tau'}}{\judgeSinert{\tau'}}
@@ -756,6 +906,73 @@ because the latter would violate the finiteness of the inference trees.
 
 \end{proof}
 
+Notice that \emph{no occurrence means safe occurrence}, that is
+$\judgeSok{x}{\tau}$ does not imply $x \in \fv{\tau}$. We use notation
+$\judgeSOK{x}{\tau}$ to denote $\judgeSok{x}{\tau}$ \emph{and} $x \in
+\fv{\tau}$.
+
+\begin{definition}[Strictly Safe Occurrence]
+  \begin{mathpar}
+    \Infer{}{\judgeSok{x}{\tau} \\ x \in \fv{\tau}}{\judgeSOK{x}{\tau}}
+  \end{mathpar}
+\end{definition}
+
+\begin{proposition}[Safe occurrence in a redex]
+  \label{prop:safe-occurrence-in-a-redex}
+  If $\tau$ is a top-level redex and $\judgeSOK{x}{\tau}$,
+  then the redex is non-substitutive, i.e. the judgement
+  $\judgeSok{x}{\tau}$  was constructed by one of the rules from 
+  $\cref{def:safe-occurrence-extension}$
+\end{proposition}
+
+
+\begin{lemma}[Reduction preserves strictly safe occurrence]
+  \label{lemma:striclty-safe-occur-pres}
+  \begin{mathpar}
+    \Infer{}{\judgeSOK{x}{\tau} \\ \reduces{\tau}{\tau'}}{\judgeSOK{x}{\tau'}}
+  \end{mathpar}
+\end{lemma}
+\begin{proof}
+  Induction on $\reduces{\tau}{\tau'}$.
+  Since the redex contraction is special case of reduction, by \cref{lemma:safe-occur-pres}, it preserves 
+  the non-strict safe occurrence. Let us show that the actual occurrence $x \in \fv{\tau}$ is preserved as well.
+
+  $x$ can only disappear after the contraction of the redex $r \subseteq \tau$ if $x$ occurred
+  inside this redex (i.e. $x \in \fv{r}$). By the trivial implication of
+  \cref{lemma:cong-safe-occurrence}, since $r \subseteq \tau$ and $\judgeSok{x}{\tau}$,
+  $\judgeSok{x}{r}$. Then by \cref{prop:safe-occurrence-in-a-redex}, $r$ can
+  only be non-substitutive. However, non-substitutive redexes preserve the variables,
+  hence, $x$ could not have disappeared.
+  
+\end{proof}
+
+\begin{multicols}{2}
+
+\begin{definition}[Safe Existential Variable Set]
+  $$\evok{\rho} = \{\hat{x} \mid \judgeSOK{\hat{x}}{\rho}\}$$
+\end{definition}
+
+\begin{corollary}[Reduction preserves the Safe Existential Variable Set]
+  \label{corollary:evok-pres}
+  \begin{mathpar}
+    \Infer{}{\reduces{\tau}{\tau'}}{\evok{\tau} = \evok{\tau'}} \and
+    \Infer{}{\bigstepsto{\tau}{\tau'}}{\evok{\tau} = \evok{\tau'}}
+  \end{mathpar}
+\end{corollary}
+
+  \begin{definition}[Existential Variable Set]
+    $$\ev{\rho} = \{\hat{x} \mid \hat{x} \in {\fv{\rho}}\}$$
+  \end{definition}
+
+  \begin{proposition}[Existential Variable Set is monotonous w.r.t. Reduction]
+    \label{prop:ev-monotonous}
+    \begin{mathpar}
+      \Infer{}{\reduces{\tau}{\tau'}}{\ev{\tau} \supseteq \ev{\tau'}} \and
+      \Infer{}{\bigstepsto{\tau}{\tau'}}{\ev{\tau} \supseteq \ev{\tau'}}
+    \end{mathpar}
+  \end{proposition}
+\end{multicols}
+
 \section{Equivalence and Unification}
 
 \begin{definition}[Syntax of algorithmic terms]
@@ -787,7 +1004,6 @@ $\tau$.
   \end{mathpar}
 \end{definition}
 
-
 \begin{definition}[Binding Context]
   \begin{mathpar}
     \Gamma ::= \emptyctx \bnfalt \Gamma, ~ x
@@ -795,8 +1011,13 @@ $\tau$.
 \end{definition}
 
 
+We define equivalence on terms. Notice that the terms are not necessarily ground.
+The unification variables are treated as normal ones.
+However, since unification variables cannot be abstrated over,
+the binding context $\Gamma$ consists of normal variables only.
+
 \begin{definition}[Equivalence]
-  We define equivalence on ground terms:
+  \hfill
 
   \begin{itemize}
 
@@ -804,21 +1025,21 @@ $\tau$.
     \begin{mathpar}
       \Infer{Red-L}
       {
-        \reduces{\tau_1}{\tau_1'}\\
-        \judgeequivuntg{\Gamma}{\tau_1'}{\tau_2}
+        \reduces{\rho_1}{\rho_1'}\\
+        \judgeequivuntg{\Gamma}{\rho_1'}{\rho_2}
       }
       {
-        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2}
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2}
       }
       \and
       \Infer{}
       {
-        \reduces{\tau_2}{\tau_2'}\\
-        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2'}\\
-        \judgeSnf{\tau_1}
+        \reduces{\rho_2}{\rho_2'}\\
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2'}\\
+        \judgeSnf{\rho_1}
       }
       {
-        \judgeequivuntg{\Gamma}{\tau_1}{\tau_2}
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2}
       }
     \end{mathpar}
 
@@ -837,42 +1058,54 @@ $\tau$.
         \judgeequivuntg{\Gamma}{\fullterm{F}{P}}{\fullterm{F}{Q}}
       }
       \and
-      % \Infer{}
-      % {
-      %   z \text{ is fresh}\\
-      %   \judgeequivunt
-      %   {\rename{\absclose{n}{\sigma}}{x}{z}}
-      %   {\rename{\absclose{n}{\tau}}{y}{z}}
-      % }
-      % {
-      %   \judgeequivunt{x.\absclose{n}{\sigma}}{y.\absclose{n}{\tau}}
-      % }
-      % \and
 
       \Infer{}
       {
         \judgeequivuntg{\Gamma, x}
-      {\absclose{n}{\sigma}}
-      {\absclose{n}{\tau}}
+      {\absclose{n}{\pi}}
+      {\absclose{n}{\rho}}
       }
         {
-          \judgeequivuntg{\Gamma}{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}
+          \judgeequivuntg{\Gamma}{x.\absclose{n}{\pi}}{x.\absclose{n}{\rho}}
       }
         \and
 
 
       \Infer{}
       {
-        \judgeequivuntg{\Gamma}{\sigma}{\tau}
+        \judgeequivuntg{\Gamma}{\sigma}{\rho}
       }
       {
-        \judgeequivuntg{\Gamma}{.\sigma}{.\tau}
+        \judgeequivuntg{\Gamma}{.\sigma}{.\rho}
       }
     \end{mathpar}
 
   \end{itemize}
 
 \end{definition}
+
+\begin{lemma}[Equivalent terms have equal normal forms]
+  \label{lemma:equiv-nf}
+  \begin{mathpar}
+    \Infer{}
+    {\judgeequivuntg{\Gamma}{\pi}{\rho}}
+    {\nf{\pi} = \nf{\rho}}
+  \end{mathpar}
+\end{lemma}
+
+\begin{lemma}[Equivalent terms have equal safe existential variable sets]
+  \label{lemma:equiv-evok}
+  \begin{mathpar}
+    \Infer{}
+    {\judgeequivuntg{\Gamma}{\pi}{\rho}}
+    {\evok{\pi} = \evok{\rho}}
+  \end{mathpar}
+\end{lemma}
+\begin{proof}
+  Trivial induction using \cref{corollary:evok-pres}.
+\end{proof}
+
+
 
 \begin{definition}[Free Variable Environment] Free variable environment $E$ is a
   (partial) \emph{mapping} from unification variables to sets of regular
@@ -1569,7 +1802,7 @@ safely in $X$.
         \and
  \Infer{CtxIT}
        { \judgectx{ }{\Gamma} }
-       { \judgectx{ }{\Gamma,\isvtype{x}}}
+       { \judgectx{ }{\Gamma,\isvtype{a}}}
 
        \and
  \Infer{CtxI}
@@ -1579,7 +1812,7 @@ safely in $X$.
 \end{mathpar}
 
 \subsection{Context Formation and Var}
-Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
+Here, $j$ denotes the context entry: either $(x : A)$, $(\hat{x} : A)$ or $(\isvtype{x})$.
 
 \begin{mathpar}
 
@@ -1590,7 +1823,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
 \Infer{CtxExtT}
       { \judgeInctx{j}{\Gamma} }
-      { \judgeInctx{j}{(\Gamma, \isvtype{B})} }
+      { \judgeInctx{j}{(\Gamma, \isvtype{a})} }
 \and
 
 \Infer{CtxInit}
@@ -1604,8 +1837,8 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 \and
 
 \Infer{VarT}
-      { \judgeInctx{\isvtype{x}}{\Gamma} }
-      { \judgevtype{\Gamma}{x} }
+      { \judgeInctx{\isvtype{a}}{\Gamma} }
+      { \judgevtype{\Gamma}{a} }
 \and
 
 \end{mathpar}
@@ -1614,17 +1847,17 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 \begin{mathpar}
   
   \Infer{$\csubt$}
-        { \judgecInfer{\Gamma}{t}{Y} \\
+        { \judgecInfer{\Gamma}{t}{X} \\
           \judgecsubt{\Gamma}{X}{Y} \\
           }
-        { \judgecCheck{\Gamma}{t}{X} }
+        { \judgecCheck{\Gamma}{t}{Y} }
   \and
 
   \Infer{$\vsubt$}
-        { \judgevInfer{\Gamma}{v}{B} \\
+        { \judgevInfer{\Gamma}{v}{A} \\
           \judgevsubt{\Gamma}{A}{B} \\
         }
-        { \judgevCheck{\Gamma}{v}{A} }
+        { \judgevCheck{\Gamma}{v}{B} }
 \end{mathpar}
 
 % \subsection{Subsumption}
@@ -1666,8 +1899,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   \Infer{$\forall$}
         { \judgevtype{\Gamma}     {A} \\
           \judgectype{\Gamma, x:A}{X} \\
-          x \in \fv{X} \\
-          \judgeSok{x}{X}
+          \judgeSOK{x}{X}
         }
         { \judgectype{\Gamma}{\foralltype{x:A}{X}} }
         \and
@@ -1687,7 +1919,8 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   \and
 
   \Infer{Let-type}
-        { \judgectype{\Gamma, x:A}{X} \\
+  { \color{red} \judgevtype{\Gamma}{A} \\
+           \judgectype{\Gamma, x:A}{X} \\
           \judgecCheck{\Gamma}{e}{\valtocomp{A}}}
         { \judgectype{\Gamma}{(\letval{x:A}{e}{X})} }
   \and
@@ -1736,30 +1969,38 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{Let$\infers$}
         {
+          \judgevtype{\Gamma}{A} \\ 
           \judgecInfer{\Gamma, x : A}{u}{X} \\
           \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\
           \judgectype{\Gamma}{X} \\ 
-          \judgevtype{\Gamma}{A} \\ 
         }
         { \judgecInfer{\Gamma}{\letval{x : A}{t}{u}}{X} }
   \and
+
   \Infer{Let$\checks$}
-        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+       {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
           \judgectype{\Gamma}{X} \\ 
-          \judgecCheck{\Gamma, x : A}{u}{X}}
-        { \judgecCheck{\Gamma}{\letval{x : A}{t}{u}}{X} }
+          \judgecCheck{\Gamma, x : A}{u}{X}
+       }
+       { \judgecCheck{\Gamma}{\letval{x : A}{t}{u}}{X} }
   \and
 
   \Infer{DLet$\infers$}
         {
+          \judgevtype{\Gamma}{A} \\ 
           \judgecInfer{\Gamma, x:A}{u}{X} \\
           \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\
           \judgectype{\Gamma, x:A}{X} \\ 
         }
         { \judgecInfer{\Gamma}{\dletval{x:A}{t}{u}}{(\letval{x:A}{t}{X})} }
   \and
+
   \Infer{DLet$\checks$}
-        { \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
+        {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgecCheck{\Gamma}{t}{\valtocomp{A}} \\ 
           \judgectype{\Gamma, x:A}{X} \\ 
           \judgecCheck{\Gamma, x:A}{u}{X}}
         { \judgecCheck{\Gamma}{\dletval{x:A}{t}{u}}{(\letval{x:A}{t}{X})} }
@@ -1778,19 +2019,26 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
   %% \and
 
   \Infer{$\forall$I$\checks$}
-        { \judgectype{\Gamma, x:A}{X} \\
+        {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgectype{\Gamma, x:A}{X} \\
           \judgecCheck{\Gamma, x:A}{t}{X} }
         { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\foralltype{x:A}{X}} }
   \and
 
   \Infer{$\Pi$I$\checks$}
-        { \judgectype{\Gamma, x:A}{X} \\
+        {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgectype{\Gamma, x:A}{X} \\
           \judgecCheck{\Gamma, x:A}{t}{X} }
         { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
   \and
 
   \Infer{$\Pi$E}
-        { \judgecInfer{\Gamma}{t}{\pitype{x:A}{X}} \\
+        {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgectype{\Gamma, x:A}{X} \\
+          \judgecInfer{\Gamma}{t}{\pitype{x:A}{X}} \\
           \judgevCheck{\Gamma}{v}{A} }
         { \judgecInfer{\Gamma}{t\,v}{\subst{X}{x}{v}} }
   \and
@@ -1842,13 +2090,15 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
 
 
-
-
-
-
 \section{Declarative Subtyping}
+\label{sec:declarative-supbyping}
+
+\ilyam{Value subtyping is symmetric!!!}
 
 \begin{mathpar}
+  \Infer{$\subt$Var}
+  {\color{red}\isvtype{a} \in \Gamma}
+  {\judgevsubt{\Gamma}{a}{a}}
 
   \Infer{$\subt \Sigma$}
         {
@@ -1888,7 +2138,7 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
       
   \Infer{$\forall \subt$}
         {
-          \judge{\Gamma}{v}{A}\\
+          \judgevCheck{\Gamma}{v}{A}\\
           \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}
         }
         {\judgecsubt{\Gamma}{(\foralltype{x:A}{X})}{Y}}
@@ -1901,15 +2151,14 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
   \Infer{let$\subt$}
         {
-          \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+          \bigstepsto{e}{\return{v}}\\
           \judgecsubt{\Gamma}{\subst{X}{x}{v}}{Y}\\
         }
         { \judgecsubt{\Gamma}{(\letval{x:A}{e}{X})}{Y}}
-
         
   \Infer{$\subt$let}
         {
-          \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+          \bigstepsto{e}{\return{v}}\\
           \judgecsubt{\Gamma}{X}{\subst{Y}{y}{v}}\\
         }
         { \judgecsubt{\Gamma}{X}{(\letval{y:A}{e}{Y})}}
@@ -1924,18 +2173,278 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
         {
           \judgecsubt{\Gamma}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}
         }
-
-
 \end{mathpar}
 
+\section{The Safe Variable Invariant}
+
+In \cref{sec:algorithmic-subtyping}, we will prove the exhaustiveness of the
+algorithmic subtyping. For this purpose, we need to provide a certain
+invariant of how the existential variables are distributed in the  well-formed types.
+
+
+
+\begin{definition}[The Trace of the Term]
+    Suppose $\rho$ is a term. 
+    Let us define $\trace{\rho}$ as
+    $$ \trace{\rho} = \ev{\nf{\rho}} $$
+\end{definition}
+
+
+\begin{definition}[The Contextual Background of the Term]
+  Suppose $\Gamma$ is a context, $\rho$ is a term. 
+  Let us define $\background{\Gamma}{\rho}$ as
+  the minimal set of ground variables, such that
+  \begin{enumerate}
+  \item $\fv{\nf{\rho}} \setminus \ev{\nf{\rho}} \subseteq \background{\Gamma}{\rho}$
+  \item if $x \in \background{\Gamma}{\rho}$ and $(x : \pi) \in \Gamma$ then
+    $\fv{\nf{\pi}} \setminus \ev{\nf{\pi}} \subseteq \background{\Gamma}{\rho}$.
+  \end{enumerate}
+  Intuitively, we take an empty set,
+  add all the non-existential variables of $\rho$ into it,
+  and recursively repeat this process for the types of the added variables.
+\end{definition}
+
+
+\begin{definition}[The Contextual Trace of the Term]
+  Suppose $\Gamma$ is a context, $\rho$ is a term. 
+  Let us define $\tracecont{\Gamma}{\rho}$ as
+
+  $$ \tracecont{\Gamma}{\rho} = \trace{\rho} \cup \bigcup_{(x :
+    \pi) \leftarrow \Gamma,\,  x \leftarrow \background{\Gamma}{\rho}} \trace{\pi} $$
+
+  \ilyam{the old definition:}
+  {\color{red}
+  $$ \tracecont{\Gamma}{\rho} = \trace{\rho} \cup \{\trace{\pi} \mid    (x :
+  \pi) \leftarrow \Gamma,\,  x \leftarrow \fv{\nf{\rho}} \setminus \ev{\nf{\rho}}\}$$
+  }
+\end{definition}
+
+\subsection{Trace Transferred from Types}
+
+\begin{definition}[Reticent Terms Syntax]
+  
+\begin{mathpar}
+  \begin{array}{llcl}
+    \mbox{Reticent  Values} & r_v & ::= & \hat{x} \bnfalt \thunk{r_c}  
+    \\[1em]
+    \mbox{Reticent Computations} & r_c & ::= & \return{r_v} \bnfalt
+                                               \letval{x:A}{t}{r_c} \bnfalt
+                                               \dletval{x:A}{t}{r_c}
+  \end{array}
+\end{mathpar}
+
+\end{definition}
+
+\begin{proposition}[Inferred Types of Reticent Terms]
+  \begin{mathpar}
+    \Infer {}
+    {\judgevInfer{\Gamma}{r_v}{A}}
+    {r_v = \hat{x} ~ \text{ or } ~ A = \comptoval{X}}
+
+    \Infer {}
+    {\judgecInfer{\Gamma}{r_c}{X}}
+    {X = \valtocomp{A} ~ \text{ or } ~ X = \letval{x:A}{t}{Y}}
+  \end{mathpar}
+\end{proposition}
+
+
+\begin{lemma}[Inferred Types Trace]
+
+  Intuitively, the non-reticent terms (contextually) expose the trace of the inferred types.
+  \begin{mathpar}
+    \Infer {}
+    {
+      \judgeSokterm{v}\\
+      \judgevInfer{\Gamma}{v}{A}
+    }
+    {\trace{A} \subseteq \tracecont{\Gamma}{v} \text{ or } v = r_v}
+
+    \Infer {}
+    {
+      \judgeSokterm{t}\\
+      \judgecInfer{\Gamma}{t}{X}
+    }
+    {\trace{X} \subseteq \tracecont{\Gamma}{t} \text{ or } t = r_c}
+  \end{mathpar}
+\end{lemma}
+\begin{proof}
+  Mutual induction.
+\end{proof}
+
+\subsection{Trace Transferred from Context}
+
+As the declarative type formation inference rules are intertwined with typing
+and subtyping, the inductive proof forces us to augment the proved invariant.
+Specifically, the invariant we are proving is spread across the following three
+lemmas. The proof should be read as \emph{one mutual induction}.
+
+
+
+\begin{lemma}[The Safe Variable Invariant for Type Formation]
+  \label{lemma:type-formation-invariant}
+  \begin{mathpar}
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgectype{\Gamma[\hat{x}:A]}{X} \\
+      \judgeSOK{\hat{x}}{X}
+    }
+    {{\tracecont{\Gamma}{A}} \subseteq \tracecont{\Gamma}{X}}
+
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgevtype{\Gamma[\hat{x}:A]}{B} \\
+      \judgeSOK{\hat{x}}{B}
+    }
+    {\tracecont{\Gamma}{A} \subseteq \tracecont{\Gamma}{B}}
+  \end{mathpar}
+\end{lemma}
+
+\begin{lemma}[The Safe Variable Invariant for Typing]
+  \label{lemma:typing-invariant}
+  \begin{mathpar}
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgeSokterm{v}\\
+      \judgevCheck{\Gamma[\hat{x}:A]}{v}{C} \\
+      \judgeSOK{\hat{x}}{v}
+    }
+    {\tracecont{\Gamma}{{A}} \subseteq \tracecont{\Gamma}{v} \cup \tracecont{\Gamma}{{C}}}
+
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgeSokterm{e}\\
+      \judgevCheck{\Gamma[\hat{x}:A]}{e}{Y} \\
+      \judgeSOK{\hat{x}}{e}
+    }
+    {\tracecont{\Gamma}{{A}} \subseteq \tracecont{\Gamma}{{e}} \cup \tracecont{\Gamma}{{Y}}}
+
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgeSokterm{v}\\
+      \judgevInfer{\Gamma[\hat{x}:A]}{v}{C} \\
+      \judgeSOK{\hat{x}}{v}
+    }
+    {\tracecont{\Gamma}{{A}} \subseteq \tracecont{\Gamma}{{v}} \cup \tracecont{\Gamma}{C}}
+
+    \Infer{}
+    {
+      % \judgevtype{\Gamma}{A} \\
+      \judgeSokterm{e}\\
+      \judgevInfer{\Gamma[\hat{x}:A]}{e}{Y} \\
+      \judgeSOK{\hat{x}}{e}
+    }
+    {\tracecont{\Gamma}{{A}} \subseteq \tracecont{\Gamma}{{e}} \cup \tracecont{\Gamma}{{Y}}}
+  \end{mathpar}
+\end{lemma}
+
+
+% \begin{lemma}[The Safe Varialbe Invariant for Typing]
+%   \begin{mathpar}
+%     \Infer{}
+%     {\judgevtype{\Gamma}{A} \\ \judgevCheck{\Gamma, x:A}{v}{C} \\ \judgeSOK{x}{v}}
+%     {\evok{\nf{A}} \subseteq \evok{\nf{C}}}
+
+%     \Infer{}
+%     {\judgevtype{\Gamma}{A} \\ \judgevCheck{\Gamma, x:A}{e}{Y} \\ \judgeSOK{x}{e}}
+%     {\evok{\nf{A}} \subseteq \evok{\nf{Y}}}
+
+%     \Infer{}
+%     {\judgevtype{\Gamma}{A} \\ \judgevInfer{\Gamma, x:A}{v}{C} \\ \judgeSOK{x}{v}}
+%     {\evok{\nf{A}} \subseteq \evok{\nf{C}}}
+    
+%     \Infer{}
+%     {\judgevtype{\Gamma}{A} \\ \judgevInfer{\Gamma, x:A}{e}{Y} \\ \judgeSOK{x}{e}}
+%     {\evok{\nf{A}} \subseteq \evok{\nf{Y}}}
+%   \end{mathpar}
+% \end{lemma}
+
+\begin{lemma}[The Safe Variable Invariant for Subtyping]
+  \label{lemma:subtyping-invariant}
+  \begin{mathpar}
+    \Infer{}
+    {\judgevsubt{\Gamma}{A}{B}}
+    {\tracecont{\Gamma}{{A}} = \tracecont{\Gamma}{{B}}}
+
+    \Infer{}
+    {\judgecsubt{\Gamma}{X}{Y}}
+    {\tracecont{\Gamma}{{X}} \subseteq \tracecont{\Gamma}{{Y}}}
+  \end{mathpar}
+\end{lemma}
+
+\begin{proof}[Proof of \cref{lemma:type-formation-invariant}]
+  Mutual (with \cref{lemma:typing-invariant,lemma:subtyping-invariant})
+  induction on the type formation judgement. 
+  \begin{multicols}{2}
+    \begin{description}
+    \item[VarT] Holds vacuously, since $\hat{x} \notin^{!} a$. 
+    % \item[$\vtoc$]
+    %   \Infer{$\ctov$}
+    %   \Infer{$\Pi$}
+    %   \Infer{$\forall$}
+
+
+    \end{description}
+  \end{multicols}
+\end{proof}
+
+\begin{proof}[Proof of \cref{lemma:subtyping-invariant}]
+
+  Mutual (with \cref{lemma:typing-invariant,lemma:type-formation-invariant}) induction on the subtyping judgement. 
+  \begin{multicols}{2}
+  \begin{description}
+  \item[$\subt$Var] Trivial.
+  \item[$\subt \Sigma$] By the induction hypothesis and congruence of $\ev{}$
+    and $\nf{}$.
+  \item[$\subt \Pi$] Similar to the $\subt \Sigma$ case. It is essential that
+    the proved property is symmetrical for the value-subtyping.
+  \item[$\subt \ctov$] By the induction hypothesis. The symmetry of the premise
+    of the rule is essential.
+  \item[$\subt \vtoc$] By the induction hypothesis. The symmetry of the premise
+    is \emph{not} essential here.
+  \item[$\subt$Eq] By the induction hypothesis and \cref{lemma:equiv-nf}.
+
+  \item[$\subt \forall$] $\trace{{X}} \subseteq \trace{{Y}} \subseteq \trace{{\foralltype{y:A}{Y}}}$.
+  \item[let$\subt$ and $\subt$let]
+    After one evaluation step, the proven inclusion coincides with the induction hypothesis.
+  \item[let$\subt$let] By congruence, the induction hypothesis, and \cref{lemma:equiv-nf}.
+    % By the congruence of $\ev{}$ and $\evok{}$, the
+    % induction hypothesis, and \cref{lemma:equiv-evok}, which implies that
+    % $\evok{e_1} \subseteq \evok{e_2} \subseteq \ev{e_2}$.
+\item[$\forall \subt$]
+  \begin{alignat*}{2}
+                  & \trace{{\foralltype{x:A}{X}}}    &  \text{(by congruence)}\\
+     \subseteq{ } & \trace{{A}} \cup \trace{{X}}     &  \text{(by {\color{green}\cref{lemma:type-formation-invariant}}, because }\\
+                  &                                  &  {\color{red}\judgectype{\Gamma, x:A}{X}} \text{)}\\
+     \subseteq{ } & \trace{{X}}                      &  \\
+     \subseteq{ } & \ev{\subst{(\nf{X})}{x}{\nf{v}}} &  \text{(by \cref{corollary:nf-subst-commute})}\\
+     ={ }         & \trace{{(\subst{X}{x}{v})}}      &  \text{(by the IH)}\\
+     \subseteq{ } & \trace{{Y}}      &  \\
+    \end{alignat*}
+
+
+    % $\ev{\nf{A}} \cup \ev{\nf{X}} \subseteq \ev{\nf{A}} \cup \ev{\subst{(\nf{X})}{x}{v}} =
+    % \ev{\nf{A}} \cup \ev{\nf{(\subst{X}{x}{\nf{v}}))}
+    % \subseteq \evok{A}
+    % \cup \ev{Y}$. The latter inclusion holds by the induction hypothesis.
+    % \ilyam{$\evok{A} \subseteq \evok{X}$ BY THE PARENT INDUCTION HYPOTHESIS!}
+  \end{description}
+
+\end{multicols}
+\end{proof}
 
 \section{Algorithmic Subtyping}
+\label{sec:algorithmic-subtyping}
 
 \begin{mathpar}
 
   \Infer{$\subt \Sigma$}
         {
-          \judgeavsubt{\Gamma; E; \varphi}{A_1}{B_1}{\varphi'}\\
+          \judgeavsubt{\Gamma; E; \varphi}{A_1}{B_1}{\varphi'}\\ 
           \judgeavsubt{\Gamma, x:A_1; E; \varphi'}{A_2}{B_2}{\varphi''}\\
         }
         {\judgeavsubt{\Gamma; E; \varphi}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}{\varphi''}}
@@ -2016,10 +2525,6 @@ Here, $j$ denotes the context entry: either $(x : A)$ or $(\isvtype{x})$.
 
 \end{mathpar}
 
-\ilyam{I removed the context application everywhere except where it is needed to
-preserve the ground invariance. The necessary assignments are kept in the unification
-context.}
-
 % \ilyam{In (let$\subt$), type $A$ can have unresolved variables, hence, the first
 %   unification in the premises can instantiate them, and thus, must be
 %   algorithmic.}
@@ -2029,25 +2534,6 @@ context.}
 %   E.g. $(\foralltype{x:1}{\letval{y:1}{\return{x}}{\valtocomp{\eqtype{\comptoval{\valtocomp{1}}}{\thunk{y}}{\thunk{y}}}}}) \leqslant \eqtype{\comptoval{\valtocomp{1}}}{\thunk{\return{()}}}{\thunk{\return{()}}}$
 %   holds for the declarative system but not for the algorithmic.}
 
-\subsection{Natural Numbers and Undecidability}
-
-The type system can be easily extended with natural numbers. To this purpose, we
-must add $\nattype$, $\natzero$, and $\natsucc{v}$ to the values, and
-$\recnat{v}{X}{base}{step}$ to the computations with obvious typing inference
-rules.
-We also add $\reduces{\recnat{\natzero}{X}{b}{s}}{b}$ and
-$\reduces{\recnat{\natsucc{v}}{X}{b}{s}}{s \, v \, \recnat{v}{X}{b}{s}}$ to the reduction rules.
-
-Notice that we do not unify under the induction operators. For example,
-$\judgeunify{\varphi}{\recnat{\hat{v}}{X}{\natzero}{\fun{x\,y}{\natzero}}}{\natzero}{\varphi, \evarassign{\hat{v}}{\natzero}}$
-is not admissible.
-Moreover, the general unification is undecidable in this case.
-
-Roughly, this is because we can easily define integers,
-arithmetic operations, and hence, any arbitrary polynomial
-$P(\hat{x_1}, \dots, \hat{x_n})$.
-The unification of this polynomial with $\natzero$
-corresponds to solving a diophantine equation, which is undecidable.
 
 \subsection{Invariants}
 
@@ -2328,13 +2814,3 @@ As such, we weaken the notion of `ground` terms in such a way that they might ha
 \printbibliography
 
 \end{document}
-
-
-% (\x.x^, x^) = (\y.y, y)  |- x^:=y
-
-% (\x.y, y) != (\y.y, y)
-
-
-
-% Г \forall x. n
-
