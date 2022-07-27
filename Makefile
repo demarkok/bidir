@@ -3,7 +3,7 @@
 SHELL:=/bin/bash
 
 OUTPUTS=main.pdf
-SOURCES=main.tex biblio.bib
+SOURCES=main.tex biblio.bib deeplist.tex
 
 TO_WATCH=*.tex *.bib
 
@@ -20,8 +20,8 @@ continuous:
 	fswatch -o . | xargs -n1 -I{} rubber --pdf main.tex
 
 clean:
-	rm *.aux *.lof *.log *.lot *.out *.toc *.nav *.snm *.bcf *.bbl *.blg *.xml *.tdo
-	rm *~ \#*\# *.spl *.fls *.fdb_latexmk *.bcf
+	rm -f *.aux *.lof *.log *.lot *.out *.toc *.nav *.snm *.bcf *.bbl *.blg *.xml *.tdo *.dvi
+	rm -f *~ \#*\# *.spl *.fls *.fdb_latexmk *.bcf
 
 distclean: clean
 	rm $(OUTPUTS)

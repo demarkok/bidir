@@ -1,0 +1,38 @@
+\usepackage{enumitem}
+\newlist{proofenum}{enumerate}{9}
+
+\setlist[proofenum,1]{label=$\arabic*.$, ref=$\arabic*$}
+\setlist[proofenum,2]{label=$\alph*.$, ref=\theproofenumi.$\alph*$}
+\setlist[proofenum,3]{label=$\roman*.$, ref=\theproofenumii.$\roman*$}
+\setlist[proofenum,4]{label=$\arabic*.$, ref=\theproofenumiii.$\arabic*$}
+\setlist[proofenum,5]{label=$\alph*$, ref=\theproofenumiv.$\alph*$}
+\setlist[proofenum,6]{label=$\roman*.$, ref=\theproofenumv.$\roman*$}
+\setlist[proofenum,7]{label=$\arabic*.$, ref=\theproofenumvi.$\arabic*$}
+\setlist[proofenum,8]{label=$\alph*.$, ref=\theproofenumvii.$\alph*$}
+\setlist[proofenum,9]{label=$\roman*.$, ref=\theproofenumviii.$\roman*$}
+
+\renewlist{proofenum}{enumerate}{9}
+
+\creflabelformat{proofenumi}{#2\textup{(#1)}#3}
+\crefname{proofenumi}{point}{points}
+
+\creflabelformat{proofenumii}{#2\textup{(#1)}#3}
+\crefname{proofenumii}{point}{points}
+
+\creflabelformat{proofenumiii}{#2\textup{(#1)}#3}
+\crefname{proofenumiii}{point}{points}
+
+\creflabelformat{proofenumiv}{#2\textup{(#1)}#3}
+\crefname{proofenumiv}{point}{points}
+
+\creflabelformat{proofenumv}{#2\textup{(#1)}#3}
+\crefname{proofenumv}{point}{points}
+
+\creflabelformat{proofenumvi}{#2\textup{(#1)}#3}
+\crefname{proofenumvi}{point}{points}
+
+\creflabelformat{proofenumvii}{#2\textup{(#1)}#3}
+\crefname{proofenumvii}{point}{points}
+
+\creflabelformat{proofenumviii}{#2\textup{(#1)}#3}
+\crefname{proofenumviii}{point}{points}

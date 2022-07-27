@@ -4,8 +4,7 @@
 \usepackage{amsmath,amsfonts,amsthm}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{mathpartir}
-\usepackage{hyperref}
-\usepackage[nameinlink]{cleveref}
+\usepackage{cleveref}
 \usepackage{multicol}
 \usepackage{quiver}
 \usepackage{wrapfig}
@@ -15,11 +14,6 @@
 \usepackage{ulem}
 \usepackage{cancel}
 \usepackage{soul}
-\usepackage{caption}
-\usepackage{fontawesome}
-\usepackage{mathabx}
-\usepackage{enumitem}
-
 
 \usepackage[colorinlistoftodos]{todonotes} 
 
@@ -55,7 +49,6 @@
 % Now we give some commands to define the syntax of the language. 
 
 \newcommand{\fun}[2]{\lambda {#1}.\,{#2}}
-\newcommand{\polyfun}[2]{\hat{\lambda} {#1}.\,{#2}}
 
 
 \newcommand{\letname}{\mathsf{let}}
@@ -90,7 +83,6 @@
 \newcommand{\force}[1]{\mathsf{force}\,{#1}}
 \newcommand{\return}[1]{\mathsf{return}\,{#1}}
 \newcommand{\thunk}[1]{\{{#1}\}}
-\newcommand{\annot}[2]{{#1}::{#2}}
 
 \newcommand{\recsigmaname}{\mathsf{rec}_{\Sigma}}
 \newcommand{\recsigma}[3]{\recsigmaname^{#2}({#1},{#3})}
@@ -164,18 +156,18 @@
 
 % Fully algorithmic rules
 
-\newcommand{\judgecCheckAlg}[3]{{#1} \vDash_{c} {#2} \, \checks \,  {#3}}
-\newcommand{\judgecInferAlg}[3]{{#1} \vDash_{c} {#2} \, \infers \, {#3}}
+\newcommand{\judgecCheckAlg}[4]{{#1} \vdash_{c} {#2} \, \checks \,  {#3} \dashv\,{#4}}
+\newcommand{\judgecInferAlg}[4]{{#1} \vdash_{c} {#2} \, \infers \, {#3} \dashv\,{#4}}
 
-\newcommand{\judgevCheckAlg}[4]{{#1} \vDash_{v} {#2} \, \checks \, {#3} \Dashv\,{#4}}
-\newcommand{\judgevInferAlg}[3]{{#1} \vDash_{v} {#2} \, \infers \, {#3}}
+\newcommand{\judgevCheckAlg}[4]{{#1} \vdash_{v} {#2} \, \checks \, {#3} \dashv\,{#4}}
+\newcommand{\judgevInferAlg}[4]{{#1} \vdash_{v} {#2} \, \infers \, {#3} \dashv\,{#4}}
 
-\newcommand{\judgeAppAlg}[5]{{#1} \vDash {#2} \, {\color{OliveGreen} \bullet} \,
+\newcommand{\judgeAppAlg}[5]{{#1} \vdash {#2} \, {\color{OliveGreen} \bullet} \,
   {#3} \,
-  {\color{OliveGreen} \Rightarrow \hspace{-5pt} \Rightarrow} {#4} \Dashv\,{#5}}
+  {\color{OliveGreen} \Rightarrow \hspace{-5pt} \Rightarrow} {#4} \dashv\,{#5}}
 
-\newcommand{\judgevtypeAlg}[2]{{#1} \vDash \isvtype{#2}}
-\newcommand{\judgectypeAlg}[2]{{#1} \vDash \isctype{#2}}
+\newcommand{\judgevtypeAlg}[3]{{#1} \vdash \isvtype{#2} \dashv \,{#3}}
+\newcommand{\judgectypeAlg}[3]{{#1} \vdash \isctype{#2} \dashv \,{#3}}
 
 
 
@@ -186,8 +178,8 @@
 
 \newcommand{\judgealpha}[2]{{#1} \sim_{\alpha} {#2}}
 
-\newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vDash} {#2} \vsubt {#3} {\color{purple}\Dashv}\,{#4}}
-\newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vDash} {#2} \csubt {#3} {\color{purple}\Dashv}\,{#4}}
+\newcommand{\judgeavsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \vsubt {#3} {\color{purple}\dashv}\,{#4}}
+\newcommand{\judgeacsubt}[4]{{#1}\,{\color{purple}\vdash} {#2} \csubt {#3} {\color{purple}\dashv}\,{#4}}
 
 \newcommand{\judgeunify}[4]{{#1}\,{\color{purple}\vdash} {#2} \equiv {#3} {\color{purple}\dashv}\,{#4}}
 
@@ -214,11 +206,6 @@
 \newcommand{\absclose}[2]{\vv{x}^{#1} #2}
 
 \newcommand{\vars}[1]{\mathsf{vars}(#1)}
-\newcommand{\untype}[1]{\mathsf{unt}(#1)}
-\newcommand{\gvars}[1]{\mathsf{gvars}(#1)}
-\newcommand{\extends}[2]{{#1}\longrightarrow{#2}}
-\newcommand{\ground}[1]{\mathsf{GR}\, {#1}}
-\newcommand{\trunc}[1]{|{#1}|}
 
 
 \newcommand{\fullterm}[2]{{#1}\,#2_1 \dots #2_{\narg{#1}}}
@@ -241,14 +228,6 @@
 
 \newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
 \newcommand{\mathcolorbox}[2]{\colorbox{#1}{$\displaystyle #2$}}
-\newcommand{\boxr}[1]{\mathcolorbox{pink}{#1}}
-\newcommand{\boxb}[1]{\mathcolorbox{BlueGreen!30!white}{#1}}
-
-\newenvironment{Figure}
-{\par\medskip\noindent\minipage{\linewidth}}
-{\endminipage\par\medskip}
-
-\include{deeplist.tex}
 
 \begin{document}
 \section{Syntax}
@@ -262,15 +241,12 @@
     \mbox{Computations} & X, Y, t, u & ::= & t v \bnfalt
     \valtocomp{A} \bnfalt \pitype{x:A}{X} \bnfalt \foralltype{x:A}{X} \bnfalt \force {v} \bnfalt \return{v}
     \bnfalt \fun{x:A}{t} \bnfalt \\ & & & \letval{x : A}{t}{u} \bnfalt
-    \dletval{x : A}{t}{u} \bnfalt % \recsigma{v}{x.X}{t} \bnfalt 
-                                          \receq{v}{x.y.X}{t}
+    \dletval{x : A}{t}{u} \bnfalt \recsigma{v}{x.X}{t} \bnfalt \receq{v}{x.y.X}{t}
     \\[1em]
 
     \mbox{Values} & A, B, v, w & ::= & x \bnfalt a \bnfalt \comptoval{X}
-    \bnfalt % \sigmatype{x:A}{B} \bnfalt
-                                       \refl{v} \bnfalt \eqtype{A}{v}{w} \bnfalt
-    \thunk{t} % \bnfalt \pair{v}{w}
-    \\[1em]
+    \bnfalt \sigmatype{x:A}{B} \bnfalt \refl{v} \bnfalt \eqtype{A}{v}{w} \bnfalt
+    \thunk{t} \bnfalt \pair{v}{w} \\[1em]
 
     % \mbox{Contexts} & \Gamma & ::= & \emptyctx \bnfalt \Gamma, x:A \bnfalt \Gamma, \isvtype{B} \\[1em]
   \end{array}
@@ -298,17 +274,15 @@ Let us consider the term syntax from a different perspective:
 
 \begin{mathpar}
   \begin{array}{llcl}
-    \mbox{Constructors} & C & ::= & \lambda  \bnfalt \hat{\lambda} \bnfalt \refl{} \bnfalt \return{} \bnfalt \thunk{} 
+    \mbox{Constructors} & C & ::= & \lambda \bnfalt (,) \bnfalt \refl{} \bnfalt \return{} \bnfalt \thunk{} 
     \\[1em]
-    \mbox{Eliminators} & E & ::= & @ \bnfalt % \recsigma{}{}{} \bnfalt
-                                   \receq{}{}{}
+    \mbox{Eliminators} & E & ::= & @ \bnfalt \recsigma{}{}{} \bnfalt \receq{}{}{}
                                    \bnfalt \letname \bnfalt \dletname
                                    \bnfalt \force{}
     \\[1em]
 
     \mbox{Neutral Formers} & N & ::= & \comptoval \bnfalt \Pi \bnfalt \forall \bnfalt
-                                       \valtocomp{} % \bnfalt \Sigma 
-                                       \bnfalt x
+                                       \valtocomp{} \bnfalt \Sigma \bnfalt x
     \\[1em]
 
     \mbox{Formers} & F & ::= & C \bnfalt E \bnfalt N
@@ -339,20 +313,12 @@ Let us consider the term syntax from a different perspective:
    
   \begin{table}[h]
     \setlength\tabcolsep{5pt}
-    \begin{tabular}{L|LLLLLLLL}
-      F         & \lambda & \hat{\lambda} & (,)   & \refl{} & \return{} & \thunk{} & @     & \receqname \\
+    \begin{tabular}{L|LLLLLLLLLLLLLLLLL}
+      F         & \lambda & (,)   & \refl{} & \return{} & \thunk{} & @     & \recsigmaname & \receqname & \letname & \dletname & \force{} & \comptoval & \Pi   & \forall & \valtocomp{} & \Sigma & x  \\
       \hline
-      \arity{F} & [0, 1]  & [0, 1]       & [0,0] & []      & [0]       & [0]      & [0,0] & [0,2,0]    \\
-      \narg{F}  & 2       & 2            & 2     & 0       & 1         & 1        & 2     & 3          
+      \arity{F} & [0, 1]  & [0,0] & []    & [0]       & [0]      & [0,0] & [0,1,0]         & [0,2,0]       & [0,1,0]  & [0,1,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]          & [0,1]  & [] \\
+      \narg{F}  & 2       & 2     & 0     & 1         & 1        & 2     & 3               & 3             & 3        & 3         & 1        & 1          & 2     & 2       & 1            & 2      & 0 
     \end{tabular}
-
-    \begin{tabular}{L|LLLLLLLL}
-      F         & \letname & \dletname & \force{} & \comptoval & \Pi   & \forall & \valtocomp{}  & x  \\
-      \hline
-      \arity{F} & [0,1,0]  & [0,1,0]   & [0]      & [0]        & [0,1] & [0,1]   & [0]           & [] \\
-      \narg{F}  & 3        &  3        & 1        & 1          & 2     & 2       & 1             & 0
-    \end{tabular}
-    
   \end{table}
 
 \end{definition}
@@ -443,8 +409,8 @@ First, we define the \emph{redex contraction}.
 
     \item $\contracts{\force{\thunk{\tau}}}{\tau}$
 
-    % \item $\contracts{\recsigma{\pair{\tau_1}{\tau_2}}{\nu}{\sigma}}{\sigma \,
-    %     \tau_1 \, \tau_2}$
+    \item $\contracts{\recsigma{\pair{\tau_1}{\tau_2}}{\nu}{\sigma}}{\sigma \,
+        \tau_1 \, \tau_2}$
 
     \item $\contracts{\receq{\refl{v}}{\nu}{\tau}}{\tau}$
 
@@ -552,9 +518,7 @@ the opposite is only true for the well-typed terms:
 
 \begin{definition}[Reduction to the Normal Form]
   \begin{mathpar}
-    \Infer{}{\judgeSnf{\tau}}{\bigstepsto{\tau}{\tau}}
-    \and
-    \Infer{}{\reduces{\tau}{\tau'} \\ \bigstepsto{\tau'}{\tau''}}{\bigstepsto{\tau}{\tau''}}
+    \Infer{}{\reduces{\tau}{\tau'} \\ \judgeSnf{\tau'}}{\bigstepsto{\tau}{\tau'}}
   \end{mathpar}
 \end{definition}
 
@@ -817,7 +781,7 @@ system, which makes it non-well-founded (and undecidable).
 % \ilyam{todo}
 % \end{proof}
 
-\begin{lemma}[Congruence of the safe occurrence]
+\begin{lemma}[Conguence of the safe occurrence]
   \label{lemma:cong-safe-occurrence}
   \begin{mathpar}
   \Infer{}
@@ -836,19 +800,6 @@ system, which makes it non-well-founded (and undecidable).
   Trivial induction.
 \end{proof}
 
-\begin{lemma}[Monadicity of the safe substitution]
-  \label{lemma:monadicity-safe-subst}
-  \begin{mathpar}
-    \Infer{}
-    {
-      \judgeSok{x, y}{\sigma} \\
-      \judgeSok{y}{\tau}
-    }
-    {
-      \judgeSok{y}{\subst{\sigma}{x}{\tau}}
-    }
-  \end{mathpar}
-\end{lemma}
 
 \begin{lemma}[Reduction-Substitution Commutativity]
   \label{lemma:red-subst-commute}
@@ -1081,40 +1032,42 @@ $\tau$.
   \end{mathpar}
 \end{definition}
 
-\begin{definition}[Untyped Binding Context]
+\begin{definition}[Binding Context]
   \begin{mathpar}
-    \gamma ::= \emptyctx \bnfalt \gamma, ~ x \bnfalt \gamma, ~ \hat{x}
+    \Gamma ::= \emptyctx \bnfalt \Gamma, ~ x
   \end{mathpar}
 \end{definition}
 
+
+We define equivalence on terms. Notice that the terms are not necessarily ground.
+The unification variables are treated as normal ones.
+However, since unification variables cannot be abstrated over,
+the binding context $\Gamma$ consists of normal variables only.
+
 \begin{definition}[Equivalence]
+  \hfill
 
+  \begin{itemize}
 
-  We define equivalence on terms. Notice that the terms are not necessarily ground.
-  However, \emph{the unification variables are treated as the normal ones}.
-
-
-  \begin{description}
-
-  \item[Reduction closure] \ilyam{We can pack it in one rule using $\bigstepsto{}{}$ }
+  \item[Reduction closure]
     \begin{mathpar}
       \Infer{Red-L}
       {
         \reduces{\rho_1}{\rho_1'}\\
-        \judgeequivuntg{\gamma}{\rho_1'}{\rho_2}
+        \judgeequivuntg{\Gamma}{\rho_1'}{\rho_2}
       }
       {
-        \judgeequivuntg{\gamma}{\rho_1}{\rho_2}
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2}
       }
       \and
       \Infer{}
       {
         \reduces{\rho_2}{\rho_2'}\\
-        \judgeequivuntg{\gamma}{\rho_1}{\rho_2'}\\
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2'}\\
         \judgeSnf{\rho_1}
       }
       {
-        \judgeequivuntg{\gamma}{\rho_1}{\rho_2}
+        \judgeequivuntg{\Gamma}{\rho_1}{\rho_2}
       }
     \end{mathpar}
 
@@ -1123,43 +1076,42 @@ $\tau$.
 
       \Infer{}
       {
-        \judgeequivuntg{\gamma}{P_1}{Q_1} \\
+        \judgeequivuntg{\Gamma}{P_1}{Q_1} \\
         \dots\\
-        \judgeequivuntg{\gamma}{P_{\narg{F}}}{Q_{\narg{F}}} \\
+        \judgeequivuntg{\Gamma}{P_{\narg{F}}}{Q_{\narg{F}}} \\
         \judgeSnf{\fullterm{F}{P}} \\
         \judgeSnf{\fullterm{F}{Q}}
       }
       {
-        \judgeequivuntg{\gamma}{\fullterm{F}{P}}{\fullterm{F}{Q}}
+        \judgeequivuntg{\Gamma}{\fullterm{F}{P}}{\fullterm{F}{Q}}
       }
       \and
 
       \Infer{}
       {
-        \judgeequivuntg{\gamma, x}
+        \judgeequivuntg{\Gamma, x}
       {\absclose{n}{\pi}}
       {\absclose{n}{\rho}}
       }
         {
-          \judgeequivuntg{\gamma}{x.\absclose{n}{\pi}}{x.\absclose{n}{\rho}}
+          \judgeequivuntg{\Gamma}{x.\absclose{n}{\pi}}{x.\absclose{n}{\rho}}
       }
         \and
 
 
       \Infer{}
       {
-        \judgeequivuntg{\gamma}{\pi}{\rho}
+        \judgeequivuntg{\Gamma}{\sigma}{\rho}
       }
       {
-        \judgeequivuntg{\gamma}{.\pi}{.\rho}
+        \judgeequivuntg{\Gamma}{.\sigma}{.\rho}
       }
     \end{mathpar}
 
-  \end{description}
+  \end{itemize}
 
 \end{definition}
 
-\begin{multicols}{2}
 \begin{lemma}[Equivalent terms have equal normal forms]
   \label{lemma:equiv-nf}
   \begin{mathpar}
@@ -1168,8 +1120,6 @@ $\tau$.
     {\nf{\pi} = \nf{\rho}}
   \end{mathpar}
 \end{lemma}
-
-\hfill
 
 \begin{lemma}[Equivalent terms have equal safe existential variable sets]
   \label{lemma:equiv-evok}
@@ -1183,76 +1133,59 @@ $\tau$.
   Trivial induction using \cref{corollary:evok-pres}.
 \end{proof}
 
-\end{multicols}
 
-% \begin{definition}[Free Variable Environment] Free variable environment $E$ is a
-%   (partial) \emph{mapping} from unification variables to sets of regular
-%   variables. $E[\hat{v}]$ is a set $\Gamma$ of variables associated with $\hat{v}$
-%   that are allowed to be used in the initialization. Morally, $\Gamma$ is a
-%   binding context at the moment when $\hat{v}$ was introduced.
-%   \begin{mathpar}
-%     E ::= \emptyctx \bnfalt E, ~ \mapentry{\hat{v}}{\Gamma}
-%   \end{mathpar}
-% \end{definition}
 
-% \begin{definition}[Admissible term]
-%   \begin{mathpar}
-%     \Infer{}
-%     {\fv{\tau} \subseteq \Gamma}
-%     {\judgesafeinenv{\Gamma}{\tau}}
-%   \end{mathpar}
-% \end{definition}
+\begin{definition}[Free Variable Environment] Free variable environment $E$ is a
+  (partial) \emph{mapping} from unification variables to sets of regular
+  variables. $E[\hat{v}]$ is a set $\Gamma$ of variables associated with $\hat{v}$
+  that are allowed to be used in the initialization. Morally, $\Gamma$ is a
+  binding context at the moment when $\hat{v}$ was introduced.
+  \begin{mathpar}
+    E ::= \emptyctx \bnfalt E, ~ \mapentry{\hat{v}}{\Gamma}
+  \end{mathpar}
+\end{definition}
+
+\begin{definition}[Admissible term]
+  \begin{mathpar}
+    \Infer{}
+    {\fv{\tau} \subseteq \Gamma}
+    {\judgesafeinenv{\Gamma}{\tau}}
+  \end{mathpar}
+\end{definition}
 
 \begin{definition}[Unification Context] Unification context represents a
-  (partial) solution of the unification problem. 
-  $$\theta ::=
-  \emptyctx \bnfalt
-  \theta, \, x \bnfalt
-  \theta, \, \hat{x} \bnfalt
-  \theta, \, \evarassign{\hat{x}}{\tau}
-  $$
+  (partial) solution of the unification problem. Syntactically, it is a \emph{set} of
+  pairs. Each pair represent an initialization of a unification variable: 
+  $$\varphi, \psi ::= \emptyctx \bnfalt \varphi, \evarassign{\hat{v}}{\tau} $$
   where $\tau$ is a ground term.
 \end{definition}
 
-Here the existential variables $\hat{x}$ play a role different to the one of
-normal variables $x$. They denote the values that need to be resolved.
+The unification (or algorithmic equivalence) judgement is of the form
+$\judgeunify{E; \varphi}{\rho}{\rho'}{\varphi'}$ where $\rho$ and $\rho'$ are
+algorithmic terms (potentially with unassigned variables), $\varphi$ and
+$\varphi'$ are unification contexts, E is a free variable environment.
 
-\hfill
 
-\noindent
-\begin{minipage}[c]{0.65\linewidth}
-  \begin{definition}[Variables of the Unification Context]
-    \hfill
-    \begin{itemize}
-      \begin{multicols}{2}
-    \item[] $\vars{\emptyctx} = \emptyset$
-    \item[] $\vars{\theta, \, x} = \vars{\theta} \cup \{x\}$
-    \item[] \hspace{-20pt} $\vars{\theta, \, \hat{x}} = \vars{\theta} \cup \{\hat{x}\}$
-    \item[] \hspace{-20pt} $\vars{\theta, \, \evarassign{\hat{x}}{\spcdot}} = \vars{\theta}
-      \cup \{\hat{x} \}$
-      \end{multicols}
-    \end{itemize}
-  \end{definition}
-\end{minipage}
-\noindent
-\begin{minipage}[c]{0.35\linewidth}
-  \begin{definition}[Admissible Terms]
-    \begin{mathpar}
-      \Infer{} 
-      { \fv{\rho} \subseteq \vars{\theta} }
-      { \judgectx{\theta}{\rho} }
-    \end{mathpar}
-  \end{definition}
-\end{minipage}
+\begin{definition}[Admissible unification context] The unification context $\varphi$ is
+  admissible by the environment $E$ if the term $\tau$ it assigns to the unification
+  variable $\hat{v}$ is admissible by the set of variables $E[\hat{v}]$
+  (in particular, $E$ is defined on $\hat{v}$).
+  \begin{mathpar}
+    \Infer{}
+    { }
+    {\judgesafeinenv{E}{\emptyctx}}
 
-\hfill
+    \and
+    \Infer{}
+    {\judgesafeinenvv{E}{\hat{v}}{\tau}}
+    {\judgesafeinenv{E}{\varphi, \evarassign{\hat{v}}{\tau}}}
+  \end{mathpar}
+\end{definition}
 
-\begin{definition}[Well-Formed Unification Context] The unification context
-  $\theta$ is well-formed if every unification variable occurs in it only once,
-  and if it is solved (i.e. the entry $\evarassign{\hat{x}}{\tau}$) occurs in
-  $\theta$, the solution term $\tau$ is in the normal form and is admissible by
-  the prefix of this entry.
 
+\begin{definition}[Well-formed unification context]
+  We say that a unification context $\varphi$ is well-formed if the mapping it
+  represents is a partial function, whose image terms are normal and ground:
   \begin{mathpar}
 
     \Infer{}
@@ -1263,58 +1196,15 @@ normal variables $x$. They denote the values that need to be resolved.
     \and
     \Infer{}
     { 
-      \judgectx{ }{\theta} \\
-      x \notin \theta
+    \judgectx{ }{\varphi} \\
+    \evarassign{\hat{x}}{\spcdot} \notin \varphi \\
+    \judgeSnf{\tau}
     }
     {
-      \judgectx{ }{\theta, x}
-    }
-    \and
-    \Infer{}
-    { 
-      \judgectx{ }{\theta} \\
-      \hat{x} \notin \theta \\
-      \evarassign{\hat{x}}{\spcdot} \notin \theta
-    }
-    {
-      \judgectx{ }{\theta, \hat{x}}
-    }
-    \and
-    \Infer{}
-    { 
-      \judgectx{ }{\theta} \\
-      \hat{x} \notin \theta \\
-      \judgeSnf{\tau}\\
-      \judgectx{\theta}{\tau}\\
-    }
-    {
-      \judgectx{ }{\theta, \evarassign{\hat{x}}{\tau}}
+      \judgectx{ }{\varphi, \evarassign{\hat{x}}{\tau}}
     }
   \end{mathpar}
 \end{definition}
-
-% \begin{definition}[Well-formed unification context]
-%   We say that a unification context $\varphi$ is well-formed if the mapping it
-%   represents is a partial function, whose image terms are normal and ground:
-%   \begin{mathpar}
-
-%     \Infer{}
-%     { }
-%     {
-%       \judgectx{ }{\emptyctx}
-%     }
-%     \and
-%     \Infer{}
-%     { 
-%     \judgectx{ }{\varphi} \\
-%     \evarassign{\hat{x}}{\spcdot} \notin \varphi \\
-%     \judgeSnf{\tau}
-%     }
-%     {
-%       \judgectx{ }{\varphi, \evarassign{\hat{x}}{\tau}}
-%     }
-%   \end{mathpar}
-% \end{definition}
 
 % \begin{definition}[Safe unification context]
 %   We say that a unification context $\varphi$ is safe under the binding context $B$
@@ -1322,46 +1212,40 @@ normal variables $x$. They denote the values that need to be resolved.
 %   if the free variables of $\varphi$ do not intersect with $B$.
 % \end{definition}
 
-\begin{definition}[Application of the Well-Formed Context]
-  If the unification context $\theta$ is well-formed,
-  We write $\ctxtapp{\theta}{\rho}$ meaning the application of the partial
-  (substitution) function represented by $\theta$ to the term $\rho$:
-  \begin{multicols}{2}
+\begin{definition}[Application of the well-formed context]
+  If the unification context $\varphi$ is well-formed,
+  We write $\ctxtapp{\varphi}{\tau}$ meaning the application of the partial
+  (substitution) function represented by $\varphi$ to the term $\tau$:
   \begin{itemize}
-    \item[] $\ctxtapp{\emptyctx}{\rho} = \rho$
-    \item[] $\ctxtapp{\theta, \, x}{\rho} = \rho$
-    \item[] $\ctxtapp{\theta, \, \hat{x}}{\rho} = \rho$
-    \item[] $\ctxtapp{\theta, \, \evarassign{\hat{x}}{\sigma}}{\rho} = \subst{(\ctxtapp{\theta}{\rho})}{\hat{x}}{\sigma}$
+  \item $\ctxtapp{\emptyctx}{\tau} = \tau$
+  \item $\ctxtapp{\varphi, \evarassign{\hat{x}}{\sigma}}{\tau} = \subst{(\ctxtapp{\varphi}{\tau})}{\hat{x}}{\sigma}$
   \end{itemize}
-\end{multicols}
 
 \end{definition}
 
 Intuitively, when a context is applied to a term, the components of
 the context are applied to the term one-by-one. This way, the properties holding
 for a single substitution, can be lifted up to the context application.
-
-\begin{multicols}{2}
-
 \begin{corollary}[Context application commutes with the reduction]
   \label{corollary:red-app-commute}
     \begin{mathpar}
       \Infer{}
       {
-        \judgectx{}{\theta}\\
+        \judgectx{}{\Omega}\\
         \judgeSokterm{\rho}\\
-        \reduces{\ctxtapp{\theta}{\rho}}{\rho'}\\
+        \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
       }
-      {\exists \rho^* \text{ s.t. } \reduces{\rho}{\rho^*} \text{ and } \ctxtapp{\theta}{\rho^*} = \rho'}
+      {\exists \rho^* \text{ s.t. } \reduces{\rho}{\rho^*} \text{ and } \ctxtapp{\Omega}{\rho^*} = \rho'}
     \end{mathpar}
   \end{corollary}
-  \begin{Figure}
+
+  \begin{figure}[h]
     \centering
     \begin{tikzcd}
       \rho & {\rho^*} \\
       \bullet & {\rho^*_2} \\
       \bullet & {\rho^*_n} \\
-      {[\theta]\rho} & {\rho'}
+      {[\Omega]\rho} & {\rho'}
       \arrow["{\hat{x}_1:=\tau_1}"', from=1-1, to=2-1]
       \arrow["{\hat{x}_1:=\tau_1}", dashed, from=1-2, to=2-2]
       \arrow["\rightarrow", dashed, from=1-1, to=1-2]
@@ -1373,29 +1257,28 @@ for a single substitution, can be lifted up to the context application.
       \arrow["\rightarrow", dashed, from=3-1, to=3-2]
       \arrow["{\hat{x}_n:=\tau_n}", dashed, from=3-2, to=4-2]
     \end{tikzcd}
-    \captionof{figure}{Proof Scheme}
+    \caption{Proof scheme}
     \label{fig:red-app-commute-scheme}
-  \end{Figure}
+  \end{figure}
 
   \begin{proof}
-    Induction on $\theta$, destruct $\ctxtapp{\theta}{\rho}$, then \cref{lemma:red-subst-commute}.
-    See \cref{fig:red-app-commute-scheme} for the details: we obtain $\rho^*$
+    Induction on $\ctxtapp{\Omega}{\rho}$ using \cref{lemma:red-subst-commute}.
+    See \cref{fig:red-app-commute-scheme} for the details: we acquire $\rho^*$
     by consequently applying \cref{lemma:red-subst-commute} bottom-to-top to
     construct $\rho^*_n, \dots, \rho^*_2, \rho^*$.
     The premises required for \cref{lemma:red-subst-commute} hold because 
-    $\judgectx{}{\theta}$ and $\judgeSokterm{\rho}$.
+    $\judgectx{}{\Omega}$ and $\judgeSokterm{\rho}$.
   \end{proof}
-
 
   \begin{corollary} [Context application preserves reduction]
     \label{corollary:ctx-app-pres-red}
     \begin{mathpar}
-      \Infer{}{\judgectx{}{\theta} \\ \reduces{\rho}{\rho'}}
-      {\reduces{\ctxtapp{\theta}{\rho}}{\ctxtapp{\theta}{\rho'}}}
+      \Infer{}{\judgectx{}{\Omega} \\ \reduces{\rho}{\rho'}}
+      {\reduces{\ctxtapp{\Omega}{\rho}}{\ctxtapp{\Omega}{\rho'}}}
     \end{mathpar}
   \end{corollary}
   \begin{proof}
-    Induction on $\theta$ using  \cref{lemma:subst-res}.
+    Induction on $\Omega$ using  \cref{lemma:subst-res}.
   \end{proof}
  
   \begin{corollary} [Reduction preserves safety]
@@ -1408,80 +1291,51 @@ for a single substitution, can be lifted up to the context application.
     Follows from \cref{lemma:safe-occur-pres}.
   \end{proof}
 
-\end{multicols}
 
 \begin{definition}[Unification]  The unification algorithm is defined
   as follows:
 
-\begin{description}
+\begin{itemize}
     \item[Base rules]
       \begin{mathpar}
         \Infer{U-Add}
         { 
-          \hat{x} \in \theta \\
+          \evarassign{\hat{v}}{\spcdot} \notin \varphi \\
           \judgeSnf{\tau} \\
-          \judgectx{\theta_{\hat{²x}}}{\tau} \\
+          \judgesafeinenvv{E}{\hat{v}}{\tau} \\
         }
         {
-          \judgeunify{\theta}{\hat{x}}{\tau}{\subst{\theta}{\hat{x}}{\evarassign{\hat{x}}{\tau}}}
+          \judgeunify{\Gamma; E; \varphi}{\hat{v}}{\tau}{\varphi, \evarassign{\hat{v}}{\tau}}
         }
         \and
-        % \Infer{U-Add-\faSearch}
-        % { 
-        %   \hat{y} \neq \hat{x}\\
-        %   \judgeunify{\theta_1}{\hat{x}}{\tau}{\theta_2}
-        % }
-        % {
-        %   \judgeunify{\theta_1, \hat{y}}{\hat{x}}{\tau}{\theta_2, \, \hat{y}}
-        % }
-        % \and
-        % \Infer{U-lookup}
-        % { 
-        %   \hat{y} \neq \hat{x}\\
-        %   \judgeunify{\theta_1}{\hat{x}}{\tau}{\theta_2}
-        % }
-        % {
-        %   \judgeunify{\theta_1, \hat{y}}{\hat{x}}{\tau}{\theta_2, \, \hat{y}}
-        % }
-        % \and
-        % \Infer{U-Add}
-        % { 
-        %   \hat{x} \in \theta \\
-        %   \judgeSnf{\tau} \\
-        %   \judgectx{\theta}{\tau} \\
-        % }
-        % {
-        %   \judgeunify{\theta, \hat{x}}{\hat{x}}{\tau}{\theta, \evarassign{\hat{x}}{\tau}}
-        % }
-        % \and
         \Infer{U-Keep}
         { 
-          \evarassign{\hat{x}}{\tau} \in \theta
+          \evarassign{\hat{v}}{\tau} \in \varphi
         }
         {
-          \judgeunify{\theta}{\hat{x}}{\tau}{\theta}
+          \judgeunify{\Gamma; E;\varphi}{\hat{v}}{\tau}{\varphi}
         }
       \end{mathpar}
 
-    \item[Reduction closure] \ilyam{could be packed using $\Downarrow$}
+    \item[Reduction closure]
       \begin{mathpar}
         \Infer{Red-L}
         {
-          \reduces{\rho}{\rho'}\\
-          \judgeunify{\theta_1}{\rho'}{\tau}{\theta_2}
+          \reduces{\rho_1}{\rho_1'}\\
+          \judgeunify{\Gamma; \varphi}{\rho_1'}{\tau_2}{\varphi'}
         }
         {
-          \judgeunify{\theta_1}{\rho}{\tau}{\theta_2}
+          \judgeunify{\Gamma; E; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
         \and
         \Infer{Red-R}
         {
-          \reduces{\tau}{\tau'}\\
-          \judgeunify{\theta_1}{\rho}{\tau'}{\theta_2}\\
-          \judgeSnf{\rho}
+          \reduces{\tau_2}{\tau_2'}\\
+          \judgeunify{\Gamma; \varphi}{\rho_1}{\tau_2'}{\varphi'}\\
+          \judgeSnf{\rho_1}
         }
         {
-          \judgeunify{\theta_1}{\rho}{\tau}{\theta_2}
+          \judgeunify{\Gamma; E; \varphi}{\rho_1}{\tau_2}{\varphi'}
         }
       \end{mathpar}
 
@@ -1489,14 +1343,14 @@ for a single substitution, can be lifted up to the context application.
    \begin{mathpar}
      \Infer{}
      {
-       \judgeunify{\theta_0}{P_1}{Q_1}{\theta_1} ~~
-       \dots ~~
-       \judgeunify{\theta_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\theta_{\narg{F}}} \\
+       \judgeunify{\Gamma; E;\varphi_0}{P_1}{Q_1}{\varphi_1} ~
+       \dots ~
+       \judgeunify{\Gamma; E;\varphi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\varphi_{\narg{F}}} \\
        \judgeSnf{\fullterm{F}{P}} \\
        \judgeSnf{\fullterm{F}{Q}}
      }
      {
-       \judgeunify{\theta_0}{\fullterm{F}{P}}{\fullterm{F}{Q}}{\theta_{\narg{F}}}
+       \judgeunify{\Gamma; E; \varphi_0}{\fullterm{F}{P}}{\fullterm{F}{Q}}{\varphi_{\narg{F}}}
      } \and
      % \Infer{}
      % {
@@ -1515,37 +1369,37 @@ for a single substitution, can be lifted up to the context application.
 
      \Infer{}
      {
-       \judgeunify{\theta_1,\, x}
+       \judgeunify{\Gamma, x; E; \varphi}
        {\absclose{n}{\rho}}
        {\absclose{n}{\tau}}
-       {\theta_2}
+       {\psi}
      }
      {
-       \judgeunify{\theta_1}
+       \judgeunify{\Gamma; E; \varphi}
        {x.\absclose{n}{\rho}}
        {x.\absclose{n}{\tau}}
-       {\theta_2}
+       {\psi}
      }
      \and
 
      \Infer{}
      {
-       \judgeunify{\theta_1}
+       \judgeunify{\Gamma; E; \varphi}
        {\rho}
        {\tau}
-       {\theta_2}
+       {\psi}
      }
      {
-       \judgeunify{\theta_1}
+       \judgeunify{\Gamma; E; \varphi}
        {.\rho}
        {.\tau}
-       {\theta_2}
+       {\psi}
      } \and
 
 
 \end{mathpar}
 
-\end{description}
+\end{itemize}
 \end{definition}
 
 
@@ -1556,206 +1410,205 @@ the unification algorithm does not make the terms non-unifiable.
 \begin{lemma} [Unification soundness]
   \begin{mathpar}
     \Infer{}
-    { \judgectx{}{\theta_1}\\
-      \judgeunify{\theta_1}{\rho}{\tau}{\theta_2} \\
+    { \judgectx{}{\varphi_1}\\
+      \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2} \\
+      \judgesafeinenv{E}{\varphi_1} \\
+      \codom{E} \subseteq \Gamma
     }
-    {
-      \extends{\theta_1}{\theta_2} \\
-      \judgectx{}{\theta_2}\\
-      \judgeequivuntg{\gvars{\theta_1}}{\ctxtapp{\theta_2}{\rho}}{\tau} \\
+    { \judgectx{}{\varphi_2}\\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau} \\
+      \varphi_1 \subseteq \varphi_2 \\
+      \judgesafeinenv{E}{\varphi_2} \\
     }
   \end{mathpar}
 \end{lemma}
 
 \begin{proof}
-  \ilyam{TODO: update the proof}
+  Induction on $\judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}$.
+  \begin{itemize}
+    \item
+      $
+      \Infer{}
+      { 
+        \evarassign{\hat{v}}{\spcdot} \notin \varphi_1 \\
+        \judgeSnf{\tau} \\
+        \judgesafeinenvv{E}{\hat{v}}{\tau}
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
+      }
+      $
+      Then $\rho = \hat{v}$ and $\varphi_2 = \varphi_1, \evarassign{\hat{v}}{\tau}$.
+      \begin{itemize}
+        \item It is easy to see that $\judgectx{}{\varphi_2}$ because
+          $\judgectx{}{\varphi_1, \evarassign{\hat{v}}{\tau}}$  by definition of the
+          well-formed context (all the required premises are given);
+        \item $\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
+            \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau$.
+          $\judgeequivuntg{\Gamma}{\tau}{\tau}$;
+        \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition;
 
-  % Induction on $\judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}$.
-  % \begin{itemize}
-  %   \item
-  %     $
-  %     \Infer{}
-  %     { 
-  %       \evarassign{\hat{v}}{\spcdot} \notin \varphi_1 \\
-  %       \judgeSnf{\tau} \\
-  %       \judgesafeinenvv{E}{\hat{v}}{\tau}
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi_1}{\hat{v}}{\tau}{\varphi_1, \evarassign{\hat{v}}{\tau}}
-  %     }
-  %     $
-  %     Then $\rho = \hat{v}$ and $\varphi_2 = \varphi_1, \evarassign{\hat{v}}{\tau}$.
-  %     \begin{itemize}
-  %       \item It is easy to see that $\judgectx{}{\varphi_2}$ because
-  %         $\judgectx{}{\varphi_1, \evarassign{\hat{v}}{\tau}}$  by definition of the
-  %         well-formed context (all the required premises are given);
-  %       \item $\ctxtapp{\varphi_2}{\rho} = \ctxtapp{\varphi_1,
-  %           \evarassign{\hat{v}}{\tau}}{\hat{v}} = \tau$.
-  %         $\judgeequivuntg{\Gamma}{\tau}{\tau}$;
-  %       \item $\varphi_1 \subseteq \varphi_1, \evarassign{\hat{v}}{\tau}$ by definition;
+        \item $\judgesafeinenv{E}{\varphi_1, \evarassign{\hat{v}}{\tau}}$
+          because $\judgesafeinenv{E}{\varphi_1}$ and $\judgesafeinenvv{E}{\hat{v}}{\tau}$.
+     \end{itemize}
+   \item 
+      $
+      \Infer{}
+      { 
+        \evarassign{\hat{v}}{\tau} \in \varphi
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi}{\hat{v}}{\tau}{\varphi}
+      }
+      $
+      Then $\rho = \hat{v}$ and $\varphi_1 = \varphi_2 = \varphi$.
+      \begin{itemize}
+      \item $\judgectx{}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
+        $\judgectx{}{\varphi_1}$ is in the premises;
+      \item $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
+        $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$.
+      \item $\varphi \subseteq \varphi$ trivially.
+      \item $\judgesafeinenv{E}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
+        $\judgesafeinenv{E}{\varphi_1}$ is in the lemma premises.
+      \end{itemize}
+    \item
+      $
+      \Infer{}
+      {
+        \reduces{\rho}{\rho'}\\
+        \judgeunify{\Gamma; E; \varphi_1}{\rho'}{\tau}{\varphi_2}
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
+      }
+      $
+      Then by the induction hypothesis:
+      $\varphi_1 \subseteq \varphi_2$,
+      $\judgectx{}{\varphi_2}$,
+      $\judgesafeinenv{E}{\varphi_2}$,
+      and $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
+      To prove that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
+      $$
+      \Infer{Red-L}
+      {
+        \reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}\\
+        \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}
+      }
+      {
+        \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}
+      }
+      $$
+      Here $\reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}$
+      holds by \cref{corollary:ctx-app-pres-red}.
+    \item
+      $
+      \Infer{}
+      {
+        \reduces{\tau}{\tau'}\\
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau'}{\varphi_2}\\
+        \judgeSnf{\rho}
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
+      }
+      $
+      Analogously to the previous case.
 
-  %       \item $\judgesafeinenv{E}{\varphi_1, \evarassign{\hat{v}}{\tau}}$
-  %         because $\judgesafeinenv{E}{\varphi_1}$ and $\judgesafeinenvv{E}{\hat{v}}{\tau}$.
-  %    \end{itemize}
-  %  \item 
-  %     $
-  %     \Infer{}
-  %     { 
-  %       \evarassign{\hat{v}}{\tau} \in \varphi
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi}{\hat{v}}{\tau}{\varphi}
-  %     }
-  %     $
-  %     Then $\rho = \hat{v}$ and $\varphi_1 = \varphi_2 = \varphi$.
-  %     \begin{itemize}
-  %     \item $\judgectx{}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
-  %       $\judgectx{}{\varphi_1}$ is in the premises;
-  %     \item $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\hat{v}}}{\tau}$ because
-  %       $\judgectx{}{\varphi_2}$ and $\evarassign{\hat{v}}{\tau} \in \varphi_2$.
-  %     \item $\varphi \subseteq \varphi$ trivially.
-  %     \item $\judgesafeinenv{E}{\varphi_2}$ because $\varphi_2 = \varphi_1$ and
-  %       $\judgesafeinenv{E}{\varphi_1}$ is in the lemma premises.
-  %     \end{itemize}
-  %   \item
-  %     $
-  %     \Infer{}
-  %     {
-  %       \reduces{\rho}{\rho'}\\
-  %       \judgeunify{\Gamma; E; \varphi_1}{\rho'}{\tau}{\varphi_2}
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
-  %     }
-  %     $
-  %     Then by the induction hypothesis:
-  %     $\varphi_1 \subseteq \varphi_2$,
-  %     $\judgectx{}{\varphi_2}$,
-  %     $\judgesafeinenv{E}{\varphi_2}$,
-  %     and $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}$.
-  %     To prove that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}$ we apply Red-L:
-  %     $$
-  %     \Infer{Red-L}
-  %     {
-  %       \reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}\\
-  %       \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho'}}{\tau}
-  %     }
-  %     {
-  %       \judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\rho}}{\tau}
-  %     }
-  %     $$
-  %     Here $\reduces{\ctxtapp{\varphi_2}{\rho}}{\ctxtapp{\varphi_2}{\rho'}}$
-  %     holds by \cref{corollary:ctx-app-pres-red}.
-  %   \item
-  %     $
-  %     \Infer{}
-  %     {
-  %       \reduces{\tau}{\tau'}\\
-  %       \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau'}{\varphi_2}\\
-  %       \judgeSnf{\rho}
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi_1}{\rho}{\tau}{\varphi_2}
-  %     }
-  %     $
-  %     Analogously to the previous case.
+    \item
+      $
+      \Infer{}
+      {
+        \judgeunify{\Gamma; E;\psi_0}{P_1}{Q_1}{\psi_1} \\
+        \dots\\
+        \judgeunify{\Gamma; E;\psi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\psi_{\narg{F}}} \\
+        \judgeSnf{\fullterm{F}{P}} \\
+        \judgeSnf{\fullterm{F}{Q}}
+      }
+      {
+        \judgeunify{\Gamma; E; \psi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}
+      }
+      $
 
-  %   \item
-  %     $
-  %     \Infer{}
-  %     {
-  %       \judgeunify{\Gamma; E;\psi_0}{P_1}{Q_1}{\psi_1} \\
-  %       \dots\\
-  %       \judgeunify{\Gamma; E;\psi_{\narg{F}-1}}{P_{\narg{F}}}{Q_{\narg{F}}}{\psi_{\narg{F}}} \\
-  %       \judgeSnf{\fullterm{F}{P}} \\
-  %       \judgeSnf{\fullterm{F}{Q}}
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \psi_0}{\fullterm{F}{\rho}}{\fullterm{F}{\tau}}{\psi_{\narg{F}}}
-  %     }
-  %     $
+      Then $\varphi_1 = \psi_0$, $\varphi_2 = \psi_{\narg{F}}$, $\rho =
+      \fullterm{F}{P}$, $\tau = \fullterm{F}{Q}$. 
 
-  %     Then $\varphi_1 = \psi_0$, $\varphi_2 = \psi_{\narg{F}}$, $\rho =
-  %     \fullterm{F}{P}$, $\tau = \fullterm{F}{Q}$. 
+      We can apply the induction hypothesis to the first unification judgement
+      in the premise (i.e. to $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q_1}{\psi_1}$) acquiring:
+      $\judgectx{}{\psi_1}$,
+      $\judgectx{E}{\psi_1}$,
+      and
+      $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_1}{P_1}}{Q_1}$. Then, because
+      $\judgectx{}{\psi_1}$, we can apply the induction hypothesis to the second
+      premise. Continuing this process, we acquire:
+      \begin{itemize}
+        \item
+          $\varphi_1 = \psi_0 \subseteq \cdots \subseteq \psi_{\narg{F}} = \varphi_2$;
+        \item
+          $\judgectx{}{\varphi_2}$
+        \item
+          $\judgectx{E}{\varphi_2}$
+        \item $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_i}{P_i}}{Q_i}$ for $i =
+          1\dots\narg{F}$. Hence, because $\psi_i \subseteq \varphi_2$,
+          $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{P_i}}{Q_i}$, which implies
+          that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\fullterm{F}{P}}}{\fullterm{F}{Q}}$
+      \end{itemize}
 
-  %     We can apply the induction hypothesis to the first unification judgement
-  %     in the premise (i.e. to $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q_1}{\psi_1}$) acquiring:
-  %     $\judgectx{}{\psi_1}$,
-  %     $\judgectx{E}{\psi_1}$,
-  %     and
-  %     $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_1}{P_1}}{Q_1}$. Then, because
-  %     $\judgectx{}{\psi_1}$, we can apply the induction hypothesis to the second
-  %     premise. Continuing this process, we acquire:
-  %     \begin{itemize}
-  %       \item
-  %         $\varphi_1 = \psi_0 \subseteq \cdots \subseteq \psi_{\narg{F}} = \varphi_2$;
-  %       \item
-  %         $\judgectx{}{\varphi_2}$
-  %       \item
-  %         $\judgectx{E}{\varphi_2}$
-  %       \item $\judgeequivuntg{\Gamma}{\ctxtapp{\psi_i}{P_i}}{Q_i}$ for $i =
-  %         1\dots\narg{F}$. Hence, because $\psi_i \subseteq \varphi_2$,
-  %         $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{P_i}}{Q_i}$, which implies
-  %         that $\judgeequivuntg{\Gamma}{\ctxtapp{\varphi_2}{\fullterm{F}{P}}}{\fullterm{F}{Q}}$
-  %     \end{itemize}
+      \item
+        $
+        \Infer{}
+        {
+          \judgeunify{\Gamma, x; E; \varphi_1}
+          {\absclose{n}{\rho}}
+          {\absclose{n}{\tau}}
+          {\varphi_2}
+        }
+        {
+          \judgeunify{\Gamma; E; \varphi_1}
+          {x.\absclose{n}{\rho}}
+          {x.\absclose{n}{\tau}}
+          {\varphi_2}
+        }
+      $
 
-  %     \item
-  %       $
-  %       \Infer{}
-  %       {
-  %         \judgeunify{\Gamma, x; E; \varphi_1}
-  %         {\absclose{n}{\rho}}
-  %         {\absclose{n}{\tau}}
-  %         {\varphi_2}
-  %       }
-  %       {
-  %         \judgeunify{\Gamma; E; \varphi_1}
-  %         {x.\absclose{n}{\rho}}
-  %         {x.\absclose{n}{\tau}}
-  %         {\varphi_2}
-  %       }
-  %     $
+      Then we apply the induction hypothesis to
+      $ \judgeunify{\Gamma, x; E; \varphi_1} {\absclose{n}{\rho}} {\absclose{n}{\tau}} {\varphi_2} $
+      and acquire 
+      \begin{itemize}
+        \item $\judgectx{}{\varphi_2}$
+        \item $\varphi_1 \subseteq \varphi_2$
+        \item $\judgectx{E}{\varphi_2}$
+        \item
+          $\judgeequivunt{\ctxtapp{\varphi_2}{\absclose{n}{\rho}}}{\absclose{n}{\tau}}$.
+          By the Barendrecht's convention, $x \notin \Gamma$, hence, 
+          $x \notin \codom{E}$. Since $\judgectx{E}{\varphi_2}$, $x \notin \fv{\varphi_2}$.
+          Therefore, $x.\ctxtapp{\varphi_2}{\absclose{n}{\rho}} =
+          \ctxtapp{\varphi_2}{x.\absclose{n}{\rho}}$, which gives us the
+          required equivalence. 
+          \ilyam{extract a lemma}
+      \end{itemize}
 
-  
-  %     Then we apply the induction hypothesis to
-  %     $ \judgeunify{\Gamma, x; E; \varphi_1} {\absclose{n}{\rho}} {\absclose{n}{\tau}} {\varphi_2} $
-  %     and acquire 
-  %     \begin{itemize}
-  %       \item $\judgectx{}{\varphi_2}$
-  %       \item $\varphi_1 \subseteq \varphi_2$
-  %       \item $\judgectx{E}{\varphi_2}$
-  %       \item
-  %         $\judgeequivunt{\ctxtapp{\varphi_2}{\absclose{n}{\rho}}}{\absclose{n}{\tau}}$.
-  %         By the Barendrecht's convention, $x \notin \Gamma$, hence, 
-  %         $x \notin \codom{E}$. Since $\judgectx{E}{\varphi_2}$, $x \notin \fv{\varphi_2}$.
-  %         Therefore, $x.\ctxtapp{\varphi_2}{\absclose{n}{\rho}} =
-  %         \ctxtapp{\varphi_2}{x.\absclose{n}{\rho}}$, which gives us the
-  %         required equivalence. 
-  %         \ilyam{extract a lemma}
-  %     \end{itemize}
-
-  %   \item
-  %     $
-  %     \Infer{}
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi}
-  %       {\rho}
-  %       {\tau}
-  %       {\psi}
-  %     }
-  %     {
-  %       \judgeunify{\Gamma; E; \varphi}
-  %       {.\rho}
-  %       {.\tau}
-  %       {\psi}
-  %     }
-  %     $ 
-  %     Trivially by the induction hypothesis. 
+    \item
+      $
+      \Infer{}
+      {
+        \judgeunify{\Gamma; E; \varphi}
+        {\rho}
+        {\tau}
+        {\psi}
+      }
+      {
+        \judgeunify{\Gamma; E; \varphi}
+        {.\rho}
+        {.\tau}
+        {\psi}
+      }
+      $ 
+      Trivially by the induction hypothesis. 
 
 
 
 
-  % \end{itemize}
+  \end{itemize}
 
 \end{proof}
 
@@ -1788,154 +1641,152 @@ the unification algorithm does not make the terms non-unifiable.
   \begin{mathpar}
     \Infer{}
     {
-      % \judgectx{E}{\Omega}\\
-      \judgectx{}{\theta}\\
+      \judgectx{E}{\Omega}\\
+      \judgectx{}{\Omega}\\
       \judgeSokterm{\rho}\\
-      \judgeequivuntg{\gvars{\theta}}{\ctxtapp{\theta}{\rho}}{\tau}\\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}\\
     }
     {
-      \forall \extends{\varphi}{\theta} . ~ \exists \extends{\psi}{\theta}. ~
-      \judgeunify{\varphi}{\rho}{\tau}{\psi} \\
+      \forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+      \judgeunify{\Gamma; E; \varphi}{\rho}{\tau}{\psi} \\
     }
   \end{mathpar}
 
 \end{lemma}
 
 \begin{proof}
-  \ilyam{TODO: update the proof}
-
-  % Induction on $\judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}$.
+  Induction on $\judgeequivunt{\ctxtapp{\Omega}{\rho}}{\tau}$.
   
-  % \begin{itemize}
-  % \item
-  %   $
-  %   \Infer{}
-  %     {
-  %       \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
-  %       \judgeequivuntg{\Gamma}{\rho'}{\tau}
-  %     }
-  %     {
-  %       \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
-  %     }
-  %     $ By \cref{corollary:red-app-commute}, there exists $\rho^*$ s.t.
-  %     $\reduces{\rho}{\rho^*}$ and $\ctxtapp{\Omega}{\rho^*} = \rho'$.
+  \begin{itemize}
+  \item
+    $
+    \Infer{}
+      {
+        \reduces{\ctxtapp{\Omega}{\rho}}{\rho'}\\
+        \judgeequivuntg{\Gamma}{\rho'}{\tau}
+      }
+      {
+        \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
+      }
+      $ By \cref{corollary:red-app-commute}, there exists $\rho^*$ s.t.
+      $\reduces{\rho}{\rho^*}$ and $\ctxtapp{\Omega}{\rho^*} = \rho'$.
 
 
-  %     By \cref{lemma:safe-occur-pres}, $\judgeSokterm{\rho^*}$.
-  %     Then we apply the induction hypothesis to $E$, $\Omega$, $\rho^*$, and $\tau$.
-  %     To acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
-  %     \judgeunify{\Gamma; E; \varphi}{\rho^*}{\tau}{\psi}$,
-  %     where we can replace $\rho^*$ with $\rho$ by Red-L.
+      By \cref{lemma:safe-occur-pres}, $\judgeSokterm{\rho^*}$.
+      Then we apply the induction hypothesis to $E$, $\Omega$, $\rho^*$, and $\tau$.
+      To acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+      \judgeunify{\Gamma; E; \varphi}{\rho^*}{\tau}{\psi}$,
+      where we can replace $\rho^*$ with $\rho$ by Red-L.
 
-  % \item
-  %   $
-  %   \Infer{}
-  %   {
-  %     \reduces{\tau}{\tau'}\\
-  %     \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau'}\\
-  %     \judgeSnf{\ctxtapp{\Omega}{\rho}}
-  %   }
-  %   {
-  %     \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
-  %   }
-  %   $
-  %   We can apply the induction hypothesis to $E, \Omega$, $\rho$, $\Gamma$, and $\tau'$ right
-  %   away to acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq
-  %   \Omega. ~ \judgeunify{\Gamma; E;\varphi}{\rho}{\tau'}{\psi}$, where we replace $\tau'$
-  %   with $\tau$ by Red-R.
+  \item
+    $
+    \Infer{}
+    {
+      \reduces{\tau}{\tau'}\\
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau'}\\
+      \judgeSnf{\ctxtapp{\Omega}{\rho}}
+    }
+    {
+      \judgeequivuntg{\Gamma}{\ctxtapp{\Omega}{\rho}}{\tau}
+    }
+    $
+    We can apply the induction hypothesis to $E, \Omega$, $\rho$, $\Gamma$, and $\tau'$ right
+    away to acquire $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq
+    \Omega. ~ \judgeunify{\Gamma; E;\varphi}{\rho}{\tau'}{\psi}$, where we replace $\tau'$
+    with $\tau$ by Red-R.
 
-  % \item
-  %   $
-  %   \Infer{}
-  %   {
-  %     \judgeequivuntg{\Gamma}{Q_1}{Q'_1} \\
-  %     \dots\\
-  %     \judgeequivuntg{\Gamma}{Q_{\narg{F}}}{Q'_{\narg{F}}} \\
-  %     \judgeSnf{\fullterm{F}{Q}} \\
-  %     \judgeSnf{\fullterm{F}{Q'}}
-  %   }
-  %   {
-  %     \judgeequivuntg{\Gamma}{\fullterm{F}{Q}}{\fullterm{F}{Q'}}
-  %   }
-  %   $
-  %   Then $\ctxtapp{\Omega}{\rho} = \fullterm{F}{Q}$ and $\tau =
-  %   \fullterm{F}{Q'}$.
-  %   Let us destruct $\ctxtapp{\Omega}{\rho}$. \ilyam{we need a lemma to destruct
-  %   it this way}
-  %   \begin{itemize}
-  %     \item $\rho = \hat{x}$ and $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
-  %       \Omega$. Let us consider an arbitrary $\varphi \subseteq \Omega$.
-  %       $\varphi$ is well-formed, then either $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
-  %       \varphi$ or $\evarassign{\hat{x}}{\spcdot} \notin \varphi$.
-  %       \begin{itemize}
-  %       \item $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in \varphi$ then we
-  %         take $\psi = \varphi$ and apply U-Keep. 
-  %       \item $\evarassign{\hat{x}}{\spcdot} \notin \varphi$ then we
-  %         take $\psi = \varphi, \evarassign{\hat{x}}{\fullterm{F}{Q}}$
-  %         and apply U-Add. The term $\fullterm{F}{Q}$
-  %         is in the normal form by one
-  %         of the premises. $\judgectx{E[\hat{x}]}{\fullterm{F}{Q}}$ because
-  %         $\judgectx{E}{\Omega} \ni \evarassign{\hat{x}}{\fullterm{F}{Q}}$.
+  \item
+    $
+    \Infer{}
+    {
+      \judgeequivuntg{\Gamma}{Q_1}{Q'_1} \\
+      \dots\\
+      \judgeequivuntg{\Gamma}{Q_{\narg{F}}}{Q'_{\narg{F}}} \\
+      \judgeSnf{\fullterm{F}{Q}} \\
+      \judgeSnf{\fullterm{F}{Q'}}
+    }
+    {
+      \judgeequivuntg{\Gamma}{\fullterm{F}{Q}}{\fullterm{F}{Q'}}
+    }
+    $
+    Then $\ctxtapp{\Omega}{\rho} = \fullterm{F}{Q}$ and $\tau =
+    \fullterm{F}{Q'}$.
+    Let us destruct $\ctxtapp{\Omega}{\rho}$. \ilyam{we need a lemma to destruct
+    it this way}
+    \begin{itemize}
+      \item $\rho = \hat{x}$ and $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
+        \Omega$. Let us consider an arbitrary $\varphi \subseteq \Omega$.
+        $\varphi$ is well-formed, then either $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in
+        \varphi$ or $\evarassign{\hat{x}}{\spcdot} \notin \varphi$.
+        \begin{itemize}
+        \item $\evarassign{\hat{x}}{\fullterm{F}{Q}} \in \varphi$ then we
+          take $\psi = \varphi$ and apply U-Keep. 
+        \item $\evarassign{\hat{x}}{\spcdot} \notin \varphi$ then we
+          take $\psi = \varphi, \evarassign{\hat{x}}{\fullterm{F}{Q}}$
+          and apply U-Add. The term $\fullterm{F}{Q}$
+          is in the normal form by one
+          of the premises. $\judgectx{E[\hat{x}]}{\fullterm{F}{Q}}$ because
+          $\judgectx{E}{\Omega} \ni \evarassign{\hat{x}}{\fullterm{F}{Q}}$.
 
-  %       \end{itemize}
-  %     \item $\rho = \fullterm{F}{P}$, $F \neq \hat{x}$, 
-  %       $\ctxtapp{\Omega}{P_i} = Q_i$ and $\judgeequivuntg{\Gamma}{Q_i}{Q'_i}$ for $i = 1\dots\narg{F}$.
+        \end{itemize}
+      \item $\rho = \fullterm{F}{P}$, $F \neq \hat{x}$, 
+        $\ctxtapp{\Omega}{P_i} = Q_i$ and $\judgeequivuntg{\Gamma}{Q_i}{Q'_i}$ for $i = 1\dots\narg{F}$.
 
-  %       By the corollary of \cref{lemma:cong-safe-occurrence},
-  %       $\judgeSokterm{P_i}$. So we can apply the induction hypothesis to all
-  %       the components to acquire $\narg{F}$ facts: $\forall \varphi \subseteq \Omega.
-  %       ~ \exists \psi \subseteq \Omega. ~ \judgeunify{\Gamma; E; \varphi}{P_i}{Q'_i}{\psi}$.
+        By the corollary of \cref{lemma:cong-safe-occurrence},
+        $\judgeSokterm{P_i}$. So we can apply the induction hypothesis to all
+        the components to acquire $\narg{F}$ facts: $\forall \varphi \subseteq \Omega.
+        ~ \exists \psi \subseteq \Omega. ~ \judgeunify{\Gamma; E; \varphi}{P_i}{Q'_i}{\psi}$.
 
-  %       Let us apply the first fact to an arbitrary $\varphi = \psi_0 \subseteq
-  %       \Omega$ to acquire $\psi_1 \subseteq \Omega$. Then we apply the second
-  %       fact to $\psi_1 $, acquiring $\psi_2 \subseteq \Omega$. Repeating the process, we have:
-  %       $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q'_1}{\psi_1}, ~ \dots, ~
-  %       \judgeunify{\Gamma; E; \psi_{\narg{F}-1}}{P_{\narg{F}}}{Q'_{\narg{F}}}{\psi_{\narg{F}}}$.
+        Let us apply the first fact to an arbitrary $\varphi = \psi_0 \subseteq
+        \Omega$ to acquire $\psi_1 \subseteq \Omega$. Then we apply the second
+        fact to $\psi_1 $, acquiring $\psi_2 \subseteq \Omega$. Repeating the process, we have:
+        $\judgeunify{\Gamma; E; \psi_0}{P_1}{Q'_1}{\psi_1}, ~ \dots, ~
+        \judgeunify{\Gamma; E; \psi_{\narg{F}-1}}{P_{\narg{F}}}{Q'_{\narg{F}}}{\psi_{\narg{F}}}$.
 
-  %       Notice that by \cref{lemma:subst-res,prop:nf-irred},
-  %       $\judgeSnf{\fullterm{F}{P}}$. Then we apply the congruence
-  %       unification rule and get
-  %       $\judgeunify{\Gamma; E;\varphi}{\fullterm{F}{P}}{\fullterm{F}{Q'}}{\psi_{\narg{F}}}$,
-  %       i.e. $\judgeunify{\Gamma; E;\varphi}{\rho}{\tau}{\psi_{\narg{F}}}$, so we take
-  %       $\psi_{\narg{F}}$ as $\psi$.
+        Notice that by \cref{lemma:subst-res,prop:nf-irred},
+        $\judgeSnf{\fullterm{F}{P}}$. Then we apply the congruence
+        unification rule and get
+        $\judgeunify{\Gamma; E;\varphi}{\fullterm{F}{P}}{\fullterm{F}{Q'}}{\psi_{\narg{F}}}$,
+        i.e. $\judgeunify{\Gamma; E;\varphi}{\rho}{\tau}{\psi_{\narg{F}}}$, so we take
+        $\psi_{\narg{F}}$ as $\psi$.
 
-  %   \end{itemize}
+    \end{itemize}
     
-  % \item
-  %   $
-  %   \Infer{}
-  %   {\judgeequivuntg{\Gamma, x}{\absclose{n}{\sigma}} {\absclose{n}{\tau}} }
-  %   {\judgeequivuntg{\Gamma}{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}}
-  %   $
+  \item
+    $
+    \Infer{}
+    {\judgeequivuntg{\Gamma, x}{\absclose{n}{\sigma}} {\absclose{n}{\tau}} }
+    {\judgeequivuntg{\Gamma}{x.\absclose{n}{\sigma}}{x.\absclose{n}{\tau}}}
+    $
 
-  %   Then
-  %   $\ctxtapp{\Omega}{\rho} = x.\absclose{n}{\sigma}$, which means that $\rho =
-  %   x.\absclose{n}{\rho'}$, and  $\ctxtapp{\Omega}{\absclose{n}{\rho'}} =
-  %   \absclose{n}{\sigma}$. Notice that
-  %   $\judgeSokterm{\absclose{n}{\rho'}}$, which means the induction hypothesis
-  %   is applicable and gives us $\forall \varphi \subseteq \Omega. ~ \exists \psi
-  %   \subseteq \Omega. ~
-  %   \judgeunify{\Gamma,x;E;\varphi}{\absclose{n}{\rho'}}{\absclose{n}{\tau}}{\psi}$.
-  %   % We choose a fresh variable $y$. By \cref{lemma:unif-inv-under-subst},
-  %   % $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
-  %   % \judgeunify{E;\varphi}{\rename{(\absclose{n}{\rho'})}{x}{y}}{\rename{(\absclose{n}{\sigma})}{x}{y}}{\psi}$.
-  %   Then we can apply the corresponding
-  %   unification rule to get the required unification judgement: 
-  %   $\judgeunify{\Gamma; E; \varphi}{x.\absclose{n}{\rho'}}{x.\absclose{n}{\tau}}{\psi}$.
+    Then
+    $\ctxtapp{\Omega}{\rho} = x.\absclose{n}{\sigma}$, which means that $\rho =
+    x.\absclose{n}{\rho'}$, and  $\ctxtapp{\Omega}{\absclose{n}{\rho'}} =
+    \absclose{n}{\sigma}$. Notice that
+    $\judgeSokterm{\absclose{n}{\rho'}}$, which means the induction hypothesis
+    is applicable and gives us $\forall \varphi \subseteq \Omega. ~ \exists \psi
+    \subseteq \Omega. ~
+    \judgeunify{\Gamma,x;E;\varphi}{\absclose{n}{\rho'}}{\absclose{n}{\tau}}{\psi}$.
+    % We choose a fresh variable $y$. By \cref{lemma:unif-inv-under-subst},
+    % $\forall \varphi \subseteq \Omega. ~ \exists \psi \subseteq \Omega. ~
+    % \judgeunify{E;\varphi}{\rename{(\absclose{n}{\rho'})}{x}{y}}{\rename{(\absclose{n}{\sigma})}{x}{y}}{\psi}$.
+    Then we can apply the corresponding
+    unification rule to get the required unification judgement: 
+    $\judgeunify{\Gamma; E; \varphi}{x.\absclose{n}{\rho'}}{x.\absclose{n}{\tau}}{\psi}$.
 
-  % \item
-  %   $
-  %   \Infer{}
-  %   {
-  %     \judgeequivunt{\sigma}{\tau}
-  %   }
-  %   {
-  %     \judgeequivunt{.\sigma}{.\tau}
-  %   }
-  %   $
-  %   Trivially by the induction hypothesis.
+  \item
+    $
+    \Infer{}
+    {
+      \judgeequivunt{\sigma}{\tau}
+    }
+    {
+      \judgeequivunt{.\sigma}{.\tau}
+    }
+    $
+    Trivially by the induction hypothesis.
     
-  % \end{itemize}
+  \end{itemize}
 
 \end{proof}
 
@@ -1949,6 +1800,8 @@ the unification algorithm does not make the terms non-unifiable.
 % \ilyam{There might be some problems with the meaningless existential variables}
 
 
+
+
 \section{Typing}
 \label{sec:rules}
 
@@ -1957,14 +1810,10 @@ the unification algorithm does not make the terms non-unifiable.
 \begin{definition}[Declarative Typing Context]
 \begin{mathpar}
   \begin{array}{llcl}
-    \Gamma & ::= & \emptyctx \bnfalt \Gamma,\, x:A \bnfalt \Gamma, \, \hat{x}:A
+    \Gamma & ::= & \emptyctx \bnfalt \Gamma,\, x:A
   \end{array}
 \end{mathpar}
 \end{definition}
-
-In the declarative system, we treat the existential variables $\hat{x}$ as
-regular variables. However, in the declarative system they cannot be
-\emph{added} into the context, and must be there initially.
 
 
 To make the typing decidable, we restrict the system in several ways. In particular,
@@ -1972,8 +1821,9 @@ when we form $\foralltype{x:A}{X}$, we require $x$ to belong to $\fv{X}$ and occ
 safely in $X$.
 
 
+
 \begin{description}
-  \item[Var and Annotation]
+  \item[Var]
 \begin{mathpar}
 
 \Infer{Var}
@@ -1981,19 +1831,9 @@ safely in $X$.
       { \judgevInfer{\Gamma}{x}{A} }
 \and
 
-\Infer{VarE}
-{ \judgeInctx{\hat{x}:A}{\Gamma} }
-{ \judgevInfer{\Gamma}{\hat{x}}{A} }
-\and
-
 \Infer{VarT}
 { }
 {\judgevtype{\Gamma}{a}}
-\and
-
-\Infer{Annot}
-{\judgevCheck{\Gamma}{v}{A}}
-{\judgevInfer{\Gamma}{\annot{v}{A}}{A}}
 
 \end{mathpar}
 \item[Declarative Subsumption]
@@ -2002,14 +1842,14 @@ safely in $X$.
   
   \Infer{$\csubt$}
         { \judgecInfer{\Gamma}{t}{X} \\
-          \judgecsubt{\Gamma}{X}{Y} \\
+          \judgecsubt{\vars{\Gamma}}{X}{Y} \\
         }
         { \judgecCheck{\Gamma}{t}{Y} }
   \and
 
   \Infer{$\vsubt$}
         { \judgevInfer{\Gamma}{v}{A} \\
-          \judgevsubt{\Gamma}{A}{B} \\
+          \judgevsubt{\vars{\Gamma}}{A}{B} \\
         }
         { \judgevCheck{\Gamma}{v}{B} }
 \end{mathpar}
@@ -2019,48 +1859,51 @@ safely in $X$.
 
 \begin{mathpar}
   \Infer{$\vtoc$}
-  { \judgevtype{\Gamma}{A} }
-  { \judgectype{\Gamma}{\valtocomp{A}} }
-  \and
+        { \judgevtype{\Gamma}{A} }
+        { \judgectype{\Gamma}{\valtocomp{A}} }
+        \and
 
   \Infer{$\ctov$}
-  { \judgectype{\Gamma}{X} }
-  { \judgevtype{\Gamma}{\comptoval{X}} }
+        { \judgectype{\Gamma}{X} }
+        { \judgevtype{\Gamma}{\comptoval{X}} }
   \and
 
   \Infer{$\Pi$}
-  { \judgevtype{\Gamma}{A} \\
-    \judgectype{\Gamma, x:A}{X} }
-  { \judgectype{\Gamma}{\pitype{x:A}{X}} }
+        { \judgevtype{\Gamma}{A} \\
+          \judgectype{\Gamma, x:A}{X} }
+        { \judgectype{\Gamma}{\pitype{x:A}{X}} }
   \and
 
   \Infer{$\forall$}
-  { \judgevtype{\Gamma}{A} \\
-    \judgectype{\Gamma, x:A}{X} \\
-    \judgeSOK{x}{X}
-  }
-  { \judgectype{\Gamma}{\foralltype{x:A}{X}} }
+        { \judgevtype{\Gamma}{A} \\
+          \judgectype{\Gamma, x:A}{X} \\
+          \judgeSOK{x}{X}
+        }
+        { \judgectype{\Gamma}{\foralltype{x:A}{X}} }
+        \and
+
+  \Infer{$\Sigma$}
+        { \judgevtype{\Gamma}{A} \\
+          \judgevtype{\Gamma, x:A}{B}}
+        { \judgevtype{\Gamma}{\sigmatype{x:A}{B}}}
   \and
-  % \Infer{$\Sigma$}
-  % {
-  %   \judgevtype{\Gamma}{A} \\
-  %   \judgevtype{\Gamma, x:A}{B}}
-  % { \judgevtype{\Gamma}{\sigmatype{x:A}{B}}}
-  % \and
+  
+
   \Infer{$\mathsf{eq}$}
   {
     % \judgevtypeAlg{\Gamma_1}{A}{\Gamma_2} \\
-    \judgevtype{\Gamma}{A} \\
-    \judgevCheck{\Gamma}{v}{A} \\
-    \judgevCheck{\Gamma}{w}{A}}
-  { \judgevtype{\Gamma}{\eqtype{A}{v}{w}}}
+          \judgevCheck{\Gamma}{v}{A} \\
+          \judgevCheck{\Gamma}{w}{A}}
+        { \judgevtype{\Gamma}{\eqtype{A}{v}{w}}}
   \and
+
   \Infer{Let-type}
   { \judgevtype{\Gamma}{A} \\
     \judgectype{\Gamma, x:A}{X} \\
     \judgecCheck{\Gamma}{e}{\valtocomp{A}}}
   { \judgectype{\Gamma}{(\letval{x:A}{e}{X})}}
   \and
+
 \end{mathpar}
 
 \item[$\vtoc$ and $\ctov$]
@@ -2068,15 +1911,8 @@ safely in $X$.
 
   \xcancel{
   \Infer{$\ctov$I$\checks$}
-  {
-    \judgecInfer{\Gamma}{t}{X} \\
-    \judgecsubt{\Gamma}{X}{Y} \\
-    \judgecsubt{\Gamma}{Y}{X} \\
-  }
-  {
-    \judgevCheck{\Gamma}{\thunk{t}}{\comptoval{Y}}
-  }
-  }
+        { \judgecCheck{\Gamma}{t}{X} }
+        { \judgevCheck{\Gamma}{\thunk{t}}{\comptoval{X}}} }
 
   \and
   \Infer{$\ctov$I$\infers$}
@@ -2084,20 +1920,23 @@ safely in $X$.
         { \judgevInfer{\Gamma}{\thunk{t}}{\comptoval{X}}}
 
   \and
-  \xcancel{
+
   \Infer{$\ctov$E$\checks$}
         { \judgevCheck{\Gamma}{v}{\comptoval{X}} }
         { \judgecCheck{\Gamma}{\force{v}}{X} }
-      }
+
   \and
   \Infer{$\vtoc$E$\infers$}
         { \judgevInfer{\Gamma}{v}{\comptoval{X}} }
         { \judgecInfer{\Gamma}{\force{v}}{X} }
   \and
+
+
   \Infer{$\vtoc$I$\checks$}
         { \judgevCheck{\Gamma}{v}{A} }
         { \judgecCheck{\Gamma}{\return{v}}{\valtocomp{A}} }
   \and
+
   \Infer{$\vtoc$I$\infers$}
         { \judgevInfer{\Gamma}{v}{A} }
         { \judgecInfer{\Gamma}{\return{v}}{\valtocomp{A}} }
@@ -2149,53 +1988,52 @@ safely in $X$.
 
 \end{mathpar}
 
-\item[$\forall$ and $\Pi$]
+\item[$\forall$, $\Pi$, and $\Sigma$]
 
 \begin{mathpar}
-  % \Infer{$\forall$I$\checks$}
-  %       {
-  %         \judgevtype{\Gamma}{A} \\ 
-  %         \judgectype{\Gamma, x:A}{X} \\
-  %         \judgecCheck{\Gamma, x:A}{t}{X} }
-  %       { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\foralltype{x:A}{X}} }
-  % \and
-  \Infer{$\Pi$I$\infers$}
+
+  \Infer{$\forall$I$\checks$}
         {
           \judgevtype{\Gamma}{A} \\ 
-          \judgecInfer{\Gamma, x:A}{t}{X} \\
           \judgectype{\Gamma, x:A}{X} \\
-        }
-        { \judgecInfer{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
+          \judgecCheck{\Gamma, x:A}{t}{X} }
+        { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\foralltype{x:A}{X}} }
   \and
-  \Infer{$\forall$I$\infers$}
-  {
-    \judgevtype{\Gamma}{A} \\ 
-    \judgecInfer{\Gamma, x:A}{t}{X} \\
-    \judgectype{\Gamma, x:A}{X} \\
-    \judgeSOK{x}{X} \\
-  }
-  { \judgecInfer{\Gamma}{\polyfun{x:A}{t}}{\foralltype{x:A}{X}} }
-  % \Infer{$\Sigma$I$\checks$}
-  %       { \judgevCheck{\Gamma}{v}{A} \\
-  %         \judgevCheck{\Gamma}{w}{\subst{B}{x}{v}} \\
-  %         \judgevtype{\Gamma}{\sigmatype{x:A}{B}} }
-  %       { \judgevCheck{\Gamma}{\pair{v}{w}}{\sigmatype{x:A}{B}} }
-  %  \and
-  % \Infer{$\Sigma$E}
-  %       {
-  %         \judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}} \\
-  %         \judgectype{\Gamma, p : (\sigmatype{x:A}{B})}{X} \\
-  %         \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{\subst{X}{p}{\pair{x}{y}}}}}
-  %       { \judgecInfer{\Gamma}{\recsigma{v}{p.X}{t}}{\subst{X}{p}{v}}}
-  % \and
+
+  \Infer{$\Pi$I$\checks$}
+        {
+          \judgevtype{\Gamma}{A} \\ 
+          \judgectype{\Gamma, x:A}{X} \\
+          \judgecCheck{\Gamma, x:A}{t}{X} }
+        { \judgecCheck{\Gamma}{\fun{x:A}{t}}{\pitype{x:A}{X}} }
+  \and
+
+  \Infer{$\Sigma$I$\checks$}
+        { \judgevCheck{\Gamma}{v}{A} \\
+          \judgevCheck{\Gamma}{w}{\subst{B}{x}{v}} \\
+          \judgevtype{\Gamma}{\sigmatype{x:A}{B}} }
+        { \judgevCheck{\Gamma}{\pair{v}{w}}{\sigmatype{x:A}{B}} }
+   \and
+
+
+  \Infer{$\Sigma$E}
+        {
+          \judgevInfer{\Gamma}{v}{\sigmatype{x:A}{B}} \\
+          \judgectype{\Gamma, p : (\sigmatype{x:A}{B})}{X} \\
+          \judgecCheck{\Gamma}{t}{\pitype{(x:A)(y:B)}{\subst{X}{p}{\pair{x}{y}}}}}
+        { \judgecInfer{\Gamma}{\recsigma{v}{p.X}{t}}{\subst{X}{p}{v}}}
+  \and
+
 \end{mathpar}
 
 \item[Equality]
 
 \begin{mathpar}
+
   \Infer{$\mathsf{eq}$I}
   { \judgevInfer{\Gamma}{v}{A} }
   { \judgevInfer{\Gamma}{\refl{v}}{\eqtype{A}{v}{v}} }
+
   \and
 
   \Infer{$\mathsf{eq}$E$\checks$}
@@ -2209,6 +2047,7 @@ safely in $X$.
 \item[Declarative Polymorphic Application]
 
 \begin{mathpar}
+
   \Infer{$\Pi$E}
   {
     \judgecInfer{\Gamma}{t}{Y} \\
@@ -2219,24 +2058,15 @@ safely in $X$.
 
   \Infer{$\forall$App}
   {
-    \judgevCheck{\Gamma}{\boxr{w}}{A}\\
-    \judgeApp{\Gamma}{\subst{X}{x}{\boxr{w}}}{v}{Y}
+    \judgevCheck{\Gamma}{\mathcolorbox{pink}{w}}{A}\\
+    \judgeApp{\Gamma}{\subst{X}{x}{\mathcolorbox{pink}{w}}}{v}{Y}
   }
   { \judgeApp{\Gamma}{\foralltype{x:A}{X}}{v}{Y} }
   \and
 
-  \Infer{$\forall$App-Regen}
-  {
-    \judgeApp{\Gamma\xcancel{, x : A}}{X}{v}{Y} \\
-    \judgeSOK{x}{Y} \\
-  }
-  { \judgeApp{\Gamma}{\foralltype{x:A}{X}}{v}{\foralltype{x:A}{Y}} }
-  \and
-
   \Infer{$\Pi$App}
   {
-    \judgevCheck{\Gamma}{v}{A}\\
-    \ilyam{X is already WF}
+    \judgevCheck{\Gamma}{v}{A}
   }
   { \judgeApp{\Gamma}{\pitype{x:A}{X}}{v}{\subst{X}{x}{v}} }
   \and
@@ -2247,12 +2077,12 @@ safely in $X$.
 \label{sec:declarative-supbyping}
 
 \begin{mathpar}
-  % \Infer{$\subt \Sigma$}
-  %       {
-  %         \judgevsubt{\Gamma}{A_1}{B_1}\\
-  %         \judgevsubt{\Gamma, x:A_1}{A_2}{B_2}\\
-  %       }
-  %       {\judgevsubt{\Gamma}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}}
+  \Infer{$\subt \Sigma$}
+        {
+          \judgevsubt{\Gamma}{A_1}{B_1}\\
+          \judgevsubt{\Gamma, x:A_1}{A_2}{B_2}\\
+        }
+        {\judgevsubt{\Gamma}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}}
 
  \Infer{$\subt \Pi$}
        {
@@ -2282,15 +2112,15 @@ safely in $X$.
   \Infer{$\subt$Eq}
         {
           \judgevsubt{\Gamma}{A}{B} \\
-          \judgeequivuntg{\untype{\Gamma}}{v_1}{v_2} \\
-          \judgeequivuntg{\untype{\Gamma}}{w_1}{w_2} \\
+          \judgeequivuntg{\vars{\Gamma}}{v_1}{v_2} \\
+          \judgeequivuntg{\vars{\Gamma}}{w_1}{w_2} \\
         }
         {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
       
   \Infer{$\forall \subt$}
         {
-          \judgevCheck{\Gamma}{\boxr{v}}{A}\\
-          \judgecsubt{\Gamma}{\subst{X}{x}{\boxr{v}}}{Y}
+          \judgevCheck{\Gamma}{\mathcolorbox{pink}{v}}{A}\\
+          \judgecsubt{\Gamma}{\subst{X}{x}{\mathcolorbox{pink}{v}}}{Y}
         }
         {\judgecsubt{\Gamma}{(\foralltype{x:A}{X})}{Y}}
         
@@ -2318,7 +2148,7 @@ safely in $X$.
         {
           \judgevsubt{\Gamma}{A}{B}\\
           \judgevsubt{\Gamma}{B}{A}\\
-          \judgeequivuntg{\untype{\Gamma}}{e_1}{e_2}\\
+          \judgeequivuntg{\vars{\Gamma}}{e_1}{e_2}\\
           \judgecsubt{\Gamma, x:A}{X}{Y}\\
          }
         {
@@ -2342,708 +2172,148 @@ algorithmic, we must amend these rules.
       \Theta & ::= & \emptyctx \bnfalt
                      \Theta,\, x:A \bnfalt
                      \Theta,\, \hat{x}:A \bnfalt
-                     \Theta,\, \evarassign{\hat{x}}{v}
+                     \Theta,\, \evarassign{\hat{x}}{v}:A
     \end{array}
   \end{mathpar}
-\end{definition}
-
-\begin{definition}[Context extension]
-  \begin{mathpar}
-    \Infer{}
-    {\extends{\Theta_1}{\Theta_2} \\ e \in \{x:A, \hat{x}:A, \evarassign{\hat{x}}{v}\}}
-    {\extends{\Theta_1,\, e}{\Theta_2,\, e}}
-    \and
-    % \Infer{}
-    % {\extends{\Theta_1}{\Theta_2}}
-    % {\extends{\Theta_1,\, \hat{x}:A}{\Theta_2,\, \hat{x}:A}}
-    % \and
-    % \Infer{}
-    % {\extends{\Theta_1}{\Theta_2}}
-    % {\extends{\Theta_1,\, \evarassign{\hat{x}}{v}}{\Theta_2,\, \evarassign{\hat{x}}{v}}}
-    % \and
-    \Infer{}
-    {
-      \extends{\Theta_1}{\Theta_2} \\
-      \ground{v} \\
-      \judgevCheck{\trunc{\Theta_2}}{v}{A}\\
-    }
-    {\extends{\Theta_1,\, \hat{x}:A}{\Theta_2,\, \evarassign{\hat{x}}{v}}}
-  \end{mathpar}
-\end{definition}
-
-\begin{definition}[Context Truncation]
-  Truncation maps an algorithmic context into a declarative one by removing
-  the resolved existential variables.
-  We will keep the invariant that the resolved variables cannot occur in the
-  types of the unresolved ones, as such,  truncation preserves well-formedness. 
-  \begin{multicols}{2}
-  \begin{itemize}
-      \item[] $\trunc{\emptyctx} = \emptyctx$
-      \item[] $\trunc{\Theta,\, x:A} = \trunc{\Theta},\, x:A$
-      \item[] $\trunc{\Theta,\, \hat{x}:A} = \trunc{\Theta},\, \hat{x}:A$
-      \item[] $\trunc{\Theta,\, \evarassign{\hat{x}}{v}} = \trunc{\Theta}$
-  \end{itemize}
-\end{multicols}
 \end{definition}
 
 
 
 \begin{description}
 
+
 \item[Algorithmic Polymorphic Application]
 
   \begin{mathpar}
-    \Infer{A$\forall$App}
+
+    \Infer{$\forall$AppA}
     {
-      \judgeAppAlg{\Theta_1, \hat{x}:A}{\boxb{\subst{X}{x}{\hat{x}}}}{v}{\boxb{Y}}{\Theta_2, \evarassign{\hat{x}}{w}}\\
-      \judgevCheckAlg{\Theta_2}{w}{\boxb{A}}{\Theta_3}
+      \judgeAppAlg{\Theta_1, \hat{x}:A}{\subst{X}{x}{\hat{x}}}{v}{Y}{\Theta_2}
     }
-    { \judgeAppAlg{\Theta_1}{\boxb{\foralltype{x:A}{X}}}{v}{\boxb{\ctxtapp{\Theta_3}{Y}}}{\Theta_3} }
+    { \judgeAppAlg{\Theta_1}{\foralltype{x:A}{X}}{v}{Y}{\Theta_2} }
     \and
-    \Infer{A$\forall$App-Regen}
+
+    \Infer{$\Pi$AppA}
     {
-      \judgeAppAlg{\Theta_1, \hat{x}:A}{\boxb{\subst{X}{x}{\hat{x}}}}{v}{\boxb{Y}}{\Theta_2, \hat{x}:A'}\\
-      \judgeSOK{\hat{x}}{Y}
+      \judgevCheckAlg{\Theta_1}{v}{A}{\Theta_2} 
     }
-    { \judgeAppAlg{\Theta_1}{\boxb{\foralltype{x:A}{X}}}{v}{\boxb{{\foralltype{x:A'}{\subst{Y}{\hat{x}}{x}}}}}{\Theta_2} }
-    \and
-    \Infer{A$\Pi$App}
-    {
-      \judgevCheckAlg{\Theta_1}{v}{\boxb{A}}{\Theta_2} 
-    }
-    { \judgeAppAlg{\Theta_1}{\boxb{\pitype{x:A}{X}}}{v}{\subst{\boxb{\ctxtapp{\Theta_2}{X}}}{x}{v}}{\Theta_2} }
+    { \judgeAppAlg{\Theta_1}{\pitype{x:A}{X}}{v}{\subst{X}{x}{v}}{\Theta_2} }
     \and
   \end{mathpar}
   
-\item[Algorithmic Value Type Checking]
+\item[Algorithmic Type Checking]
 
   \begin{mathpar}
-    \Infer{A$\vsubt$}
-    { \judgevInferAlg{\Theta_1}{v}{A} \\
-      \judgeavsubt{\Theta_1}{A}{\boxb{B}}{\Theta_2} \\
+    
+    \Infer{$\csubt$}
+    { \judgecInferAlg{\Theta_1}{t}{X}{\Theta_2} \\
+      \judgeacsubt{\Theta_2}{X}{Y}{\Theta_3} \\
     }
-    { \judgevCheckAlg{\Theta_1}{v}{\boxb{B}}{\Theta_2} }
+    { \judgecCheckAlg{\Theta_1}{t}{Y}{\Theta_3} }
     \and
-    \xcancel{
-    \Infer{$\ctov$I$\checks$}
-    {
-      \judgecInferAlg{\Theta_1}{t}{X} \\
-      \judgeacsubt{\Theta_1}{\boxb{Y}}{X}{\Theta_2} \\
-      \judgeacsubt{\Theta_2}{X}{\ctxtapp{\Theta_2}{Y}}{\Theta_3} \\
+
+    \Infer{$\vsubt$}
+    { \judgevInferAlg{\Theta_1}{v}{A}{\Theta_2} \\
+      \judgeavsubt{\Gamma_2}{A}{B}{\Gamma_3} \\
     }
-    {
-      \judgevCheckAlg{\Theta_1}{\thunk{t}}{\boxb{\comptoval{Y}}}{\Theta_3}
-    }
-  }
-    % \and
-    % \Infer{A$\Sigma$I$\checks$}
-    % { \judgevCheckAlg{\Theta_1}{v}{\boxb{A}}{\Theta_2} \\
-    %   \judgevCheckAlg{\Theta_2}{w}{\subst{\boxb{B}}{x}{v}}{\Theta_3} \\
-    %   \judgevtypeAlg{\Theta_3}{\ctxtapp{\Theta_3}{(\sigmatype{x:A}{B})}} }
-    % {
-    %   \judgevCheckAlg{\Gamma}{\pair{v}{w}}{\boxb{\sigmatype{x:A}{B}}}{\Theta_3}
-    % }
-    \and
+    { \judgevCheckAlg{\Theta_1}{v}{B}{\Theta_3} }
   \end{mathpar}
-
-\item[Algorithmic Type Formation, Type Inference, Computational Type Checking]
-
-  The rule \emph{VarE is excluded} from the algorithmic system. This is because the
-  existential variables $\hat{x}$ are to be initialized with some ground terms.
+    
 
 
-  These rules are almost \emph{identical to their declarative counterparts}.
-  The difference is that the context for the algorithmic judgments is
-  algorithmic ($\Theta$, not $\Gamma$); and whenever Value Type Checking or
-  Polymorphic Application judgment is invoked in the premise,
-  we ignore the output algorithmic context.  
   
+
 \item[Algorithmic Subtyping]
 \label{sec:algorithmic-subtyping}
 
 \begin{mathpar}
-  % \Infer{$\subt \Sigma$}
-  %       {
-  %         \judgeavsubt{\Theta_1}{A_1}{\boxb{B_1}}{\Theta_2}\\ 
-  %         \judgeavsubt{\Theta_2, x:A_1}{A_2}{\boxb{B_2}}{\Theta_3, x:A_1}\\
-  %       }
-  %       {\judgeavsubt{\Theta_1}{\sigmatype{x:A_1}{A_2}}{\boxb{\sigmatype{x:B_1}{B_2}}}{\Theta_3}}
-  %     \and
+
+  \Infer{$\subt \Sigma$}
+        {
+          \judgeavsubt{\Gamma; E; \varphi}{A_1}{B_1}{\varphi'}\\ 
+          \judgeavsubt{\Gamma, x:A_1; E; \varphi'}{A_2}{B_2}{\varphi''}\\
+        }
+        {\judgeavsubt{\Gamma; E; \varphi}{\sigmatype{x:A_1}{A_2}}{\sigmatype{x:B_1}{B_2}}{\varphi''}}
+
   \Infer{$\subt \Pi$}
         {
-          \judgeavsubt{\Theta_1}{A_2}{\boxb{A_1}}{\Theta_2}\\
-          \judgeacsubt{\Theta_2, x:A_2}{\boxb{X_1}}{X_2}{\Theta_3, x:A_2}\\
+          \judgeavsubt{\Gamma; E; \varphi}{A_2}{A_1}{\varphi'}\\
+          \judgeacsubt{\Gamma, x:A_2; E; \varphi'}{X_1}{X_2}{\varphi''}\\
         }
-        {\judgeacsubt{\Theta_1}{\boxb{\pitype{x:A_1}{X_1}}}{\pitype{x:A_2}{X_2}}{\Theta_3}}
-        \and
+        {\judgeacsubt{\Gamma; E; \varphi}{\pitype{x:A_1}{X_1}}{\pitype{x:A_2}{X_2}}{\varphi''}}
+
   \Infer{$\subt \ctov$}
         {
-          \judgeacsubt{\Theta_1}{\boxb{X_2}}{X_1}{\Theta_2} \\
-          \judgeacsubt{\Theta_2}{X_1}{\ctxtapp{\Theta_2}{X_2}}{\Theta_3} \\
+          \judgeacsubt{\Gamma; E; \varphi}{X_2}{X_1}{\varphi'} \\
+          \judgeacsubt{\Gamma; E; \varphi'}{X_1}{\ctxtapp{\varphi'}{X_2}}{\varphi''} \\
         }
-        {\judgeavsubt{\Theta_1}{\comptoval{X_1}}{\boxb{\comptoval{X_2}}}{\Theta_3}}
+        {\judgeavsubt{\Gamma; E; \varphi}{\comptoval{X_1}}{\comptoval{X_2}}{\varphi''}}
+
   \Infer{$\subt \vtoc$}
         {
-          \judgeavsubt{\Theta_1}{A_2}{\boxb{A_1}}{\Theta_2} \\
-          \judgeavsubt{\Theta_2}{\ctxtapp{\Theta_2}{A_1}}{A_2}{\Theta_3} \\
+          \judgeavsubt{\Gamma; E; \varphi}{A_2}{A_1}{\varphi'} \\
+          \judgeavsubt{\Gamma; E; \varphi'}{\ctxtapp{\varphi'}{A_1}}{A_2}{\varphi''} \\
         }
-        {\judgeacsubt{\Theta_1}{\boxb{\valtocomp{A_1}}}{\valtocomp{A_2}}{\Theta_3}}
+        {\judgeacsubt{\Gamma; E; \varphi}{\valtocomp{A_1}}{\valtocomp{A_2}}{\varphi''}}
   
   \Infer{$\subt$Eq}
         {
-          \judgeavsubt{\Theta_1}{A}{\boxb{B}}{\Theta_2} \\
-          \judgeunify{\untype{\Theta_2}}{\boxb{v_2}}{v_1}{\theta_1} \\
-          \judgeunify{\theta_1}{\boxb{w_2}}{w_1}{\theta_2} \\
+          \judgeavsubt{\Gamma; E; \varphi}{A}{B}{\varphi'} \\
+          \judgeunify{\vars{\Gamma}; E; \varphi'}{v_2}{v_1}{\varphi''} \\
+          \judgeunify{\vars{\Gamma}; E; \varphi''}{w_2}{w_1}{\varphi'''} \\
         }
-        {
-          \judgeavsubt
-          {\Theta_1}
-          {\eqtype{A}{v_1}{w_1}}
-          {\boxb{\eqtype{B}{v_2}{w_2}}}
-          {\ctxtapp{\theta_2}{\Theta_2}}
-        }
+        {\judgevsubt{\Gamma}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}}
 
    \Infer{$\forall \subt$}
          {
-           \judgeacsubt
-           {\Theta_1, \hat{x} : A}
-           {\boxb{\rename{X}{x}{\hat{x}}}}
-           {Y}
-           {\Theta_2, \evarassign{\hat{x}}{v}} \\
-           \judgevCheckAlg{\Theta_2}{v}{\boxb{\ctxtapp{\Theta_2}{A}}}{\Theta_3}
+           \judgeacsubt{\Gamma; E, (\mapentry{\hat{v}}{\vars{\Gamma}}); \varphi}
+                       {\rename{X}{x}{\hat{v}}}
+                       {Y}
+                       {\varphi'}
          }
-         {\judgeacsubt{\Theta_1}{\boxb{\foralltype{x:A}{X}}}{Y}{\Theta_3}}
+         {\judgeacsubt{\Gamma; E; \varphi}{(\foralltype{x:A}{X})}{Y}{\varphi'}}
+
    \Infer{$\subt \forall$}
          {
-           \judgeacsubt{\Theta_1, y : A}{\boxb{X}}{Y}{\Theta_2}\\
+           \judgeacsubt{\Gamma, y : A; E; \varphi}{X}{Y}{\varphi'}\\
          }
-         {\judgeacsubt{\Theta_1}{\boxb{X}}{(\foralltype{y:A}{Y})}{\Theta_2}}
+         {\judgeacsubt{\Gamma; E; \varphi}{X}{(\foralltype{y:A}{Y})}{\varphi'}}
 
    \Infer{let$\subt$}
          {
-           \bigstepsto{\boxb{e}}{\return{\boxb{v}}}\\
-           \judgeacsubt{\Theta_1}{\boxb{\subst{X}{x}{v}}}{Y}{\Theta_2}\\
+           % {\color{blue} e \text{ and } A \text{ are ground}}\\
+           \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+           \judgeacsubt{\Gamma; E; \varphi}
+                       {\subst{X}{x}{v}}{Y}{\varphi'}\\
          }
-         { \judgeacsubt{\Theta_1}{\boxb{\letval{x:A}{e}{X}}}{Y}{\Theta_2}}
+         { \judgeacsubt{\Gamma; E; \varphi}{(\letval{x:A}{e}{X})}{Y}{\varphi'}}
+
    \Infer{$\subt$let}
          {
-           \bigstepsto{e}{\return{v}}\\
-           \judgeacsubt{\Theta_1}
-                       {\boxb{X}}
+           \judgeequivuntg{\vars{\Gamma}}{e}{\return{v}}\\
+           \judgeacsubt{\Gamma; E; \varphi}
+                       {X}
                        {\subst{Y}{y}{v}}
-                       {\Theta_2}\\
+                       {\varphi'}\\
          }
-         { \judgeacsubt{\Theta_1}{\boxb{X}}{(\letval{y:A}{e}{Y})}{\Theta_2} }
+         { \judgeacsubt{\Gamma; E; \varphi}{X}{(\letval{y:A}{e}{Y})}{\varphi'} }
 
    \Infer{let$\subt$let}
          {
-           \judgeavsubt{\Theta_1}{B}{\boxb{A}}{\Theta_2}\\
-           \judgeavsubt{\Theta_2}{\ctxtapp{\Theta_2}{A}}{B}{\Theta_3}\\
-           \judgeunify{\untype{\Theta_3}}{\boxb{e_1}}{e_2}{\theta}\\
-           \judgeacsubt{\ctxtapp{\theta}{\Theta_3},
-             x:\ctxtapp{\Theta_2}{A}}{\boxb{X}}{Y}{\Theta_4, x : \spcdot}\\
+           \judgeavsubt{\Gamma; E; \varphi}{B}{A}{\varphi_1}\\
+           \judgeavsubt{\Gamma; E; \varphi_1}{\ctxtapp{\varphi_1}{A}}{B}{\varphi_2}\\
+           \judgeunify{\vars{\Gamma};  E; \varphi_2}{e_1}{e_2}{\varphi_3}\\
+           \judgeacsubt{\Gamma, x:{\color{blue} \ctxtapp{\varphi_1}{A}}; E; \varphi_3}{X}{Y}{\varphi_4}\\
          }
          {
-           \judgeacsubt{\Theta_1}{\boxb{\letval{x:A}{e_1}{X}}}{\letval{x:B}{e_2}{Y}}{\Theta_4}
+           \judgeacsubt{\Gamma; E; \varphi}{\letval{x:A}{e_1}{X}}{\letval{x:B}{e_2}{Y}}{\varphi_4}
          }
 
 \end{mathpar}
 
 \end{description}
 
-\section{The substitution lemma}
 
-
-\begin{lemma}[The substitution lemma]
-  \label{lemma:subst}
-  \begin{mathpar}
-    \Infer{}
-    { 
-      \judgectype{\Gamma, x : A}{X} \\
-      \judgevCheck{\Gamma}{v}{A} \\
-    }
-    {
-      \judgectype{\Gamma}{\subst{X}{x}{v}} 
-    }
-  \end{mathpar}
-\end{lemma}
-
-\begin{corollary}[The safety of context extension]
-  \label{corollary:safe-extension}
-  \begin{mathpar}
-    \Infer{}
-    { 
-      \judgevtype{\trunc{\Theta_1}}{A} \\
-      \extends{\Theta_1}{\Theta_2}
-    }
-    {
-      \judgevtype{\trunc{\Theta_1}}{\ctxtapp{\Theta_2}{A}} 
-    }
-    \and
-    \Infer{}
-    { 
-      \judgevCheck{\trunc{\Theta_1}}{v}{A}\\
-      \extends{\Theta_1}{\Theta_2}
-    }
-    {
-      \judgevCheck{\trunc{\Theta_1}}{v}{\ctxtapp{\Theta_2}{A}}\\
-    }
-    \and
-    \Infer{}
-    { 
-      \judgecCheck{\trunc{\Theta_1}}{t}{X}\\
-      \extends{\Theta_1}{\Theta_2}
-    }
-    {
-      \judgecCheck{\trunc{\Theta_1}}{t}{\ctxtapp{\Theta_2}{X}}\\
-    }
-  \end{mathpar}
-\end{corollary}
-
-
-\section{Soundness}
-\begin{lemma}[Algorithmic Type System Soundness]
-  \begin{mathpar}
-    \Infer{}
-    {
-      \judgectx{}{\Theta_1}\\
-      \judgevtype{\trunc{\Theta_1}}{A}\\
-      \judgevtype{\trunc{\Theta_1}}{B}\\
-      \ground{A}\\
-      \judgeavsubt{\Theta_1}{A}{\boxb{B}}{\Theta_2}
-    }
-    {
-      \judgectx{}{\Theta_2}\\
-      \extends{\Theta_1}{\Theta_2}\\
-      \ground{\ctxtapp{\Theta_2}{B}}\\
-      \judgevsubt{\trunc{\Theta_1}}{A}{\ctxtapp{\Theta_2}{B}}
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta_1}\\
-      \judgectype{\trunc{\Theta_1}}{X}\\
-      \judgectype{\trunc{\Theta_1}}{Y}\\
-      \ground{Y}\\
-      \judgeacsubt{\Theta_1}{\boxb{X}}{Y}{\Theta_2}
-    }
-    {
-      \judgectx{}{\Theta_2}\\
-      \extends{\Theta_1}{\Theta_2}\\
-      \ground{\ctxtapp{\Theta_2}{X}}\\
-      \judgecsubt{\trunc{\Theta_1}}{\ctxtapp{\Theta_2}{X}}{Y}
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta_1}\\
-      \judgectype{\trunc{\Theta_1}}{X}\\
-      \ground{v}\\
-      \judgeAppAlg{\Theta_1}{\boxb{X}}{v}{\boxb{Y}}{\Theta_2}
-    }
-    {
-      \judgectx{}{\Theta_2}\\
-      \extends{\Theta_1}{\Theta_2}\\
-      \judgectype{\trunc{\Theta_1}}{Y}\\
-      \ctxtapp{\Theta_2}{Y} = Y\\
-      \ev{Y} \subseteq \ev{X}\\
-      \forall \Omega \text{ s.t. } \extends{\Theta_2}{\Omega}
-      % \text{ and }
-      % \ground{\ctxtapp{\Omega}{X}}
-      \text{, }
-      \judgeApp{\trunc{\Theta_1}}{\ctxtapp{\Omega}{X}}{v}{\ctxtapp{\Omega}{Y}}\\
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta_1}\\
-      \judgevtype{\trunc{\Theta_1}}{A}\\
-      \ground{v}\\
-      \judgevCheckAlg{\Theta_1}{v}{\boxb{A}}{\Theta_2}
-    }
-    {
-      \judgectx{}{\Theta_2}\\
-      \extends{\Theta_1}{\Theta_2}\\
-      \ground{\ctxtapp{\Theta_2}{A}}\\
-      \judgevCheck{\trunc{\Theta_1}}{v}{\ctxtapp{\Theta_2}{A}}\\
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta}\\
-      \judgectype{\trunc{\Theta}}{X}\\
-      \ground{t}\\
-      \ground{X}\\
-      \judgecCheckAlg{\Theta}{t}{X}\\
-    }
-    {
-      \judgecCheck{\trunc{\Theta}}{t}{X}\\
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta}\\
-      \ground{v}\\
-      \judgevInferAlg{\Theta}{v}{A}\\
-    }
-    {
-      \ground{A}\\
-      \judgevtype{\trunc{\Theta}}{A}\\
-      {\color{red} \judgevInfer{\trunc{\Theta}}{v}{A}}\\
-      % \judgevsubt{\trunc{\Theta_1}}{A}{B}\\
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta}\\
-      \ground{t}\\
-      \judgecInferAlg{\Theta}{t}{X}\\
-    }
-    {
-      \ground{X}\\
-      \judgectype{\trunc{\Theta}}{X}\\
-      {\color{red} \judgecInfer{\trunc{\Theta}}{t}{X}}\\
-    }
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta}\\
-      \ground{A}\\
-      \judgevtypeAlg{\Theta}{A}
-    }
-    {\judgevtype{\trunc{\Theta}}{A}}
-    \and
-    \Infer{}
-    {
-      \judgectx{}{\Theta}\\
-      \ground{X}\\
-      \judgectypeAlg{\Theta}{X}
-    }
-    {\judgectype{\trunc{\Theta}}{X}}
-
-  \end{mathpar}
-
-\end{lemma}
-\begin{proof}
-  \hfill
-  \setlistdepth{9}
-  \begin{description}
-    \item[Polymorphic Application]
-      Induction on $\judgeAppAlg{\Theta_1}{X}{v}{\boxb{Y}}{\Theta_2}$.
-      \begin{itemize}
-
-      \item[A$\forall$App]
-        Considering this case implies unification
-        $\judgeAppAlg{\Theta_1}{\boxb{X}}{v}{\boxb{Y}}{\Theta_2}$ with
-        $\judgeAppAlg{\Theta_1}{\boxb{\foralltype{x:A}{X}}}{v}{\boxb{\ctxtapp{\Theta_3}{Y}}}{\Theta_3}$
-        which entails the following specializations:
-        \begin{center}
-          \begin{tabular}{ c c }
-            original term & specialized as \\ 
-            \hline
-            $X$ & $\foralltype{x:A}{X}$ \\  
-            $\Theta_2$ & $\Theta_3$ \\
-            $Y$ & $\ctxtapp{\Theta_3}{Y}$ \\
-          \end{tabular}
-        \end{center} 
-
-        Given:
-        \begin{proofenum}
-          \item $\judgectx{}{\Theta_1}$
-          \item $\judgectype{\trunc{\Theta_1}}{\foralltype{x:A}{X}}$
-          \item $\ground{v}$
-          \item $\extends{\Theta_3}{\Omega}$
-          % \item $\ground{\ctxtapp{\Omega}{\foralltype{x:A}{X}}}$
-          \item $\judgeAppAlg{\Theta_1}{\foralltype{x:A}{X}}{v}{Y}{\Theta_3}$
-            By inversion, 
-            \begin{proofenum}
-              \item $\judgeAppAlg{\Theta_1, \hat{x}:A}{\subst{X}{x}{\hat{x}}}{v}{Y}{\Theta_2, \evarassign{\hat{x}}{w}}$
-                Applying the IH, \ilyam{some extra lemmas required to prove the premises} 
-                \begin{proofenum}
-                \item $\judgectx{}{\Theta_2, \evarassign{\hat{x}}{w}}$
-                \item $\extends{\Theta_1, \hat{x}:A}{\Theta_2, \evarassign{\hat{x}}{w}}$
-                  \begin{proofenum}
-                  \item \label{itm:theta12} $\extends{\Theta_1}{\Theta_2}$
-                  \item $\judgevCheck{\trunc{\Theta_2}}{w}{A}$
-                  \end{proofenum}
-                \item \label{itm:Yctype}$\judgectype{\trunc{\Theta_1, \hat{x}:A}}{Y}$
-                \item $\ctxtapp{\Theta_2, \evarassign{\hat{x}}{w}}{Y} = Y$.
-                  It means $\hat{x} \notin Y$, and thus, $\ctxtapp{\Omega, \evarassign{\hat{x}}{w}}{Y} = \ctxtapp{\Omega}{Y}$.
-                \item \label{itm:evY} $\ev{Y} \subseteq \ev{\subst{X}{x}{\hat{x}}}$, and thus,
-                  because $\hat{x} \notin Y$, we have $\ev{Y} \subseteq \ev{X}$.
-                \item \label{itm:polyap} specializing ``$\forall \Omega$'' with $\Omega, \evarassign{\hat{x}}{w}$,
-                  we have
-                  $\judgeApp{\trunc{\Theta_1, \hat{x}:A}}{\ctxtapp{\Omega,
-                      \evarassign{\hat{x}}{w}}{\subst{X}{x}{\hat{x}}}}{v}{\ctxtapp{\Omega,
-                      \evarassign{\hat{x}}{w}}{Y}}$ and since the terms do not
-                  contain $\hat{x}$, 
-                  $\judgeApp{\trunc{\Theta_1}}{\ctxtapp{\Omega}{\subst{X}{x}{w}}}{v}{\ctxtapp{\Omega}{Y}}$
-                \end{proofenum}
-              \item $\judgevCheckAlg{\Theta_2}{w}{A}{\Theta_3}$. Applying the
-                IH,  we also have:
-                \begin{proofenum}
-                  \item \label{itm:theta3} $\judgectx{}{\Theta_3}$
-                  \item \label{itm:theta23} $\extends{\Theta_2}{\Theta_3}$
-                  \item $\ground{\ctxtapp{\Theta_3}{A}}$, and since $\extends{\Theta_3}{\Omega}$,
-                    $\ctxtapp{\Theta_3}{A} = \ctxtapp{\Omega}{A}$
-                  \item \label{itm:wChecksA}
-                    $\judgevCheck{\trunc{\Theta_2}}{w}{\ctxtapp{\Theta_3}{A}}$,
-                    and since $\trunc{\Theta_1} \supseteq \trunc{\Theta_2}$,
-                    $\judgevCheck{\trunc{\Theta_1}}{w}{\ctxtapp{\Theta_3}{A}}$
-                \end{proofenum}
-              \end{proofenum}
-            \end{proofenum}
-          We prove:
-          \begin{proofenum}
-            \item $\judgectx{}{\Theta_3}$ by \cref{itm:theta3}
-            \item $\extends{\Theta_1}{\Theta_3}$ from 
-              \cref{itm:theta12,itm:theta23} by transitivity
-            \item $\judgectype{\trunc{\Theta_1}}{\ctxtapp{\Theta_3}{Y}}$. From
-              \cref{itm:Yctype} and because $\hat{x} \notin Y$, we have
-              $\judgectype{\trunc{\Theta_1}}{Y}$.
-              Then because $\extends{\Theta_1}{\Theta_3}$ and \cref{corollary:safe-extension},
-              we have the wanted property.
-            \item $\ctxtapp{\Theta_3}{\ctxtapp{\Theta_3}{Y}} =
-              \ctxtapp{\Theta_3}{Y}$ by idempotency of context substitution.
-            \item $\ctxtapp{\Theta_3}{Y} \subseteq \ev{\foralltype{x:A}{X}}$ by \cref{itm:evY}.
-            \item
-              $\judgeApp{\trunc{\Theta_1}}{\ctxtapp{\Omega}{\foralltype{x:A}{X}}}{v}{\ctxtapp{\Omega}{\ctxtapp{\Theta_3}{Y}}}$. 
-              Since $\extends{\Theta_3}{\Omega}$, and by substitution
-              congruence, we rewrite the statement:
-              $\judgeApp{\trunc{\Theta_1}}{\foralltype{x:\ctxtapp{\Omega}{A}}{\ctxtapp{\Omega}{X}}}{v}{\ctxtapp{\Omega}{Y}}$
-              and apply the declarative $\forall App$.
-              \begin{proofenum}
-              \item $\judgevCheck{\trunc{\Theta_1}}{w}{\ctxtapp{\Omega}{A}}$.
-                From \cref{itm:wChecksA} and \cref{corollary:safe-extension}, since $\extends{\Theta_3}{\Omega}$
-              \item
-                $\judgeApp{\trunc{\Theta_1}}{\subst{\ctxtapp{\Omega}X}{x}{w}}{v}{\ctxtapp{\Omega}Y}$
-                by \cref{itm:polyap}.
-              \end{proofenum}
-
-          \end{proofenum}
-        \item[A$\forall$App-Regen] 
-          Considering this case implies unification
-          $\judgeAppAlg{\Theta_1}{X}{v}{Y}{\Theta_2}$ with
-
-          $\judgeAppAlg{\Theta_1}{\foralltype{x:A}{X}}{v}{{\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}}}{\Theta_2}$
-          which entails the following specializations:
-          \begin{center}
-            \begin{tabular}{ c c }
-              original term & specialized as \\ 
-              \hline
-              $X$ & $\foralltype{x:A}{X}$ \\  
-              $Y$ & $\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}$ \\
-            \end{tabular}
-          \end{center} 
-          Given:
-          \begin{proofenum}
-            \item $\judgectx{}{\Theta_1}$
-            \item $\judgectype{\trunc{\Theta_1}}{\foralltype{x:A}{X}}$.
-              Then by inversion,
-              \begin{proofenum}
-                \item $\judgevtype{\trunc{\Theta_1}}{A}$
-                \item $\judgectype{\trunc{\Theta_1}, x:A}{X}$
-                \item $\judgeSOK{x}{X}$
-              \end{proofenum}
-            \item $\ground{v}$
-            \item $\extends{\Theta_2}{\Omega}$
-            \item $\judgeAppAlg{\Theta_1}{\foralltype{x:A}{X}}{v}{{\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}}}{\Theta_2}$
-              By inversion,
-              \begin{proofenum}
-              \item \label{pt:x-Y-ok} $\judgeSOK{\hat{x}}{Y}$
-                \item $\judgeAppAlg{\Theta_1, \hat{x}:A}{\subst{X}{x}{\hat{x}}}{v}{Y}{\Theta_2,\hat{x}:A'}$
-                  Then we apply the induction hypothesis
-                  \ilyam{TODO: Prove the IH premises. We will probably need to
-                    add something like $\ctxtapp{\Theta_1}{X} = X$ to the
-                    premises to ensure the well-formedness of $\Theta_1, \hat{x}:A$}
-                  \begin{proofenum}
-                    \item \label{pt:wf-theta2_xA}$\judgectx{}{\Theta_2, \hat{x}:A'}$
-                    \item  $\extends{\Theta_1, \hat{x}:A}{\Theta_2, \hat{x}:A'}$
-                      , which implies that
-                      \begin{proofenum}
-                        \item \label{pt:extends-theta1-theta2} $\extends{\Theta_1}{\Theta_2}$
-                        \item \label{pt:A'-theta2-A}$A' = \ctxtapp{\Theta_2}{A}$
-                      \end{proofenum}
-                    \item \label{pt:wf-Y} $\judgectype{\trunc{\Theta_1, \hat{x}:A}}{Y}$
-                    \item \label{pt:theta2-Y} $\ctxtapp{\Theta_2, \hat{x}:A'}{Y} = Y$. Hence, $\ctxtapp{\Theta_2}{Y} = Y$
-                    \item \label{pt:evY} $\ev{Y} \subseteq \ev{\subst{X}{x}{\hat{x}}}$
-                    \item \label{pt:decl-app} $\forall \Omega \text{ s.t. } \extends{\Theta_2,
-                        \hat{x}:A'}{\Omega}
-                      % \text{ and }
-                      % \ground{\ctxtapp{\Omega}{\subst{X}{x}{\hat{x}}}}
-                      \text{, } \judgeApp{\trunc{\Theta_1,
-                          \hat{x}:A}}{\ctxtapp{\Omega}{\subst{X}{x}{\hat{x}}}}{v}{\ctxtapp{\Omega}{Y}}$.
-                      We specialize it with $\Omega := \Omega,
-                      \hat{x}:\ctxtapp{\Omega}{A'}$ and obtain:
-                      $\judgeApp{\trunc{\Theta_1, \hat{x}:A}}{\ctxtapp{\Omega,
-                          \hat{x}:\ctxtapp{\Omega}{A'}}{\subst{X}{x}{\hat{x}}}}{v}{\ctxtapp{\Omega,
-                          \hat{x}:\ctxtapp{\Omega}{A'}}{Y}}$
-                      Unfolding it further, we have:
-                      $\judgeApp{\trunc{\Theta_1},
-                        \hat{x}:A}{\ctxtapp{\Omega}{\subst{X}{x}{\hat{x}}}}{v}{\ctxtapp{\Omega}{Y}}$.
-                      Then we rename $\hat{x}$ into $x$ (recall that we treat
-                      the existential variables as the normal ones in the
-                      declarative system): 
-                      $\judgeApp{\trunc{\Theta_1},
-                        x:A}{\ctxtapp{\Omega}{X}}{v}{\ctxtapp{\Omega}{\subst{Y}{\hat{x}}{x}}}$,
-                      then by the {\color{red} corollary from the substitution
-                        lemma}, since $\extends{\Theta_1}{\Omega}$, we have:
-
-                      $\judgeApp{\trunc{\Theta_1},
-                        x:\ctxtapp{\Omega}{A}}{\ctxtapp{\Omega}{X}}{v}{\ctxtapp{\Omega}{\subst{Y}{\hat{x}}{x}}}$.
-                      % Recalling that $\ctxtapp{\Omega}{A} =
-                      % \ctxtapp{\Omega}{\ctxtapp{\Theta_2}{A}} =
-                      % \ctxtapp{\Omega}{A'}$, 
-
-                      % $\judgeApp{\trunc{\Theta_1},
-                      %   x:\ctxtapp{\Omega}{A'}}{\ctxtapp{\Omega}{X}}{v}{\ctxtapp{\Omega}{\subst{Y}{\hat{x}}{x}}}$
-                  \end{proofenum}
-              \end{proofenum}
-          \end{proofenum}
-
-          We prove:
-          \begin{proofenum}
-            \item $\judgectx{}{\Theta_2}$ from \cref{pt:wf-theta2_xA}
-            \item $\extends{\Theta_1}{\Theta_2}$ by \cref{pt:extends-theta1-theta2} 
-            \item $\judgectype{\trunc{\Theta_1}}{\foralltype{x:A'}{\subst{Y}{\hat{x}}{x}}}$.
-              We apply the declarative rule $\forall$:
-              \begin{proofenum}
-                \item $\judgevtype{\Theta_1}{A'}$.  From \cref{pt:A'-theta2-A}, it
-                  suffices to prove $\judgevtype{\Theta_1}{\ctxtapp{\Theta_2}A}$,
-                  which follows from \cref{corollary:safe-extension} because
-                  $\extends{\Theta_1}{\Theta_2}$.
-                \item $\judgectype{\trunc{\Theta_1},
-                    x:A'}{\subst{Y}{\hat{x}}{x}}$ from \cref{pt:wf-Y}
-                  and the {\color{red} substitution lemma}
-                \item $\judgeSOK{x}{\subst{Y}{\hat{x}}{x}}$ by \cref{pt:x-Y-ok}
-              \end{proofenum}
-            \item $\ctxtapp{\Theta_2}{\foralltype{x:A'}{\subst{Y}{\hat{x}}{x}}} = \foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}$.
-              Because $\ctxtapp{\Theta_2}{A'} = \ctxtapp{\Theta_2}{\ctxtapp{\Theta_2}{A}} = A'$ and \cref{pt:theta2-Y} 
-            \item $\ev{\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}} \subseteq
-              \ev{\foralltype{x:A}{X}}$. Because
-              $\ev{\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}} \subseteq \ev{A'}
-              \cup \ev{Y} \setminus \{\hat{x}\} \subseteq  \ev{A'} \cup
-              \ev{\subst{X}{x}{\hat{x}}} \setminus \{\hat{x}\} \equiv \ev{\ctxtapp{\Theta_2}{A}}
-              \cup \ev{X} \setminus \{x\} \subseteq \ev{A}
-              \cup \ev{X} \setminus \{x\}$.
-            \item $\judgeApp{\trunc{\Theta_1}}{\ctxtapp{\Omega}{\foralltype{x:A}{X}}}{v}{\ctxtapp{\Omega}{\foralltype{x:{A'}}{\subst{Y}{\hat{x}}{x}}}}$
-              By context application congruence, it is equal to
-              $\judgeApp{\trunc{\Theta_1}}{\foralltype{x:\ctxtapp{\Omega}{A}}{\ctxtapp{\Omega}{X}}}{v}{\foralltype{x:\ctxtapp{\Omega}{A'}}{\subst{\ctxtapp{\Omega}{Y}}{\hat{x}}{x}}}$
-              We apply the declarative rule $\forall$App-Regen. Thus, it
-              suffices to prove:
-              \begin{proofenum}
-              \item $\judgeApp{\trunc{\Theta_1}, x :
-                  \ctxtapp{\Omega}{A}}{\ctxtapp{\Omega}{X}}{v}{\subst{\ctxtapp{\Omega}{Y}}{\hat{x}}{x}}$
-                by \cref{pt:decl-app};
-              \item $\judgeSOK{x}{\subst{\ctxtapp{\Omega}{Y}}{\hat{x}}{x}}$ by
-                \cref{pt:x-Y-ok,lemma:monadicity-safe-subst}
-              \end{proofenum}
-          \end{proofenum}
-
-
-          
-        \item[A$\Pi$App]
-          Considering this case implies unification
-          $\judgeAppAlg{\Theta_1}{X}{v}{Y}{\Theta_2}$ with
-          $\judgeAppAlg{\Theta_1}{\pitype{x:A}{X}}{v}{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}}{\Theta_2}$
-
-          which entails the following specializations:
-          \begin{center}
-            \begin{tabular}{ c c }
-              original term & specialized as \\ 
-              \hline
-              $X$ & $\pitype{x:A}{X}$ \\  
-              $Y$ & $\subst{\ctxtapp{\Theta_2}{X}}{x}{v}$ \\
-            \end{tabular}
-          \end{center} 
-
-          Given:
-          \begin{proofenum}
-            \item $\judgectx{}{\Theta_1}$
-            \item $\judgectype{\trunc{\Theta_1}}{\pitype{x:A}{X}}$
-              Then by \cref{corollary:safe-extension},
-              $\judgectype{\trunc{\Theta_1}}{\ctxtapp{\Theta_2}{\pitype{x:A}{X}}}$.
-              Hence, by inversion, 
-              \begin{proofenum}
-                \item $\judgevtype{\trunc{\Theta_1}}{\ctxtapp{\Theta_2}{A}}$ 
-                \item  \label{pt:X-ctype-in-theta1_xA} $\judgectype{\trunc{\Theta_1}, x:\ctxtapp{\Theta_2}{A}}{\ctxtapp{\Theta_2}{X}}$
-              \end{proofenum}
-            \item $\judgectype{\trunc{\Theta_1}}{\pitype{x:A}{X}}$
-            \item $\ground{v}$
-            \item
-              $\judgeAppAlg{\Theta_1}{\pitype{x:A}{X}}{v}{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}}{\Theta_2}$.
-              Then by inversion,
-              $\judgevCheckAlg{\Theta_1}{v}{\boxb{A}}{\Theta_2}$.
-              Then we applying the induction hypothesis \ilyam{the IH premises are straightforward}
-              \begin{proofenum}
-                \item \label{pt:wf_theta2} $\judgectx{}{\Theta_2}$
-                \item \label{pt:wf_theta12} $\extends{\Theta_1}{\Theta_2}$
-                \item $\ground{\ctxtapp{\Theta_2}{A}}$
-                \item \label{pt:check_v_theta2_A} $\judgevCheck{\trunc{\Theta_1}}{v}{\ctxtapp{\Theta_2}{A}}$
-              \end{proofenum}
-            \item $\extends{\Theta_2}{\Omega}$
-            % \item $\ground{\ctxtapp{\Omega}{\pitype{x:A}{X}}}$
-          \end{proofenum}
-          We prove:
-          \begin{proofenum}
-            \item $\judgectx{}{\Theta_2}$ by \cref{pt:wf_theta2}
-            \item $\extends{\Theta_1}{\Theta_2}$ by \cref{pt:wf_theta12}
-            \item
-              $\judgectype{\trunc{\Theta_1}}{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}}$.
-              From \cref{lemma:subst}, it suffices to prove
-              \begin{proofenum}
-              \item $\judgectype{\trunc{\Theta_1}, x : \ctxtapp{\Theta_2}{A}}{\ctxtapp{\Theta_2}{X}}$ 
-                by \cref{pt:X-ctype-in-theta1_xA}
-              \item $\judgevCheck{\trunc{\Theta_1}}{v}{\ctxtapp{\Theta_2}{A}}$
-                by \cref{pt:check_v_theta2_A}
-              \end{proofenum}
-            \item $\ctxtapp{\Theta_2}{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}} = \subst{\ctxtapp{\Theta_2}{X}}{x}{v}$
-              by idempotency of context application
-            \item $\ev{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}} \subseteq \ev{\pitype{x:A}{X}}$
-              because $\ev{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}} \subseteq \ev{X}
-              \setminus x \subseteq \ev{\pitype{x:A}{X}}$
-            \item
-              $\judgeApp{\trunc{\Theta_1}}{\ctxtapp{\Omega}{\pitype{x:A}{X}}}{v}{\ctxtapp{\Omega}{\subst{\ctxtapp{\Theta_2}{X}}{x}{v}}}$
-              Since $v$ is ground, the application of $\Omega$ commutes with the
-              substitution $v$ for $x$. Then since $\extends{\Theta_2}{\Omega}$
-              and by congruence of the context application, it suffices to prove
-              $\judgeApp{\trunc{\Theta_1}}{\pitype{x:\ctxtapp{\Omega}{A}}{\ctxtapp{\Omega}{X}}}{v}{\ctxtapp{\Omega}{\subst{X}{x}{v}}}$
-              Then applying the declarative rule ($\Pi$App), it suffices to prove
-              $\judgevCheck{\trunc{\Theta_1}}{v}{\ctxtapp{\Omega}{A}}$, which
-              follows from \cref{pt:check_v_theta2_A} and \cref{corollary:safe-extension}
-              
-          \end{proofenum}
-        \end{itemize}
-      \item[Value Subtyping]
-        Induction on
-        $\judgeavsubt{\Theta_1}{A}{B}{\Theta_2}$.
-
-        
-        \begin{itemize}
-        \item[$\subt$Eq]
-
-          Considering this case implies unification
-          $\judgeavsubt{\Theta_1}{A}{B}{\Theta_2}$ with
-          $\judgeavsubt{\Theta_1}{\eqtype{A}{v_1}{w_1}}{\eqtype{B}{v_2}{w_2}}{\ctxtapp{\theta_2}{\Theta_2}}$
-
-          which entails the following specializations:
-          \begin{center}
-            \begin{tabular}{ c c }
-              original term & specialized as \\ 
-              \hline
-              $A$ & $\eqtype{A}{v_1}{w_1}$ \\  
-              $B$ & $\eqtype{B}{v_2}{w_2}$ \\
-              $\Theta_2$ & $\ctxtapp{\theta}{\Theta_2}$ \\
-            \end{tabular}
-          \end{center} 
-
-        \end{itemize}
-  \end{description}
-
-\end{proof}
-
-
-\section{Completeness}
 
 
 \section{The Safe Variable Invariant}
@@ -3051,6 +2321,7 @@ algorithmic, we must amend these rules.
 In \cref{sec:algorithmic-subtyping}, we will prove the exhaustiveness of the
 algorithmic subtyping. For this purpose, we need to provide a certain
 invariant of how the existential variables are distributed in the  well-formed types.
+
 
 
 \begin{definition}[The Trace of the Term]
