@@ -1,0 +1,48 @@
+grammar
+  G {{ tex \Gamma }} :: Decl_Ctxt_ ::= {{ com declarative variable context }}
+    | x : A              ::   :: cons   {{ com add to context       }}
+    | </ Gi // , // i /> ::   :: concat {{ com concatenate contexts }}
+    | ·                  :: M :: empty  {{ com empty context        }}
+
+  T {{ tex \Theta }} :: Alg_Ctxt_ ::= {{ com computational variable context }}
+    | x : A              ::   :: cons   {{ com a variable }}
+    | ux : uA            ::   :: pcons  {{ com a polymorphic variable }}
+    | ux = v             ::   :: inst   {{ com instantiate a polymorphic variable }}
+    | </ Ti // , // i /> ::   :: concat {{ com concatenate contexts }}
+    | ·                  :: M :: empty  {{ com empty context }}
+
+subrules 
+  G <:: T
+
+
+grammar
+  ty_extra :: 'ty_extra_' ::= {{ com extra judgements for explicit and inference typing systems }}
+    | x : A ∊ G ::  :: x_in_G {{ com lookup type of $[[ x ]]$ in context $[[ G ]]$ }}
+
+grammar
+  formula :: 'formula_' ::=
+    | judgement                                                             ::   :: judgement
+    | x : A ∊ G                                                             ::   :: x_in_G {{ com lookup type of $[[ x ]]$ in context $[[ G ]]$ }}
+    | x : A ∊ T                                                             ::   :: x_in_T {{ com lookup type of $[[ x ]]$ in context $[[ T ]]$ }}
+    | ut1 ≠ ut2                                                             ::   :: pneqC
+    | uv1 ≠ uv2                                                             ::   :: pneqV
+    | t1 ≠ t2                                                               ::   :: neqC
+    | v1 ≠ v2                                                               ::   :: neqV
+    | A1 ≠ A2                                                               ::   :: neqT
+    | formula1 .. formulan                                                  ::   :: dots
+    % | indexed </ formulai // i />                                           :: X :: indexed
+
+defns
+  ok :: 'ok_' ::=
+
+  defn x ∊! A ok :: :: okStict  :: 'S_' % {{ tex [[x]] \in^{!} [[A]]\, OK }}
+  by
+
+  defn x ∊? A ok :: :: okWeak   :: 'W_' % {{ tex [[x]] \in^{?} [[A]]\, OK }}
+  by
+
+  defn ux ∊! v ok :: :: okTStict  :: 'S_' % {{ tex [[x]] \in^{!} [[v]]\, OK }}
+  by
+
+  defn ux ∊? v ok :: :: okTWeak   :: 'W_' % {{ tex [[x]] \in^{?} [[v]]\, OK }}
+  by

@@ -1,0 +1,11 @@
+defns
+  Al :: 'Al_' ::=
+
+  % defn T1 ⊨ uv1 ⇓ uv2 ⫤ T2 :: :: red :: 'red_'
+  % {{ com Algorithmic value big step reduction }} by
+
+
+  % --------------- :: Var
+  % T1 ⊨ x ⇓ x ⫤ T2
+
+

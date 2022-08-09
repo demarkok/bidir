@@ -1,0 +1,103 @@
+embed {{ tex-preamble
+
+\newcommand{\appRightarrow}{ \mathcolor{OliveGreen}{\Rightarrow \hspace{-7pt} \Rightarrow} }
+\newcommand{\appBull}{ \mathcolor{OliveGreen}{\bullet} }
+
+\usepackage{mathabx}
+\usepackage{color}
+\usepackage[dvipsnames,usenames]{xcolor}
+
+% https://tex.stackexchange.com/questions/33401/a-version-of-colorbox-that-works-inside-math-environments
+\setlength{\fboxsep}{1pt}
+\newcommand{\ngbox}[1]{\mathchoice%
+  {\colorbox{black!8}{$\displaystyle      \mathit{ #1 } $} }%
+  {\colorbox{black!8}{$\textstyle         \mathit{ #1 } $} }%
+  {\colorbox{black!8}{$\scriptstyle       \mathit{ #1 } $} }%
+  {\colorbox{black!8}{$\scriptscriptstyle \mathit{ #1 } $} } }%
+
+% https://tex.stackexchange.com/questions/85033/colored-symbols/85035#85035
+\newcommand*{\mathcolor}{}
+\def\mathcolor#1#{ \mathcoloraux{#1} }
+\newcommand*{\mathcoloraux}[3]{%
+  \protect\leavevmode
+  \begingroup
+    \color#1{#2}#3%
+  \endgroup
+}
+}}
+
+metavar x, y, p   ::= {{ com term variable }}
+metavar ux, uy ::= {{ com unification term variable }} {{ tex \widehat{x} }}
+
+grammar 
+
+ue {{ tex \ngbox{e} }}, uv {{ tex \ngbox{v} }}, uw {{ tex \ngbox{w} }} :: 'uv_' ::= {{ tex \ngbox{[[uv]]} }} {{ com Potentially non-ground terms  }}
+   | x                    ::   :: Var
+   | ux                   ::   :: UniVar
+   | refl                 ::   :: Refl
+   | <>                   ::   :: Unit
+   | uv uw                ::   :: App
+   | \ x . uv             ::   :: Lam    (+ bind x in uv +) {{ tex \lambda [[x]] . \, [[uv]] }}
+   | receq x p uA ue uv   ::   :: RecEq  (+ bind x in uA +) (+ bind p in uA +) {{ tex \ottkw{rec}_{eq}^{[[x]].[[p]].[[uA]]}([[ue]], [[uv]]) }}
+   | uv : uA              ::   :: Ann
+   | [ uw / x ] uv        :: M :: Sub
+   | [ w / ux ] uv        :: M :: PSub
+   | ( uv )               :: S :: Paren
+
+uA {{ tex \ngbox{A} }}, uB {{ tex \ngbox{B} }} :: 'uA_' ::= 
+  | eq uA uv uw   ::   :: Eq
+  | Unit          ::   :: UnitT  {{ tex 1 }}
+  | Π x : uA . uB ::   :: Pi     (+ bind x in uB +) {{ tex \Pi [[x]]:[[uA]] . \, [[uB]] }}
+  | ∀ x : uA . uB ::   :: Forall (+ bind x in uB +) {{ tex \forall [[x]]:[[uA]] . \, [[uB]] }}
+  | [ uv / x ] uA :: M :: Sub
+  | ( uA )        :: S :: Paren
+
+e, v, w, f, g, h :: 'v_' ::= {{ com Ground value terms }}
+  | x                 ::   :: Var
+  | <>                ::   :: Unit
+  | v w               ::   :: App
+  | refl              ::   :: Refl
+  | \ x . v           ::   :: Lam    (+ bind x in v +)
+  | receq x p A e v   ::   :: RecEq  (+ bind x in A +) (+ bind p in A +)
+  | v : A             ::   :: Ann
+  | [ w / x ] v       :: M :: Sub
+  | ( v )             :: S :: Paren
+
+X, A, B, C, D :: 'A_' ::=
+  | eq A v w    ::   :: Eq
+  | Unit        ::   :: UnitT
+  | Π x : A . B ::   :: Pi      (+ bind x in B +)
+  | ∀ x : A . B ::   :: Forall  (+ bind x in B +)
+  | [ v / x ] A :: M :: Sub
+  | ( A )       :: S :: Paren
+
+terminals :: 'terminals_' ::=
+  | ↑  :: :: upShift   {{ tex \mathord{\uparrow} }}
+  | ↓  :: :: downShift {{ tex \mathord{\downarrow} }}
+  | ∊  :: :: inSet     {{ tex \in }}
+  | ·  :: :: cDot      {{ tex \cdot }}
+  | ⊢  :: :: vdash     {{ tex \vdash }}
+  | ⊨  :: :: vDash     {{ tex \vDash }}
+  | ⫤  :: :: Dashv     {{ tex \Dashv }}
+  | ⇓  :: :: bitstep   {{ tex \Downarrow }}
+  | ⇐  :: :: check     {{ tex \mathcolor{brown}{\Leftarrow} }}
+  | ⇒  :: :: infers    {{ tex \mathcolor{blue}{\Rightarrow} }}
+  | ∊! :: :: inOK      {{ tex \in^! }}
+  | ∊? :: :: inok      {{ tex \in^? }}
+  | <> :: :: unit      {{ tex \langle \rangle }}
+  | ≠  :: :: neq       {{ tex \neq }}
+  | ≤  :: :: subt      {{ tex \leqslant }}
+  | ⤳ :: :: elab       {{ tex \leadsto }}
+  | ⇒> :: :: appRA     {{ tex \appRightarrow }}
+  | ● :: :: appBullet  {{ tex \appBull }}
+  | ≡  :: :: equiv     {{ tex \equiv }}
+  | ≡n  :: :: equivn    {{ tex \equiv_{n} }}
+  | ↘  :: :: redWHNF   {{ tex \searrow }}
+  | ⊴  :: :: inst      {{ tex \unlhd }}
+
+  
+subrules
+  v <:: uv
+  A <:: uA
+
+indexvar n , i , j , k ::= {{ com index variables }}
