@@ -31,18 +31,19 @@ metavar ux, uy ::= {{ com unification term variable }} {{ tex \widehat{x} }}
 
 grammar 
 
-ue {{ tex \ngbox{e} }}, uv {{ tex \ngbox{v} }}, uw {{ tex \ngbox{w} }} :: 'uv_' ::= {{ tex \ngbox{[[uv]]} }} {{ com Potentially non-ground terms  }}
-   | x                    ::   :: Var
-   | ux                   ::   :: UniVar
-   | refl                 ::   :: Refl
-   | <>                   ::   :: Unit
-   | uv uw                ::   :: App
-   | \ x . uv             ::   :: Lam    (+ bind x in uv +) {{ tex \lambda [[x]] . \, [[uv]] }}
-   | receq x p uA ue uv   ::   :: RecEq  (+ bind x in uA +) (+ bind p in uA +) {{ tex \ottkw{rec}_{eq}^{[[x]].[[p]].[[uA]]}([[ue]], [[uv]]) }}
-   | uv : uA              ::   :: Ann
-   | [ uw / x ] uv        :: M :: Sub
-   | [ w / ux ] uv        :: M :: PSub
-   | ( uv )               :: S :: Paren
+ue {{ tex \ngbox{e} }}, uv {{ tex \ngbox{v} }}, uw {{ tex \ngbox{w} }} :: 'uv_' ::= {{ tex \ngbox{[[ue]]} }} {{ com Potentially non-ground terms  }}
+   | x                  ::   :: Var
+   | ux                 ::   :: UniVar
+   | refl               ::   :: Refl
+   | <>                 ::   :: Unit
+   | uv uw              ::   :: App
+   | \ x . uv           ::   :: Lam    (+ bind x in uv +) {{ tex \lambda [[x]] . \, [[uv]] }}
+   | receq x p uA ue uv ::   :: RecEq  (+ bind x in uA +) (+ bind p in uA +) {{ tex \ottkw{rec}_{eq}^{[[x]].[[p]].[[uA]]}([[ue]], [[uv]]) }}
+   | uv : uA            ::   :: Ann
+   | [ uw / x ] uv      :: M :: Sub
+   | [ w / ux ] uv      :: M :: PSub
+   | [ T ] ue             :: M :: AppCtx
+   | ( uv )             :: S :: Paren
 
 uA {{ tex \ngbox{A} }}, uB {{ tex \ngbox{B} }} :: 'uA_' ::= 
   | eq uA uv uw   ::   :: Eq
@@ -50,18 +51,19 @@ uA {{ tex \ngbox{A} }}, uB {{ tex \ngbox{B} }} :: 'uA_' ::=
   | Π x : uA . uB ::   :: Pi     (+ bind x in uB +) {{ tex \Pi [[x]]:[[uA]] . \, [[uB]] }}
   | ∀ x : uA . uB ::   :: Forall (+ bind x in uB +) {{ tex \forall [[x]]:[[uA]] . \, [[uB]] }}
   | [ uv / x ] uA :: M :: Sub
+  | [ T ] uA        :: M :: AppCtx
   | ( uA )        :: S :: Paren
 
 e, v, w, f, g, h :: 'v_' ::= {{ com Ground value terms }}
-  | x                 ::   :: Var
-  | <>                ::   :: Unit
-  | v w               ::   :: App
-  | refl              ::   :: Refl
-  | \ x . v           ::   :: Lam    (+ bind x in v +)
-  | receq x p A e v   ::   :: RecEq  (+ bind x in A +) (+ bind p in A +)
-  | v : A             ::   :: Ann
-  | [ w / x ] v       :: M :: Sub
-  | ( v )             :: S :: Paren
+  | x               ::   :: Var
+  | <>              ::   :: Unit
+  | v w             ::   :: App
+  | refl            ::   :: Refl
+  | \ x . v         ::   :: Lam    (+ bind x in v +)
+  | receq x p A e v ::   :: RecEq  (+ bind x in A +) (+ bind p in A +)
+  | v : A           ::   :: Ann
+  | [ w / x ] v     :: M :: Sub
+  | ( v )           :: S :: Paren
 
 X, A, B, C, D :: 'A_' ::=
   | eq A v w    ::   :: Eq
@@ -69,6 +71,7 @@ X, A, B, C, D :: 'A_' ::=
   | Π x : A . B ::   :: Pi      (+ bind x in B +)
   | ∀ x : A . B ::   :: Forall  (+ bind x in B +)
   | [ v / x ] A :: M :: Sub
+  | [ T ] uA      :: M :: AppCtx
   | ( A )       :: S :: Paren
 
 terminals :: 'terminals_' ::=
@@ -101,3 +104,20 @@ subrules
   A <:: uA
 
 indexvar n , i , j , k ::= {{ com index variables }}
+
+
+grammar
+  G {{ tex \Gamma }} :: Decl_Ctxt_ ::= {{ com declarative variable context }}
+    | x : A              ::   :: cons   {{ com add to context       }}
+    | </ Gi // , // i /> ::   :: concat {{ com concatenate contexts }}
+    | ·                  :: M :: empty  {{ com empty context        }}
+
+  T {{ tex \Theta }} :: Alg_Ctxt_ ::= {{ com computational variable context }}
+    | x : A              ::   :: cons   {{ com a variable }}
+    | ux : uA            ::   :: pcons  {{ com a polymorphic variable }}
+    | ux = v             ::   :: inst   {{ com instantiate a polymorphic variable }}
+    | </ Ti // , // i /> ::   :: concat {{ com concatenate contexts }}
+    | ·                  :: M :: empty  {{ com empty context }}
+
+subrules 
+  G <:: T

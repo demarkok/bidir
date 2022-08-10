@@ -1,11 +1,233 @@
 defns
   Al :: 'Al_' ::=
 
-  % defn T1 ⊨ uv1 ⇓ uv2 ⫤ T2 :: :: red :: 'red_'
-  % {{ com Algorithmic value big step reduction }} by
+  defn T1 ⊨ uA ⫤ T2 :: :: wfT :: 'wfT_'
+  {{ com Algorithmic type well-formedness }} by
+
+  ------------ :: Unit
+  T ⊨ Unit ⫤ T
+
+  T1 ⊨ uA ⫤ T2   T2, x:[T2]uA ⊨ [T2]uB ⫤ T3
+  ----------------------------------------- :: Pi
+  T1 ⊨ Πx:uA.uB ⫤ T3
+
+  T1 ⊨ uA ⫤ T2   T2, x:[T2]A ⊨ [T2]B ⫤ T3   x ∊! uB ok
+  ----------------------------------------------------- :: Forall
+  T1 ⊨ ∀x:uA.uB ⫤ T3
+  
+
+  T1 ⊨ uA ⫤ T2   T2 ⊨ v ⇐ [T2]uA ⫤ T3   T3 ⊨ [T3]uw ⇐ [T3]A ⫤ T4
+  --------------------------------------------------------------- :: Eq
+  T1 ⊨ eq uA uv uw ⫤ T4
 
 
-  % --------------- :: Var
-  % T1 ⊨ x ⇓ x ⫤ T2
+  defn T1 ⊨ uv ⇐ uA  ⫤ T2 :: :: check :: 'check_'
+  {{ com Algorithmic checking }} by
+
+  % G ⊢ A   G, x:A  ⊢ v ⇐ B
+  % ----------------------- :: Gen
+  % G ⊢ v ⇐ ∀x:A.B
+
+  % G ⊢ A   G, x:A ⊢ v ⇐ B
+  % ---------------------- :: Pi
+  % G ⊢ \x.v ⇐ Πx:A.B
+
+  % G ⊢ v ≡ w ⇐ A 
+  % -------------------- :: Refl
+  % G ⊢ refl ⇐ eq A v w
+
+  % G ⊢ v ⇒ A    G ⊢ A ≤ B 
+  % ----------------------------- :: Sub
+  % G ⊢ v ⇐ B
 
 
+  % defn G ⊢ v ⇒ A :: :: inf :: 'inf_'
+  % {{ com Declarative inference }} by
+
+  % -------------- :: Unit
+  % G ⊢ <> ⇒ Unit
+
+  % x : A ∊ G 
+  % ---------- :: Var
+  % G ⊢ x ⇒ A
+
+  % G ⊢ v ⇒ A   G ⊢ A ⊴ Πx:B.C   
+  % -------------------------- :: App
+  % G ⊢ v w ⇒ [w/x]B
+
+  % G ⊢ A   G ⊢ v ⇐ A
+  % ------------------ :: Ann
+  % G ⊢ v:A ⇒ A
+
+  % G ⊢ e ⇒ eq A v w   G, x : A, p : eq A v x ⊢ X   G ⊢ f ⇐ [refl/p][v/x]X
+  % -------------------------------------------------------------------- :: RecEq
+  % G ⊢ receq x p X e f ⇒ [e/p][w/x]X
+
+
+  % defn G ⊢ A ⊴ B :: :: inst :: 'inst_'
+  % {{ com Top-level polymorphic instantiation }} by
+
+  % G ⊢ w ⇐ A    G ⊢[w/x]B ⊴ C
+  % -------------------------- :: Forall
+  % G ⊢ ∀x:A.B ⊴ C
+
+  % A ≠ ∀x:B.C
+  % ---------- :: Base
+  % G ⊢ A ⊴ A
+
+
+  % defn G ⊢ A ≤ B :: :: subt :: 'subt_'
+  % {{ com Declarative subtyping }} by
+
+  % G ⊢ A1 ≡ A2    G ⊢ v1 ≡ v2 ⇐ A1    G ⊢ w1 ≡ w2 ⇐ A1
+  % --------------------------------------------------- :: Eq
+  % G ⊢ eq A1 v1 w1 ≤ eq A2 v2 w2
+
+  % --------------- :: Unit
+  % G ⊢ Unit ≤ Unit 
+
+  % G ⊢ A1 ≡ A2    G, x:A1 ⊢ B1 ≤ B2
+  % -------------------------------- :: Pi
+  % G ⊢ Πx:A1.B1 ≤ Πx:A2.B2 
+
+  % G ⊢ w ⇐ A    G ⊢ [w/x]B ≤ X
+  % ---------------------------- :: ForallL
+  % G ⊢ ∀x:A.B ≤ X
+
+  % G, x:A ⊢ X ≤ B
+  % --------------- :: ForallR
+  % G ⊢ X ≤ ∀x:A.B
+
+
+  % defn G ⊢ A ≡ B :: :: equivT :: 'equivT_'
+  % {{ com Declarative type equivalence }} by
+
+  % --------------- :: Unit
+  % G ⊢ Unit ≡ Unit
+
+  % G ⊢ A1 ≡ A2   G, x:A1 ⊢ B1 ≡ B2
+  % ------------------------------- :: Pi
+  % G ⊢ Πx:A1.B1 ≡ Πx:A2.B2
+
+  % G ⊢ A1 ≡ A2   G, x:A1 ⊢ B1 ≡ B2
+  % ------------------------------- :: Forall
+  % G ⊢ ∀x:A1.B1 ≡ ∀x:A2.B2
+
+  % G ⊢ A1 ≡ A2   G ⊢ v1 ≡ v2 ⇐ A1   G ⊢ w1 ≡ w2 ⇐ A1
+  % -------------------------------------------------- :: Eq
+  % G ⊢ eq A1 v1 w1 ≡ eq A2 v2 w2
+
+
+  % defn G ⊢ v ≡ w ⇐ A :: :: equivChe :: 'equivChe_'
+  % {{ com Declarative checking equivalence }} by
+
+  % G ⊢ v ↘ v' ⇐ A   G ⊢ w ↘ w' ⇐ A   G ⊢ v' ≡n w' ⇐ A
+  % --------------------------------------------------- :: Red
+  % G ⊢ v ≡ w ⇐ A
+
+
+  % defn G ⊢ v ≡ w ⇒ A :: :: equivInf :: 'equivInf_'
+  % {{ com Declarative inferring equivalence }} by
+
+  % G ⊢ v ↘ v' ⇒ A   G ⊢ w ↘ w' ⇒ A   G ⊢ v' ≡n w' ⇒ A
+  % -------------------------------------------------- :: Red
+  % G ⊢ v ≡ w ⇒ A
+
+
+  % defn G ⊢ v ≡n w ⇐ A :: :: equivnChe :: 'equivnChe_'
+  % {{ com Declarative checking equivalence for terms in WHNF }} by
+
+  % G, x:A ⊢ v1 ≡ v2 ⇐ B
+  % --------------------------- :: Lam
+  % G ⊢ \x.v1 ≡n \x.v2 ⇐ Πx:A.B
+
+  % -------------------- :: Refl
+  % G ⊢ refl ≡n refl ⇐ A
+
+  % G, x:A ⊢ v ≡n w ⇐ B
+  % -------------------------- :: Forall
+  % G ⊢ v ≡n w ⇐ ∀x:A.B 
+
+  % G ⊢ v ≡n w ⇒ B   G ⊢ B ≤ A
+  % -------------------------- :: Subt
+  % G ⊢ v ≡n w ⇐ A
+
+
+  % defn G ⊢ v ≡n w ⇒ A :: :: equivnInf :: 'equivnInf_'
+  % {{ com Declarative inferring equivalence for terms in WHNF }} by
+
+  % x:A ∊ G
+  % ----------- :: Var
+  % G ⊢ x ≡n x ⇒ A
+
+  % ------------------- :: Unit
+  % G ⊢ <> ≡n <> ⇒ Unit
+  
+  % G ⊢ A ≡ A'   G ⊢ v ≡n v' ⇐ A
+  % ---------------------------- :: Ann
+  % G ⊢ (v : A) ≡n (v' : A') ⇒ A
+
+  % G ⊢ f1 ≡n f2 ⇒ A   G ⊢ A ⊴ Πx:B.C   G ⊢ v1 ≡ v2 ⇐ B
+  % --------------------------------------------------- :: App
+  % G ⊢ f1 v1 ≡n f2 v2 ⇒ [v1/x]C 
+  
+
+  % defn G ⊢ v ↘ w ⇐ A :: :: redChe :: 'redChe_'
+  % {{ com Declarative checking reduction to WHNF }} by
+
+  % ------------------- :: Lam
+  % G ⊢ \x.e ↘ \x.e ⇐ A
+  
+  % ------------------- :: Refl
+  % G ⊢ refl ↘ refl ⇐ A
+
+  % G, x:A  ⊢ v ↘ v' ⇐ B 
+  % -------------------------- :: Forall
+  % G ⊢ v ↘ v' ⇐ ∀x:A.B 
+
+  % G ⊢ v ↘ v' ⇒ B   G ⊢ B ≤ A
+  % -------------------------- :: Subt
+  % G ⊢ v ↘ v' ⇐ A
+
+
+  % defn G ⊢ v ↘ w ⇒ A :: :: redWHNF :: 'redInf_'
+  % {{ com Declarative inferring CBN reduction to WHNF }} by
+
+  % x:A ∊ G 
+  % ------------- :: Var
+  % G ⊢ x ↘ x ⇒ A
+
+  % ------------------- :: Refl
+  % G ⊢ <> ↘ <> ⇒ Unit 
+
+  % G ⊢ v ↘ v' ⇐ A
+  % -------------------------- :: Ann
+  % G ⊢ (v : A) ↘ (v' : A) ⇒ A
+
+  % G ⊢ f ↘ ((\y.w) : A) ⇒ A   G ⊢ A ⊴ Πx:B.C   G ⊢ v ⇐ B
+  % --------------------------------------------------- :: AppAbs
+  % G ⊢ f v ↘ [v/y]w ⇒ [v/x]C
+
+  % G ⊢ f ↘ f' ⇒ A   f' ≠ (\y.w) : D   G ⊢ A ⊴ Πx:B.C     G ⊢ v ⇐ B   
+  % ------------------------------------------------------------- :: App
+  % G ⊢ f v ↘ f' v ⇒ [v/x]C
+
+  % G ⊢ e ↘ (refl : A) ⇒ A   G ⊢ A ⊴ eq B v w  
+  % ------------------------------------------ :: RecRefl
+  % G ⊢ receq x p X e f ↘ f ⇒ [e/p][w/x]X
+
+  % G ⊢ e ↘ e'⇒ eq A v w    e' ≠ refl : eq A v w  
+  % ---------------------------------------------------- :: Rec
+  % G ⊢ receq x p X e f ↘ receq x p X e' f ⇒ [e/p][w/x]X
+
+
+  % % defn G ⊢ A ● v ⇒> B :: :: infApp :: 'infApp_'
+  % % {{ com Declarative application inference }} by
+
+  % % G ⊢ w ⇐ A   G ⊢ [w/x]B ● v ⇒> B
+  % % ------------------------------- :: Forall
+  % % G ⊢ ∀x:A.B ● v ⇒> B
+
+  % % G ⊢ v ⇐ A  
+  % % ------------------------- :: Pi
+  % % G ⊢ Πx:A.B ● v ⇒> [v/x]B

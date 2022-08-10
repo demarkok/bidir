@@ -5,14 +5,26 @@
 \usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{multicol}
+\usepackage{supertabular}
 
 \include{_build/_gen/included.tex}
 
 \begin{document}
 
 \section{Declarative system}
-\ottdefnsDe{}
+\ottgrammartabular{
+\otte\ottinterrule
+\ottX\ottinterrule
+}
+\ottdefnsDe
 
+\newpage
+\section{Algorithmic system}
+\ottgrammartabular{
+  \ottue\ottinterrule
+  \ottuA\ottinterrule
+}
+\ottdefnsAl{}
 % \begin{multicols}{2}
 % \ottdefnDeXXredV{}
 % \columnbreak
